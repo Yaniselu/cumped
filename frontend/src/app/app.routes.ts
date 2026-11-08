@@ -1,0 +1,29 @@
+import { Routes } from '@angular/router';
+import { adminGuard, authGuard, onboardingGuard } from './core/guards';
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'welcome', loadComponent: () => import('./pages/onboarding.page').then((m) => m.OnboardingPage) },
+  { path: 'login', loadComponent: () => import('./pages/auth.page').then((m) => m.LoginPage) },
+  { path: 'register', loadComponent: () => import('./pages/auth.page').then((m) => m.RegisterPage) },
+  { path: 'home', canActivate: [onboardingGuard], loadComponent: () => import('./pages/home.page').then((m) => m.HomePage) },
+  { path: 'search', loadComponent: () => import('./pages/search.page').then((m) => m.SearchPage) },
+  { path: 'listing/:id', loadComponent: () => import('./pages/listing.page').then((m) => m.ListingPage) },
+  { path: 'user/:id', loadComponent: () => import('./pages/user.page').then((m) => m.UserPage) },
+  { path: 'sell', canActivate: [authGuard], loadComponent: () => import('./pages/sell.page').then((m) => m.SellPage) },
+  { path: 'sell/:id', canActivate: [authGuard], loadComponent: () => import('./pages/sell.page').then((m) => m.SellPage) },
+  { path: 'chats', canActivate: [authGuard], loadComponent: () => import('./pages/chats.page').then((m) => m.ChatsPage) },
+  { path: 'chat/:id', canActivate: [authGuard], loadComponent: () => import('./pages/chat.page').then((m) => m.ChatPage) },
+  { path: 'offers', canActivate: [authGuard], loadComponent: () => import('./pages/offers.page').then((m) => m.OffersPage) },
+  { path: 'favorites', canActivate: [authGuard], loadComponent: () => import('./pages/favorites.page').then((m) => m.FavoritesPage) },
+  { path: 'notifications', canActivate: [authGuard], loadComponent: () => import('./pages/notifications.page').then((m) => m.NotificationsPage) },
+  { path: 'profile', canActivate: [authGuard], loadComponent: () => import('./pages/profile.page').then((m) => m.ProfilePage) },
+  { path: 'my-listings', canActivate: [authGuard], loadComponent: () => import('./pages/my-listings.page').then((m) => m.MyListingsPage) },
+  { path: 'stats', canActivate: [authGuard], loadComponent: () => import('./pages/stats.page').then((m) => m.StatsPage) },
+  { path: 'settings', canActivate: [authGuard], loadComponent: () => import('./pages/settings.page').then((m) => m.SettingsPage) },
+  { path: 'verify', canActivate: [authGuard], loadComponent: () => import('./pages/verify.page').then((m) => m.VerifyPage) },
+  { path: 'plans', loadComponent: () => import('./pages/plans.page').then((m) => m.PlansPage) },
+  { path: 'support', canActivate: [authGuard], loadComponent: () => import('./pages/velo.page').then((m) => m.VeloPage) },
+  { path: 'admin', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin.page').then((m) => m.AdminPage) },
+  { path: '**', redirectTo: 'home' },
+];
