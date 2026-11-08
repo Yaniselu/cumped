@@ -1,0 +1,32 @@
+# Pornire locală completă: docker compose up --build  →  http://localhost:8100
+# În producție pune un proxy HTTPS (ex. Caddy sau Cloudflare) în fața serviciului "web".
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: cumped
+      POSTGRES_USER: cumped
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?seteaza DB_PASSWORD in .env}
+    volumes: [db:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U cumped"], interval: 5s, retries: 10 }
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/cumped
+      DB_USER: cumped
+    volumes: [uploads:/data/uploads]
+    depends_on: { db: { condition: service_healthy } }
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    ports: ["8100:80"]
+    depends_on: [backend]
+    restart: unless-stopped
+
+volumes:
+  db:
+  uploads:

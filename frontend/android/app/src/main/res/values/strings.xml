@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cumped</string>
+    <string name="title_activity_main">Cumped</string>
+    <string name="package_name">com.velosyntech.cumped</string>
+    <string name="custom_url_scheme">com.velosyntech.cumped</string>
+</resources>

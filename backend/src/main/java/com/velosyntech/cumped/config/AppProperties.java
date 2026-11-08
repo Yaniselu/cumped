@@ -24,8 +24,10 @@ public record AppProperties(
         String adminEmail,
         String adminPassword,
         boolean devMode,
-        boolean demoData
+        boolean demoData,
+        Boolean rateLimit
 ) {
+    public boolean rateLimitEnabled() { return rateLimit == null || rateLimit; }
     public List<String> corsOriginList() { return split(corsOrigins); }
     public List<String> googleClientIdList() { return split(googleClientIds); }
     public List<String> appleClientIdList() { return split(appleClientIds); }

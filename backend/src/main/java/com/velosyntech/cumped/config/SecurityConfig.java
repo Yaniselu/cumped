@@ -29,7 +29,7 @@ import java.util.UUID;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain api(HttpSecurity http, UserStatusCache status) throws Exception {
+    SecurityFilterChain api(HttpSecurity http, UserStatusCache status, AppProperties props) throws Exception {
         http
             .csrf(c -> c.disable()) // API stateless cu Bearer; endpoint-urile cu cookie cer header custom + SameSite=Strict
             .cors(c -> {})
@@ -76,7 +76,8 @@ public class SecurityConfig {
                     res.getWriter().write("{\"error\":\"UNAUTHORIZED\"}");
                 })
             )
-            .addFilterBefore(new RateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
+            ;
+        if (props.rateLimitEnabled()) http.addFilterBefore(new RateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

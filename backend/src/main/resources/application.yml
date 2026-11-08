@@ -77,3 +77,4 @@ cumped:
   # Doar pentru dezvoltare: simulează verificarea de identitate, SMS-ul și plățile.
   dev-mode: ${DEV_MODE:false}
   demo-data: ${DEMO_DATA:false}
+  rate-limit: ${RATE_LIMIT:true}
