@@ -1,0 +1,6 @@
+package com.velosyntech.cumped.listing;
+
+public enum Category {
+    PHONES, ELECTRONICS, COMPUTERS, VEHICLES, AUTO_PARTS, REAL_ESTATE, HOME_GARDEN, FASHION, KIDS,
+    SPORTS, HOBBY, BOOKS_MUSIC, PETS, SERVICES, JOBS, OTHER
+}

@@ -1,0 +1,79 @@
+spring:
+  application:
+    name: cumped
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/cumped}
+    username: ${DB_USER:cumped}
+    password: ${DB_PASSWORD:cumped}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 10MB
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+    whitelabel:
+      enabled: false
+  servlet:
+    session:
+      tracking-modes: []
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+
+cumped:
+  # Secret pentru semnarea token-urilor (minim 32 de caractere). OBLIGATORIU în producție.
+  jwt-secret: ${JWT_SECRET:}
+  access-token-ttl: PT15M
+  refresh-token-ttl: P30D
+  cors-origins: ${CORS_ORIGINS:http://localhost:8100,http://localhost:4200}
+  cookie-secure: ${COOKIE_SECURE:true}
+  uploads-dir: ${UPLOADS_DIR:./uploads}
+  support-email: ${SUPPORT_EMAIL:contact@velosyntech.com}
+  mail-from: ${MAIL_FROM:no-reply@cumped.com}
+  public-url: ${PUBLIC_URL:http://localhost:8100}
+  anthropic-api-key: ${ANTHROPIC_API_KEY:}
+  anthropic-model: ${ANTHROPIC_MODEL:claude-opus-5-5}
+  google-client-ids: ${GOOGLE_CLIENT_IDS:}
+  apple-client-ids: ${APPLE_CLIENT_IDS:}
+  admin-email: ${ADMIN_EMAIL:}
+  admin-password: ${ADMIN_PASSWORD:}
+  # Doar pentru dezvoltare: simulează verificarea de identitate, SMS-ul și plățile.
+  dev-mode: ${DEV_MODE:false}
+  demo-data: ${DEMO_DATA:false}
