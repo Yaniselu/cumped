@@ -95,4 +95,40 @@ class AuthSecurityIT {
         c.token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ0eXAiOiJhY2Nlc3MiLCJyb2xlIjoiQURNSU4iLCJ0diI6MH0.invalidsignature";
         assertThat(c.get("/api/admin/overview").status()).isEqualTo(401);
     }
+
+    @Test
+    void loginThrottleIsPerEmailAndLooksTheSameForUnknownAccounts() {
+        TestClient owner = new TestClient(port, json);
+        String email = owner.register().get("email").asText();
+        TestClient attacker = new TestClient(port, json);
+        for (String target : new String[] { email, "nobody-" + System.nanoTime() + "@test.dev" }) {
+            for (int i = 1; i <= 4; i++) {
+                TestClient.Res r = attacker.post("/api/auth/login", Map.of("email", target, "password", "wrong-pass-" + i));
+                assertThat(r.status()).isEqualTo(401);
+                assertThat(r.error()).isEqualTo("INVALID_CREDENTIALS");
+            }
+            TestClient.Res fifth = attacker.post("/api/auth/login", Map.of("email", target, "password", "wrong-pass-5"));
+            assertThat(fifth.status()).isEqualTo(429);
+            assertThat(fifth.error()).isEqualTo("LOGIN_THROTTLED");
+            assertThat(Long.parseLong(fifth.raw().headers().firstValue("Retry-After").orElse("0"))).isBetween(60L, 15 * 60L + 1);
+        }
+        // Contul e protejat chiar și de pe alt IP, chiar și cu parola corectă, până expiră pauza.
+        TestClient other = new TestClient(port, json);
+        assertThat(other.post("/api/auth/login", Map.of("email", email, "password", "Sigur-Parola-2026!")).error()).isEqualTo("LOGIN_THROTTLED");
+    }
+
+    @Test
+    void manyFailuresFromOneIpAreBlockedEvenAcrossAccounts() {
+        TestClient bot = new TestClient(port, json);
+        int last = 0;
+        for (int i = 0; i < 21; i++) {
+            last = bot.post("/api/auth/login", Map.of("email", "stuffing-" + i + "-" + System.nanoTime() + "@test.dev", "password", "Parola-Furata-1")).status();
+        }
+        assertThat(last).isEqualTo(429);
+        // Un utilizator legitim de pe alt IP nu e afectat.
+        TestClient legit = new TestClient(port, json);
+        String email = legit.register().get("email").asText();
+        legit.token = null;
+        assertThat(legit.post("/api/auth/login", Map.of("email", email, "password", "Sigur-Parola-2026!")).status()).isEqualTo(200);
+    }
 }

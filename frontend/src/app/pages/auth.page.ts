@@ -1,5 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
-import { Component, Directive, OnInit, inject, input, signal } from '@angular/core';
+import { Component, Directive, OnDestroy, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, NavController } from '@ionic/angular';
@@ -78,7 +78,8 @@ const STYLES = `
             <div class="pw"><input class="input" [type]="show() ? 'text' : 'password'" name="password" [(ngModel)]="password" autocomplete="current-password" required />
               <button type="button" class="icon-btn sm" (click)="show.set(!show())"><ion-icon name="eye-outline"></ion-icon></button></div></div>
           @if (error()) { <div class="error-text fade">{{ error() }}</div> }
-          <button class="btn block" [disabled]="busy() || !email || !password">{{ 'auth.loginCta' | t }}</button>
+          <button class="btn block" [disabled]="busy() || !email || !password || wait() > 0">
+            @if (wait() > 0) { <ion-icon name="time-outline"></ion-icon>{{ 'auth2.retryIn' | t: { time: mmss(wait()) } }} } @else { {{ 'auth.loginCta' | t }} }</button>
         </form>
         ${SOCIAL}
         <p class="terms">{{ 'auth.socialTerms' | t }} <a routerLink="/legal/terms">{{ 'legal.terms' | t }}</a> · <a routerLink="/legal/privacy">{{ 'legal.privacy' | t }}</a></p>
@@ -89,18 +90,37 @@ const STYLES = `
   `,
   styles: [STYLES],
 })
-export class LoginPage extends AuthBase {
+export class LoginPage extends AuthBase implements OnDestroy {
   email = '';
   password = '';
   show = signal(false);
+  /** După prea multe încercări, serverul spune cât trebuie așteptat (Retry-After); afișăm numărătoarea. */
+  private until = signal(0);
+  private now = signal(Date.now());
+  private ticker: any;
+  wait = computed(() => Math.max(0, Math.ceil((this.until() - this.now()) / 1000)));
+
+  mmss(s: number) { return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
 
   async submit() {
+    if (this.busy() || this.wait() > 0) return;
     this.busy.set(true);
     this.error.set('');
     try { await this.auth.login(this.email.trim(), this.password); this.done(); }
-    catch (e) { this.error.set(this.ui.errorText(e)); }
+    catch (e: any) {
+      this.error.set(this.ui.errorText(e));
+      const retry = Number(e?.error?.retryAfter ?? e?.headers?.get?.('Retry-After') ?? 0);
+      if (e?.status === 429 && retry > 0) {
+        this.until.set(Date.now() + retry * 1000);
+        clearInterval(this.ticker);
+        this.ticker = setInterval(() => { this.now.set(Date.now()); if (this.wait() <= 0) clearInterval(this.ticker); }, 1000);
+        this.now.set(Date.now());
+      }
+    }
     finally { this.busy.set(false); }
   }
+
+  ngOnDestroy() { clearInterval(this.ticker); }
 }
 
 @Component({

@@ -21,6 +21,8 @@ public class TestClient {
     private final HttpClient http;
     private final CookieManager cookies = new CookieManager();
     public String token;
+    /** IP simulat (prin proxy-ul de încredere local): fiecare client de test are „IP-ul lui”, ca limitele să nu se amestece. */
+    public String ip = "198.18." + java.util.concurrent.ThreadLocalRandom.current().nextInt(256) + "." + (1 + java.util.concurrent.ThreadLocalRandom.current().nextInt(254));
 
     public TestClient(int port, JsonMapper json) {
         this.base = "http://localhost:" + port;
@@ -51,6 +53,7 @@ public class TestClient {
             HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(base + path)).header("Content-Type", "application/json");
             if (token != null) b.header("Authorization", "Bearer " + token);
             if (csrf) b.header("X-Requested-With", "cumped");
+            if (ip != null) b.header("X-Forwarded-For", ip);
             String payload = body == null ? "" : (body instanceof String s ? s : json.writeValueAsString(body));
             b.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(payload));
             HttpResponse<String> r = http.send(b.build(), HttpResponse.BodyHandlers.ofString());

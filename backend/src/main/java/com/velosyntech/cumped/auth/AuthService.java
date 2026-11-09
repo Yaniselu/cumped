@@ -10,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Set;
@@ -22,8 +21,6 @@ public class AuthService {
     public static final String TERMS_VERSION = "2026-11";
     private static final Set<String> RESERVED = Set.of("admin", "administrator", "root", "support", "suport", "velo",
             "veloai", "cumped", "moderator", "staff", "official", "oficial", "help", "ajutor", "system", "security");
-    private static final int MAX_FAILED = 5;
-    private static final Duration LOCK = Duration.ofMinutes(15);
     private static final Set<String> LOCALES = Set.of("ro", "en", "de", "fr", "es", "it", "hu", "pl", "uk", "tr",
             "pt", "nl", "bg", "cs", "el", "sv");
 
@@ -33,17 +30,19 @@ public class AuthService {
     private final TokenService tokens;
     private final AuditService audit;
     private final UserStatusCache statusCache;
+    private final LoginThrottle throttle;
     /** Hash fals: login-ul durează la fel și când email-ul nu există (nu putem afla ce conturi există). */
     private final String dummyHash;
 
     public AuthService(UserRepository users, ReferralRepository referrals, PasswordEncoder encoder,
-                       TokenService tokens, AuditService audit, UserStatusCache statusCache) {
+                       TokenService tokens, AuditService audit, UserStatusCache statusCache, LoginThrottle throttle) {
         this.users = users;
         this.referrals = referrals;
         this.encoder = encoder;
         this.tokens = tokens;
         this.audit = audit;
         this.statusCache = statusCache;
+        this.throttle = throttle;
         this.dummyHash = encoder.encode(Texts.randomToken(16));
     }
 
@@ -68,28 +67,25 @@ public class AuthService {
     }
 
     @Transactional(noRollbackFor = ApiException.class)
-    public User login(AuthDtos.LoginRequest r) {
+    public User login(AuthDtos.LoginRequest r, String ip) {
         String email = normalizeEmail(r.email());
+        // Aceeași limită pentru orice email (existent sau nu): răspunsul nu trădează ce conturi există.
+        throttle.check(email, ip);
         User u = users.findByEmail(email).orElse(null);
-        if (u == null || u.getPasswordHash() == null) {
-            encoder.matches(r.password(), dummyHash);
-            throw invalidCredentials();
-        }
-        if (u.getLockedUntil() != null && u.getLockedUntil().isAfter(Instant.now())) {
-            encoder.matches(r.password(), dummyHash);
-            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "ACCOUNT_LOCKED");
-        }
-        if (!encoder.matches(r.password(), u.getPasswordHash())) {
-            u.setFailedLogins(u.getFailedLogins() + 1);
-            if (u.getFailedLogins() >= MAX_FAILED) {
-                u.setLockedUntil(Instant.now().plus(LOCK));
-                u.setFailedLogins(0);
-                audit.log(u.getId(), "LOCKED", null);
+        boolean ok = u != null && u.getPasswordHash() != null && encoder.matches(r.password(), u.getPasswordHash());
+        if (u == null || u.getPasswordHash() == null) encoder.matches(r.password(), dummyHash);
+        if (!ok) {
+            long lock = throttle.fail(email, ip);
+            if (u != null) {
+                u.setFailedLogins(u.getFailedLogins() + 1);
+                users.save(u);
+                if (lock > 0) audit.log(u.getId(), "LOGIN_THROTTLED", null);
             }
-            users.save(u);
+            if (lock > 0) throw ApiException.tooManyRequests("LOGIN_THROTTLED", lock);
             throw invalidCredentials();
         }
         if (u.isSuspended()) throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED");
+        throttle.success(email);
         u.setFailedLogins(0);
         u.setLockedUntil(null);
         users.save(u);

@@ -1,4 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
+import { HoldButtonComponent } from '../shared/hold-button.component';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, NavController, ViewWillEnter } from '@ionic/angular';
@@ -14,7 +15,7 @@ import { PublicUser } from '../core/models';
 
 @Component({
   selector: 'page-settings',
-  imports: [MOTION, IonContent, IonIcon, FormsModule, TPipe, BackButtonComponent, AvatarComponent, RouterLink],
+  imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, FormsModule, TPipe, BackButtonComponent, AvatarComponent, RouterLink],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
@@ -92,7 +93,8 @@ import { PublicUser } from '../core/models';
         <div class="card pad stack reveal">
           <button class="btn light block" (click)="exportData()"><ion-icon name="download-outline"></ion-icon>{{ 'settings.exportData' | t }}</button>
           <p class="faint small">{{ 'settings.deleteInfo' | t }}</p>
-          <button class="btn danger block" (click)="deleteAccount()"><ion-icon name="trash-outline"></ion-icon>{{ 'settings.deleteAccount' | t }}</button>
+          <cmp-hold-button tone="danger" [block]="true" [caption]="true" icon="trash-outline" [duration]="1500" [busy]="deleting()" [label]="'settings.deleteAccount' | t"
+            [confirmText]="'settings.deleteConfirm' | t" (confirmed)="deleteAccount()" />
         </div>
 
         <h3 class="sh">{{ 'settings.legal' | t }}</h3>
@@ -191,8 +193,11 @@ export class SettingsPage implements ViewWillEnter {
     } catch (e) { this.ui.error(e); }
   }
 
+  deleting = signal(false);
   async deleteAccount() {
-    if (!(await this.ui.confirm(this.i18n.t('settings.deleteConfirm'), this.i18n.t('common.delete')))) return;
+    if (this.deleting()) return;
+    this.deleting.set(true);
     try { await this.api.deleteAccount(); await this.auth.logout(); this.nav.navigateRoot('/welcome'); } catch (e) { this.ui.error(e); }
+    this.deleting.set(false);
   }
 }

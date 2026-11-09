@@ -1,4 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
+import { HoldButtonComponent } from '../shared/hold-button.component';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, NavController } from '@ionic/angular';
@@ -18,7 +19,7 @@ const DOCS = ['terms', 'privacy', 'rules', 'dsa', 'cookies', 'about', 'delete-ac
  */
 @Component({
   selector: 'page-legal',
-  imports: [MOTION, IonContent, IonIcon, RouterLink, TPipe, BackButtonComponent],
+  imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, RouterLink, TPipe, BackButtonComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
@@ -32,7 +33,8 @@ const DOCS = ['terms', 'privacy', 'rules', 'dsa', 'cookies', 'about', 'delete-ac
               <section><h2>{{ s.h }}</h2>@for (p of s.p; track $index) { <p>{{ fill(p) }}</p> }</section>
             }
             @if (docId() === 'delete-account' && auth.loggedIn()) {
-              <button class="btn danger block" (click)="deleteNow()"><ion-icon name="trash-outline"></ion-icon>{{ 'settings.deleteAccount' | t }}</button>
+              <cmp-hold-button tone="danger" [block]="true" [caption]="true" icon="trash-outline" [duration]="1500" [busy]="deleting()" [label]="'settings.deleteAccount' | t"
+            [confirmText]="'settings.deleteConfirm' | t" (confirmed)="deleteNow()" />
             }
           </article>
           <nav class="others">
@@ -84,8 +86,11 @@ export class LegalPage {
       .replace(/\{vat\}/g, v(c?.vat)).replace(/\{email\}/g, v(c?.email)).replace(/\{dpo\}/g, v(c?.dpoEmail || c?.email));
   }
 
+  deleting = signal(false);
   async deleteNow() {
-    if (!(await this.ui.confirm(this.i18n.t('settings.deleteConfirm'), this.i18n.t('common.delete')))) return;
+    if (this.deleting()) return;
+    this.deleting.set(true);
     try { await this.api.deleteAccount(); await this.auth.logout(); this.nav.navigateRoot('/welcome'); } catch (e) { this.ui.error(e); }
+    this.deleting.set(false);
   }
 }

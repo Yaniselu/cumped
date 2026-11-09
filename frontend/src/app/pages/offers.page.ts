@@ -1,4 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
+import { HoldButtonComponent } from '../shared/hold-button.component';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +24,7 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
  */
 @Component({
   selector: 'page-offers',
-  imports: [MOTION, IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent, RouterLink, FormsModule, TPipe,
+  imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent, RouterLink, FormsModule, TPipe,
     AvatarComponent, BackButtonComponent, EmptyComponent, SkeletonLinesComponent, PriceInputComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
@@ -100,8 +101,9 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
 
               <footer class="acts">
                 @if (n.myTurn) {
-                  <button class="btn sm accent grow" [disabled]="busy()" (click)="act(n, 'accept')"><ion-icon name="checkmark"></ion-icon>
-                    {{ 'neg.accept' | t }}@if (c.amountCents && c.kind === 'PRICE') { &nbsp;{{ i18n.price(c.amountCents, cur) }} }</button>
+                  <cmp-hold-button class="grow full" tone="accent" [block]="true" [caption]="true" icon="checkmark" [busy]="busy()"
+                    [label]="c.amountCents && c.kind === 'PRICE' ? ('neg.accept' | t) + ' ' + i18n.price(c.amountCents, cur) : ('neg.accept' | t)"
+                    [confirmText]="acceptText(n)" (confirmed)="act(n, 'accept')" />
                   @if (n.canCounter) { <button class="btn sm light" [disabled]="busy()" (click)="openCounter(n)"><ion-icon name="swap-vertical"></ion-icon>{{ 'neg.counter' | t }}</button> }
                   <button class="btn sm ghost" [disabled]="busy()" (click)="act(n, 'decline')">{{ 'neg.decline' | t }}</button>
                 } @else if (c.status === 'PENDING') {
@@ -181,7 +183,7 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
     .hs { font-size: 11px; font-weight: 650; color: var(--text-3); white-space: nowrap; }
     .hs[data-s="ACCEPTED"] { color: var(--ok); } .hs[data-s="PENDING"] { color: var(--accent); }
     .acts { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-    .acts .grow { flex: 1 1 160px; }
+    .acts .grow { flex: 1 1 160px; } .acts cmp-hold-button.full { flex: 1 1 100%; }
     .acts .icon-btn { margin-left: auto; }
     .wait { display: inline-flex; align-items: center; gap: 8px; flex: 1; }
     .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulseRing 1.6s infinite; box-shadow: 0 0 0 0 rgba(91,61,245,.5); }
@@ -270,6 +272,11 @@ export class OffersPage implements ViewWillEnter {
   statusLabel(n: Negotiation) {
     if (n.current.status === 'PENDING') return n.myTurn ? 'neg.yourTurn' : 'neg.waitingShort';
     return 'offer.status.' + n.current.status;
+  }
+
+  acceptText(n: Negotiation) {
+    const c = n.current, cur = n.listing?.currency ?? 'RON';
+    return this.i18n.t('hold.acceptOffer', { amount: c.amountCents ? this.i18n.price(c.amountCents, cur) : this.i18n.t('neg.swapOffer') });
   }
 
   pct(amount: number, list: number) { return Math.max(0, Math.round((1 - amount / list) * 100)); }

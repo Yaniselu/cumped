@@ -20,6 +20,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private record Rule(String name, int capacity, double refillPerSecond) {}
 
+    private static final Rule LOGIN = new Rule("login", 10, 6 / 60.0);
     private static final Rule AUTH = new Rule("auth", 10, 10 / 60.0);
     private static final Rule REVEAL = new Rule("reveal", 20, 20 / 3600.0);
     private static final Rule VELO = new Rule("velo", 20, 20 / 60.0);
@@ -42,17 +43,19 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (!path.startsWith("/api/")) { chain.doFilter(req, res); return; }
         Rule rule = ruleFor(req.getMethod(), path);
         String key = rule.name + "|" + req.getRemoteAddr();
-        if (!take(key, rule)) {
+        long wait = take(key, rule);
+        if (wait > 0) {
             res.setStatus(429);
-            res.setHeader("Retry-After", "30");
+            res.setHeader("Retry-After", String.valueOf(wait));
             res.setContentType("application/json");
-            res.getWriter().write("{\"error\":\"RATE_LIMITED\"}");
+            res.getWriter().write("{\"error\":\"RATE_LIMITED\",\"retryAfter\":" + wait + "}");
             return;
         }
         chain.doFilter(req, res);
     }
 
     private Rule ruleFor(String method, String path) {
+        if (path.equals("/api/auth/login") || path.equals("/api/auth/google") || path.equals("/api/auth/apple")) return LOGIN;
         if (path.startsWith("/api/auth/") && !path.equals("/api/auth/refresh")) return AUTH;
         if (path.startsWith("/api/verification/")) return AUTH;
         if (path.endsWith("/real-name")) return REVEAL;
@@ -61,7 +64,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return READ;
     }
 
-    private boolean take(String key, Rule rule) {
+    /** Consumă un jeton; întoarce 0 dacă cererea trece, altfel câte secunde mai trebuie așteptat. */
+    private long take(String key, Rule rule) {
         long now = System.nanoTime();
         if (calls.incrementAndGet() % 10_000 == 0) cleanup(now);
         Bucket b = buckets.computeIfAbsent(key, k -> new Bucket(rule.capacity, now));
@@ -69,9 +73,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
             double elapsed = (now - b.last) / 1_000_000_000.0;
             b.tokens = Math.min(rule.capacity, b.tokens + elapsed * rule.refillPerSecond);
             b.last = now;
-            if (b.tokens < 1) return false;
+            if (b.tokens < 1) return Math.max(1, (long) Math.ceil((1 - b.tokens) / rule.refillPerSecond));
             b.tokens -= 1;
-            return true;
+            return 0;
         }
     }
 

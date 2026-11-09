@@ -1,4 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
+import { HoldButtonComponent } from '../shared/hold-button.component';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { IonContent, IonIcon, NavController } from '@ionic/angular';
 import { Api } from '../core/api.service';
@@ -12,7 +13,7 @@ const ICONS: Record<string, string> = { EXTRA_LISTING: 'add-circle', PLUS: 'spar
 
 @Component({
   selector: 'page-plans',
-  imports: [MOTION, IonContent, IonIcon, TPipe, BackButtonComponent],
+  imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, TPipe, BackButtonComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
@@ -26,7 +27,9 @@ const ICONS: Record<string, string> = { EXTRA_LISTING: 'add-circle', PLUS: 'spar
               <div class="tx"><strong>{{ 'plans.' + p.id | t }}</strong><span class="small muted">{{ 'plans.' + p.id + '_d' | t }}</span></div>
               <div class="pr"><strong>{{ i18n.price(p.priceCents, p.currency) }}</strong><span class="faint small">{{ p.period === 'MONTH' ? ('plans.month' | t) : '' }}</span></div>
               @if (purchases.allowed() && (p.id === 'PLUS' || p.id === 'PRO' || p.id === 'EXTRA_LISTING')) {
-                <button class="btn sm" [class.light]="p.id !== 'PLUS'" [disabled]="auth.user()?.plan === p.id" (click)="buy(p.id)">{{ (auth.user()?.plan === p.id ? 'plans.current' : 'plans.buy') | t }}</button>
+                <cmp-hold-button class="buyb" [small]="true" [block]="true" [caption]="true" [tone]="p.id === 'PLUS' ? 'light' : 'dark'" icon="card-outline" [busy]="buying() === p.id"
+                  [disabled]="auth.user()?.plan === p.id" [label]="(auth.user()?.plan === p.id ? 'plans.current' : 'hold.pay') | t: { price: i18n.price(p.priceCents, p.currency) }"
+                  [confirmText]="'hold.payConfirm' | t: { what: ('plans.' + p.id | t), price: i18n.price(p.priceCents, p.currency) }" (confirmed)="buy(p.id)" />
               }
             </div>
           }
@@ -40,7 +43,7 @@ const ICONS: Record<string, string> = { EXTRA_LISTING: 'add-circle', PLUS: 'spar
   styles: [`
     h1 { margin-bottom: 8px; } .list { display: flex; flex-direction: column; gap: 12px; margin-top: 22px; }
     .plan { display: grid; grid-template-columns: auto 1fr auto; gap: 12px 14px; align-items: center; padding: 16px; }
-    .plan .btn { grid-column: 1 / -1; }
+    .plan .buyb { grid-column: 1 / -1; }
     .plan.hl { background: linear-gradient(135deg, #5b3df5 0%, #8b6dff 100%); color: #fff; border: 0; box-shadow: 0 24px 50px -24px rgba(91,61,245,.8); }
     .plan.hl .muted, .plan.hl .faint { color: rgba(255,255,255,.8); } .plan.hl .btn { background: #fff; color: #111; }
     .ic { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 22px; }
@@ -60,12 +63,16 @@ export class PlansPage implements OnInit {
   icons = ICONS;
   products = signal<{ id: string; priceCents: number; currency: string; period: string }[]>([]);
   simulated = signal(false);
+  buying = signal<string | null>(null);
 
   async ngOnInit() { try { const p = await this.api.plans(); this.products.set(p.products); this.simulated.set(p.simulated); } catch { /* ignore */ } }
 
   async buy(id: string) {
     if (!this.auth.loggedIn()) { this.nav.navigateForward('/login'); return; }
+    if (this.buying()) return;
+    this.buying.set(id);
     try { await this.api.checkout(id); this.auth.setUser(await this.api.me()); this.ui.toast(this.i18n.t('plans.done')); this.ui.tap(); }
     catch (e) { this.ui.error(e); }
+    this.buying.set(null);
   }
 }

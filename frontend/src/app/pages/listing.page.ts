@@ -1,4 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
+import { HoldButtonComponent } from '../shared/hold-button.component';
 import { Component, ElementRef, ViewChild, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -21,7 +22,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
 
 @Component({
   selector: 'page-listing',
-  imports: [MOTION, IonContent, IonIcon, IonModal, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent, ListingCardComponent,
+  imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, IonModal, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent, ListingCardComponent,
     PriceInputComponent, ReportSheetComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
@@ -128,8 +129,10 @@ import { ListingCardComponent } from '../shared/listing-card.component';
                     <a class="chip" [routerLink]="['/sell', x.id]"><ion-icon name="create-outline"></ion-icon>{{ 'common.edit' | t }}</a>
                     @if (x.status === 'ACTIVE') {
                       @if (purchases.allowed()) {
-                        <button class="chip" (click)="buy('PROMOTE_7D')"><ion-icon name="rocket-outline"></ion-icon>{{ 'listing.promote' | t }}</button>
-                        <button class="chip" (click)="buy('BUMP')"><ion-icon name="arrow-up"></ion-icon>{{ 'listing.bump' | t }}</button>
+                        <cmp-hold-button tone="light" [small]="true" icon="rocket-outline" [busy]="buying() === 'PROMOTE_7D'" [label]="'listing.promote' | t"
+                          [confirmText]="'hold.payConfirm' | t: { what: ('plans.PROMOTE_7D' | t), price: '2,99 €' }" (confirmed)="buy('PROMOTE_7D')" />
+                        <cmp-hold-button tone="light" [small]="true" icon="arrow-up" [busy]="buying() === 'BUMP'" [label]="'listing.bump' | t"
+                          [confirmText]="'hold.payConfirm' | t: { what: ('plans.BUMP' | t), price: '0,99 €' }" (confirmed)="buy('BUMP')" />
                       }
                       <button class="chip" (click)="status('pause')"><ion-icon name="pause-outline"></ion-icon>{{ 'listing.pause' | t }}</button>
                       <button class="chip" (click)="status('sold')"><ion-icon name="bag-check-outline"></ion-icon>{{ 'listing.markSold' | t }}</button>
@@ -453,6 +456,7 @@ export class ListingPage implements ViewWillEnter {
   mine = signal<Card[]>([]);
   busy = signal(false);
   reportOpen = signal(false);
+  buying = signal<string | null>(null);
   viewer = signal<number | null>(null);
   vIndex = signal(0);
   shipTo = 'RO';
@@ -672,7 +676,10 @@ export class ListingPage implements ViewWillEnter {
   }
 
   async buy(product: string) {
+    if (this.buying()) return;
+    this.buying.set(product);
     try { await this.api.checkout(product, this.id()); this.ui.toast(this.i18n.t('plans.done') + ' · ' + this.i18n.t('common.simulated')); await this.ionViewWillEnter(); }
     catch (e) { this.ui.error(e); }
+    this.buying.set(null);
   }
 }

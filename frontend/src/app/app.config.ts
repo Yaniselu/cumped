@@ -11,6 +11,7 @@ import { Theme } from './core/theme.service';
 import { registerIcons } from './core/icons';
 import { cumpedNavAnimation } from './core/nav-animation';
 import { Motion } from './core/motion.service';
+import { installTapGuard } from './core/tap-guard';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -24,6 +25,7 @@ export const appConfig: ApplicationConfig = {
       registerIcons();
       theme.init();
       motion.init();
+      installTapGuard();
       // Refracția SVG pe fundal funcționează doar în motoarele Chromium.
       const ua = navigator.userAgent;
       if (/Chrome\/|Chromium\/|Edg\//.test(ua) && !/Firefox\//.test(ua) && !theme.lite()) document.documentElement.classList.add('lg-refract');

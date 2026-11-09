@@ -1,4 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
+import { HoldButtonComponent } from '../shared/hold-button.component';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -19,7 +20,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
 
 @Component({
   selector: 'page-sell',
-  imports: [MOTION, IonContent, IonIcon, FormsModule, RouterLink, TPipe, BackButtonComponent, PriceInputComponent],
+  imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, FormsModule, RouterLink, TPipe, BackButtonComponent, PriceInputComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
@@ -31,7 +32,8 @@ interface Photo { id?: string; url: string; uploading: boolean; }
             <h2>{{ 'sell.quotaTitle' | t }}</h2>
             <p class="muted">{{ 'sell.quotaSub' | t: { limit: auth.user()?.quota?.limit } }}</p>
             @if (purchases.allowed()) {
-              <button class="btn block" (click)="buyExtra()"><ion-icon name="add-circle"></ion-icon>{{ 'sell.buyExtra' | t }}</button>
+              <cmp-hold-button [block]="true" [caption]="true" icon="add-circle" [busy]="buying()" [label]="'sell.buyExtra' | t"
+                [confirmText]="'hold.payConfirm' | t: { what: ('plans.EXTRA_LISTING' | t), price: '1,99 €' }" (confirmed)="buyExtra()" />
               <a class="btn light block" routerLink="/plans">{{ 'sell.seePlans' | t }}</a>
             } @else { <p class="faint small">{{ 'plans.nativeSoon' | t }}</p> }
             <a class="btn ghost block" routerLink="/profile"><ion-icon name="gift-outline"></ion-icon>{{ 'sell.invite' | t }}</a>
@@ -170,8 +172,8 @@ interface Photo { id?: string; url: string; uploading: boolean; }
                   <div class="toggle-row"><span><ion-icon name="swap-horizontal"></ion-icon><span><b>{{ 'sell.acceptsSwap' | t }}</b><small>{{ 'sell.acceptsSwapSub' | t }}</small></span></span>
                     <button class="switch" role="switch" [attr.aria-checked]="f.acceptsSwap" [class.on]="f.acceptsSwap" (click)="f.acceptsSwap = !f.acceptsSwap"></button></div>
                   <div class="toggle-row"><span><ion-icon name="layers-outline"></ion-icon><span><b>{{ 'sell.quantity' | t }}</b><small>{{ 'sell.quantitySub' | t }}</small></span></span>
-                    <div class="stepper"><button (click)="f.quantity = Math.max(1, f.quantity - 1)" [attr.aria-label]="'−'">−</button><span>{{ f.quantity }}</span>
-                      <button (click)="f.quantity = Math.min(999, f.quantity + 1)" [attr.aria-label]="'+'">+</button></div></div>
+                    <div class="stepper"><button data-repeat (click)="f.quantity = Math.max(1, f.quantity - 1)" [attr.aria-label]="'−'">−</button><span>{{ f.quantity }}</span>
+                      <button data-repeat (click)="f.quantity = Math.min(999, f.quantity + 1)" [attr.aria-label]="'+'">+</button></div></div>
                 </div>
                 <p class="faint small fee"><ion-icon name="information-circle-outline"></ion-icon>{{ 'sell.feeNote' | t }}</p>
               </section>
@@ -530,8 +532,12 @@ export class SellPage implements OnInit {
 
   view() { this.nav.navigateRoot(['/listing', this.published()]); }
 
+  buying = signal(false);
   async buyExtra() {
+    if (this.buying()) return;
+    this.buying.set(true);
     try { await this.api.checkout('EXTRA_LISTING'); this.auth.setUser(await this.api.me()); this.ui.toast(this.i18n.t('plans.done') + ' · ' + this.i18n.t('common.simulated')); }
     catch (e) { this.ui.error(e); }
+    this.buying.set(false);
   }
 }

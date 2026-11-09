@@ -1,6 +1,9 @@
 export default {
+  hold: { aria: 'zum Bestätigen gedrückt halten', keep: 'Gedrückt halten…', hint: 'Halte, bis sich der Button füllt', pay: '{price} zahlen', payConfirm: 'Zahlung für {what} ({price}) bestätigen?', acceptOffer: 'Angebot über {amount} annehmen? Ihr einigt euch auf den Preis.' },
+  auth2: { retryIn: 'Erneut versuchen in {time}' },
   common: { more: 'Mehr', yes: 'Ja', no: 'Nein' },
   errors: {
+    LOGIN_THROTTLED: 'Zu viele Anmeldeversuche. Bitte warte kurz und versuche es erneut.',
     TERMS_REQUIRED: 'Bitte akzeptiere die AGB und bestätige, dass du mindestens 18 bist.', MIN_PRICE_TOO_HIGH: 'Der Mindestpreis darf nicht höher als der Anzeigenpreis sein.',
     OFFENSIVE_CONTENT: 'Der Text enthält beleidigende Sprache. Bitte formuliere ihn um.', PROHIBITED_ITEM: 'Dieser Artikel ist auf Cumped anscheinend verboten (siehe Community-Regeln).',
     USER_BLOCKED: 'Du kannst mit diesem Nutzer nicht interagieren.', OFFERS_DISABLED: 'Der Verkäufer nimmt für diese Anzeige keine Preisangebote an.', SWAP_DISABLED: 'Der Verkäufer akzeptiert keinen Tausch.',

@@ -1,7 +1,10 @@
 // Negotiation, category specs, reporting/blocking, business accounts and legal pages.
 export default {
+  hold: { aria: 'press and hold to confirm', keep: 'Keep holding…', hint: 'Hold until the button fills up', pay: 'Pay {price}', payConfirm: 'Confirm payment for {what} ({price})?', acceptOffer: 'Accept the {amount} offer? You both agree on the price.' },
+  auth2: { retryIn: 'Try again in {time}' },
   common: { more: 'More', yes: 'Yes', no: 'No' },
   errors: {
+    LOGIN_THROTTLED: 'Too many sign-in attempts. For your security, please wait a bit and try again.',
     TERMS_REQUIRED: 'Please accept the terms and confirm you are 18 or older.',
     MIN_PRICE_TOO_HIGH: 'The minimum price can’t be higher than the listing price.',
     OFFENSIVE_CONTENT: 'The text contains offensive language. Please rephrase it.',

@@ -1,7 +1,10 @@
 // Texte pentru negociere, specificații pe categorii, raportare/blocare, conturi de firmă și pagini legale.
 export default {
+  hold: { aria: 'ține apăsat ca să confirmi', keep: 'Ține apăsat…', hint: 'Ține apăsat până se umple butonul', pay: 'Plătește {price}', payConfirm: 'Confirmi plata pentru {what} ({price})?', acceptOffer: 'Accepți oferta de {amount}? Vă puneți de acord asupra prețului.' },
+  auth2: { retryIn: 'Reîncearcă în {time}' },
   common: { more: 'Mai multe', yes: 'Da', no: 'Nu' },
   errors: {
+    LOGIN_THROTTLED: 'Prea multe încercări de autentificare. Din motive de siguranță, așteaptă puțin și încearcă din nou.',
     TERMS_REQUIRED: 'Bifează acceptarea termenilor și confirmarea că ai peste 18 ani.',
     MIN_PRICE_TOO_HIGH: 'Prețul minim nu poate fi mai mare decât prețul anunțului.',
     OFFENSIVE_CONTENT: 'Textul conține limbaj jignitor. Reformulează, te rugăm.',

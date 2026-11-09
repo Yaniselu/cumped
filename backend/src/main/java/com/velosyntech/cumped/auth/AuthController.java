@@ -43,8 +43,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    ResponseEntity<AuthDtos.AuthResponse> login(@Valid @RequestBody AuthDtos.LoginRequest r) {
-        return respond(auth.login(r), HttpStatus.OK);
+    ResponseEntity<AuthDtos.AuthResponse> login(@Valid @RequestBody AuthDtos.LoginRequest r, jakarta.servlet.http.HttpServletRequest req) {
+        return respond(auth.login(r, req.getRemoteAddr()), HttpStatus.OK);
     }
 
     @PostMapping("/google")

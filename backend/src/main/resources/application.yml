@@ -32,7 +32,8 @@ spring:
 
 server:
   port: ${PORT:8080}
-  forward-headers-strategy: framework
+  # „native” = RemoteIpValve din Tomcat: acceptă X-Forwarded-* doar de la proxy-uri interne (nginx), nu de la oricine
+  forward-headers-strategy: native
   error:
     include-stacktrace: never
     include-message: never

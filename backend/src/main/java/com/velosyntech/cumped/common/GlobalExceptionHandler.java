@@ -32,6 +32,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     ResponseEntity<Map<String, Object>> api(ApiException e) {
+        if (e.retryAfterSeconds() > 0) {
+            return ResponseEntity.status(e.status()).header("Retry-After", String.valueOf(e.retryAfterSeconds()))
+                    .body(Map.of("error", e.code(), "retryAfter", e.retryAfterSeconds()));
+        }
         return ResponseEntity.status(e.status()).body(Map.of("error", e.code()));
     }
 
