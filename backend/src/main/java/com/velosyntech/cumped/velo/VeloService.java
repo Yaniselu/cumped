@@ -29,7 +29,7 @@ import java.util.*;
 @Service
 public class VeloService {
     private static final Logger log = LoggerFactory.getLogger(VeloService.class);
-    private static final Set<String> CATEGORIES = Set.of("FRAUD", "DELIVERY", "PAYMENT", "ACCOUNT", "LISTING", "OTHER");
+    private static final Set<String> CATEGORIES = Set.of("FRAUD", "DELIVERY", "PAYMENT", "ACCOUNT", "LISTING", "OTHER", "APPEAL");
     private static final Set<String> PRIORITIES = Set.of("LOW", "MEDIUM", "HIGH", "URGENT");
     private static final int MAX_TURNS = 30;
     /** Praguri pentru acțiuni automate. Riscul estimat singur nu e suficient: cerem și dovezi independente. */
@@ -136,6 +136,61 @@ public class VeloService {
                         String.join(", ", e.reasons()) + ").", List.of());
         String evidence = "SYSTEM: mesaj blocat (redactat): " + redactSecrets(e.evidence()) + "\n";
         openTicket(null, d, evidence, listing, e.suspectId(), "SYSTEM");
+    }
+
+    /**
+     * Raportare (notificare de conținut ilegal / neadecvat, DSA art. 16) sau contestație (art. 20).
+     * Deschide un tichet trimis echipei; la 3 reclamanți diferiți pentru același anunț, acesta e ascuns până la verificare.
+     */
+    @Transactional
+    public Ticket openReport(UUID reporterId, String targetType, UUID targetId, String reason, String details) {
+        User reporter = users.findById(reporterId).orElseThrow(ApiException::notFound);
+        Listing listing = null;
+        UUID reported = null;
+        switch (targetType) {
+            case "LISTING" -> { listing = listings.findById(targetId).orElseThrow(ApiException::notFound); reported = listing.getSellerId(); }
+            case "USER" -> reported = users.findById(targetId).map(User::getId).orElseThrow(ApiException::notFound);
+            case "MESSAGE" -> reported = jdbc.sql("SELECT m.sender_id FROM messages m JOIN conversations c ON c.id = m.conversation_id "
+                            + "WHERE m.id = ? AND (c.buyer_id = ? OR c.seller_id = ?)").params(targetId, reporterId, reporterId)
+                    .query(UUID.class).optional().orElseThrow(ApiException::notFound);
+            case "APPEAL" -> {
+                listing = listings.findById(targetId).orElseThrow(ApiException::notFound);
+                if (!listing.getSellerId().equals(reporterId)) throw ApiException.notFound();
+            }
+            default -> throw ApiException.badRequest("INVALID_TARGET");
+        }
+        if (reported != null && reported.equals(reporterId)) throw ApiException.badRequest("CANNOT_REPORT_SELF");
+        int dup = jdbc.sql("SELECT count(*) FROM support_tickets WHERE reporter_id = ? AND target_id = ? AND created_at > now() - interval '24 hours'")
+                .params(reporterId, targetId).query(Integer.class).single();
+        if (dup > 0) throw ApiException.conflict("ALREADY_REPORTED");
+        boolean appeal = "APPEAL".equals(targetType);
+        String category = appeal ? "APPEAL" : switch (reason) {
+            case "FRAUD", "COUNTERFEIT" -> "FRAUD";
+            case "PROHIBITED", "IP_INFRINGEMENT", "WRONG_CATEGORY", "DUPLICATE" -> "LISTING";
+            default -> "OTHER";
+        };
+        int risk = switch (reason == null ? "" : reason) { case "FRAUD" -> 60; case "PROHIBITED", "COUNTERFEIT" -> 55; case "OFFENSIVE" -> 45; default -> 25; };
+        String text = Texts.clean(details == null ? "" : redactSecrets(details));
+        if (text.length() > 1500) text = text.substring(0, 1500);
+        String summary = (appeal ? "Contestație la eliminarea anunțului. " : "Raportare " + targetType + " – motiv " + reason + ". ") + text;
+        VeloDecision d = new VeloDecision("", "REPORT", category, risk >= 55 ? "HIGH" : "MEDIUM", risk, true, summary, List.of());
+        Ticket t = openTicket(reporter, d, "REPORT " + targetType + " " + reason + ": " + text + "\n", listing, reported, appeal ? "APPEAL" : "REPORT");
+        jdbc.sql("UPDATE support_tickets SET target_type = ?, target_id = ?, reason = ? WHERE id = ?")
+                .params(targetType, targetId, reason, t.id()).update();
+
+        // Mai mulți reclamanți independenți pentru același anunț: îl ascundem până la verificarea umană.
+        if (!appeal && listing != null && listing.getStatus() == Listing.Status.ACTIVE && Set.of("FRAUD", "PROHIBITED", "COUNTERFEIT").contains(reason)) {
+            int reporters = jdbc.sql("SELECT count(DISTINCT reporter_id) FROM support_tickets WHERE target_id = ? AND source = 'REPORT' AND created_at > now() - interval '7 days'")
+                    .param(listing.getId()).query(Integer.class).single();
+            if (reporters >= 3) {
+                listing.setStatus(Listing.Status.HIDDEN_BY_AI);
+                listing.setModerationReason(reason);
+                listings.save(listing);
+                jdbc.sql("UPDATE support_tickets SET auto_action = 'HIDE_LISTING', auto_action_state = 'APPLIED' WHERE id = ?").param(t.id()).update();
+                notifications.notify(listing.getSellerId(), "LISTING_UNDER_REVIEW", Map.of("title", listing.getTitle()), "/my-listings");
+            }
+        }
+        return loadTicket(t.id());
     }
 
     private Ticket openTicket(User reporter, VeloDecision d, String transcript, Listing listing, UUID reported, String source) {

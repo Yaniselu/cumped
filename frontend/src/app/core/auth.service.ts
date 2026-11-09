@@ -31,12 +31,12 @@ export class AuthService {
 
   async login(email: string, password: string) { this.apply(await this.post('/login', { email, password })); }
 
-  async register(body: { email: string; password: string; username: string; referralCode?: string; country?: string; locale?: string }) {
+  async register(body: { email: string; password: string; username: string; referralCode?: string; country?: string; locale?: string; acceptTerms: boolean; adultConfirmed: boolean }) {
     this.apply(await this.post('/register', body));
   }
 
-  async social(provider: 'google' | 'apple', idToken: string, locale: string) {
-    this.apply(await this.post(`/${provider}`, { idToken, locale }));
+  async social(provider: 'google' | 'apple', idToken: string, locale: string, acceptTerms: boolean) {
+    this.apply(await this.post(`/${provider}`, { idToken, locale, acceptTerms, adultConfirmed: acceptTerms }));
   }
 
   /** Reîmprospătează sesiunea; apelurile simultane împart aceeași cerere. */

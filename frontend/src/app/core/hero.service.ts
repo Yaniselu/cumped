@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-interface Pending { id: string; src: string; rect: DOMRect; cutout: boolean; at: number; }
+interface Pending { id: string; src: string; rect: DOMRect; at: number; }
 
 /**
  * Tranziție „hero”: imaginea de pe card zboară și se transformă în galeria din pagina anunțului.
@@ -9,9 +9,10 @@ interface Pending { id: string; src: string; rect: DOMRect; cutout: boolean; at:
 export class HeroTransition {
   private pending: Pending | null = null;
 
-  capture(id: string, img: HTMLImageElement | null, cutout: boolean) {
-    if (!img || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    this.pending = { id, src: img.currentSrc || img.src, rect: img.getBoundingClientRect(), cutout, at: Date.now() };
+  capture(id: string, img: HTMLImageElement | null) {
+    if (!img || !img.complete || document.documentElement.classList.contains('lite')
+        || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    this.pending = { id, src: img.currentSrc || img.src, rect: img.getBoundingClientRect(), at: Date.now() };
   }
 
   /**
@@ -43,14 +44,13 @@ export class HeroTransition {
     const tx = t.left + (t.width - w) / 2, ty = t.top + (t.height - h) / 2;
     const clone = document.createElement('img');
     clone.src = p.src;
-    clone.className = 'fx-hero' + (p.cutout ? ' cutout' : '');
+    clone.className = 'fx-hero';
     clone.style.cssText = `left:${p.rect.left}px;top:${p.rect.top}px;width:${p.rect.width}px;height:${p.rect.height}px`;
     document.body.appendChild(clone);
     const anim = clone.animate([
-      { transform: 'translate(0,0) scale(1) rotate(0deg)', borderRadius: '20px', offset: 0 },
-      { transform: `translate(${(tx - p.rect.left) * 0.55}px, ${(ty - p.rect.top) * 0.45 - 30}px) scale(${1 + (scale - 1) * 0.6}) rotate(-3deg)`, offset: 0.55 },
-      { transform: `translate(${tx - p.rect.left}px, ${ty - p.rect.top}px) scale(${scale}) rotate(0deg)`, borderRadius: '24px', offset: 1 },
-    ], { duration: 620, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'forwards' });
+      { transform: 'translate(0,0) scale(1)', borderRadius: '18px' },
+      { transform: `translate(${tx - p.rect.left}px, ${ty - p.rect.top}px) scale(${scale})`, borderRadius: `${18 / scale}px` },
+    ], { duration: 480, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' });
     anim.onfinish = () => {
       // Pagina s-a mișcat între timp (tranziția de pagină): ne aliniem exact peste imaginea finală, apoi o dezvăluim.
       const t2 = target.getBoundingClientRect();

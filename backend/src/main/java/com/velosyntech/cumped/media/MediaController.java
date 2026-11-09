@@ -26,17 +26,17 @@ public class MediaController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     Map<String, Object> upload(@RequestParam("file") MultipartFile file) {
         ListingImage img = media.upload(CurrentUser.id(), file);
-        return Map.of("id", img.getId(), "url", img.url());
+        return Map.of("id", img.getId(), "url", img.url(), "thumbUrl", img.thumbUrl());
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<byte[]> get(@PathVariable UUID id) {
+    ResponseEntity<byte[]> get(@PathVariable UUID id, @RequestParam(required = false) String size) {
         ListingImage img = images.findById(id).orElseThrow(ApiException::notFound);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())
                 .header("Content-Disposition", "inline")
                 .header("Cross-Origin-Resource-Policy", "cross-origin")
-                .body(media.read(img));
+                .body(media.read(img, "thumb".equals(size)));
     }
 }

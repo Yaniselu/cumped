@@ -7,13 +7,15 @@ import { Api, errorCode } from '../core/api.service';
 import { Badges } from '../core/badges.service';
 import { I18n, TPipe } from '../core/i18n.service';
 import { ChatMessage, ConversationSummary } from '../core/models';
+import { OfferEvent, offerEventText, parseOfferEvent } from '../core/offer-event';
+import { ReportSheetComponent, ReportTarget } from '../shared/report-sheet.component';
 import { Ui } from '../core/ui.service';
 import { AvatarComponent } from '../shared/avatar.component';
 import { BackButtonComponent } from '../shared/back-button.component';
 
 @Component({
   selector: 'page-chat',
-  imports: [MOTION, IonContent, IonFooter, IonIcon, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent],
+  imports: [MOTION, IonContent, IonFooter, IonIcon, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent, ReportSheetComponent],
   template: `
     <ion-content cmpScrollFx #content [fullscreen]="true">
       <div class="page narrow chat">
@@ -25,7 +27,7 @@ import { BackButtonComponent } from '../shared/back-button.component';
               <div><strong>{{ c.other.displayName }}</strong><span class="small muted">{{ (c.role === 'BUYER' ? 'chat.seller' : 'chat.buyer') | t }}
                 @if (c.other.idVerified) { · <ion-icon name="shield-checkmark" class="vf"></ion-icon> {{ 'common.verified' | t }} }</span></div>
             </a>
-            <button class="icon-btn sm" (click)="report()" [attr.aria-label]="'chat.reportUser' | t"><ion-icon name="flag-outline"></ion-icon></button>
+            <button class="icon-btn sm" (click)="menu()" [attr.aria-label]="'common.more' | t"><ion-icon name="ellipsis-horizontal"></ion-icon></button>
           }
         </div>
         @if (conv(); as c) {
@@ -37,8 +39,16 @@ import { BackButtonComponent } from '../shared/back-button.component';
         <div class="safety"><ion-icon name="shield-checkmark"></ion-icon>{{ 'chat.safety' | t }}</div>
         <div class="msgs">
           @for (m of messages(); track m.id; let i = $index) {
+            @if (offerOf(m); as e) {
+              <a class="oev" [class.fresh]="i >= freshFrom" [attr.data-e]="e.event" routerLink="/offers">
+                <span class="oi"><ion-icon [name]="evIcon(e.event, e.kind)"></ion-icon></span>
+                <div><b>{{ evText(e, m.mine) }}</b><span class="small muted">{{ i18n.date(m.createdAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }} · {{ 'neg.view' | t }}</span></div>
+                <ion-icon name="chevron-forward" class="faint"></ion-icon>
+              </a>
+            } @else {
             <div class="msg" [class.mine]="m.mine" [class.fresh]="i >= freshFrom">
-              <div class="bubble">{{ m.body }}</div>
+              <div class="bubble" (click)="!m.mine && sel.set(sel() === m.id ? null : m.id)">{{ m.body }}</div>
+              @if (sel() === m.id && !m.mine) { <button class="rmsg fade" (click)="reportMessage(m.id)"><ion-icon name="flag-outline"></ion-icon>{{ 'report.reportMessage' | t }}</button> }
               @if (m.flagged && m.flagReason) {
                 <div class="flag" [class.danger]="m.flagReason === 'PAYMENT_LINK' || m.flagReason === 'OFF_PLATFORM_CHAT' || m.flagReason === 'RISKY_PAYMENT'">
                   <ion-icon name="warning"></ion-icon>{{ 'chat.flag.' + m.flagReason | t }}
@@ -47,16 +57,23 @@ import { BackButtonComponent } from '../shared/back-button.component';
               }
               <span class="time">{{ i18n.date(m.createdAt, { hour: '2-digit', minute: '2-digit' }) }}@if (m.mine && m.read) { · ✓✓ }</span>
             </div>
+            }
           }
         </div>
         @if (blocked()) { <div class="blocked fade"><ion-icon name="shield-checkmark"></ion-icon>{{ 'errors.MESSAGE_BLOCKED' | t }}</div> }
       </div>
+      <cmp-report-sheet [(open)]="reportOpen" [target]="reportTarget()" [targetId]="reportId()" [userId]="conv()?.other?.id ?? ''" (blocked)="load(true)" />
     </ion-content>
     <ion-footer class="ion-no-border">
+      @if (conv()?.blocked) {
+        <div class="composer glass off"><ion-icon name="ban-outline"></ion-icon><span>{{ 'block.convBlocked' | t }}</span>
+          @if (iBlocked()) { <button class="btn sm light" (click)="unblock()">{{ 'block.unblock' | t }}</button> }</div>
+      } @else {
       <form class="composer glass" (ngSubmit)="send()">
-        <textarea [(ngModel)]="text" name="text" rows="1" maxlength="2000" [placeholder]="'chat.placeholder' | t" (keydown.enter)="enter($event)"></textarea>
-        <button class="sendbtn" [disabled]="!text.trim() || sending()"><ion-icon name="send"></ion-icon></button>
+        <textarea [(ngModel)]="text" name="text" rows="1" maxlength="2000" [placeholder]="'chat.placeholder' | t" (keydown.enter)="enter($event)" [attr.aria-label]="'chat.placeholder' | t"></textarea>
+        <button class="sendbtn" [disabled]="!text.trim() || sending()" [attr.aria-label]="'common.send' | t"><ion-icon name="send"></ion-icon></button>
       </form>
+      }
     </ion-footer>
   `,
   styles: [`
@@ -83,6 +100,17 @@ import { BackButtonComponent } from '../shared/back-button.component';
     .time { font-size: 11px; color: var(--text-3); margin: 4px 6px 0; }
     .blocked { display: flex; gap: 8px; align-items: center; margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: var(--accent-2-soft); color: var(--accent-2); font-size: 13px; font-weight: 600; }
     ion-footer { background: transparent; }
+    .oev { align-self: center; display: flex; align-items: center; gap: 12px; width: min(100%, 420px); padding: 10px 14px 10px 10px; margin: 6px 0;
+      border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); color: inherit; }
+    .oev.fresh { animation: msgIn .45s var(--spring) both; }
+    .oev div { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; } .oev b { font-size: 14px; font-weight: 650; }
+    .oi { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 20px; }
+    .oev[data-e="ACCEPTED"] .oi { background: var(--ok-soft); color: var(--ok); }
+    .oev[data-e="DECLINED"] .oi, .oev[data-e="AUTO_DECLINED"] .oi, .oev[data-e="WITHDRAWN"] .oi { background: var(--accent-2-soft); color: var(--accent-2); }
+    .rmsg { margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; padding: 6px 12px; background: var(--accent-2-soft); color: var(--accent-2); font-weight: 650; font-size: 12.5px; cursor: pointer; }
+    .bubble { cursor: default; }
+    .composer.off { align-items: center; gap: 10px; padding: 8px 8px 8px 16px; color: var(--text-2); font-size: 13.5px; }
+    .composer.off span { flex: 1; } .composer.off ion-icon { font-size: 20px; color: var(--accent-2); }
     .composer { display: flex; align-items: flex-end; gap: 8px; margin: 0 auto calc(env(safe-area-inset-bottom) + 12px); width: min(640px, calc(100% - 24px)); padding: 7px 7px 7px 18px; border-radius: 28px; }
     textarea { flex: 1; border: 0; outline: none; resize: none; background: transparent; font-family: inherit; font-size: 15.5px; color: var(--text); max-height: 120px; padding: 12px 0; }
     .sendbtn { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--btn-dark); color: var(--btn-dark-text); display: grid; place-items: center; cursor: pointer; transition: transform .3s var(--spring), opacity .2s; }
@@ -102,8 +130,14 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
   messages = signal<ChatMessage[]>([]);
   sending = signal(false);
   blocked = signal(false);
+  sel = signal<string | null>(null);
+  iBlocked = signal(false);
+  reportOpen = signal(false);
+  reportTarget = signal<ReportTarget>('USER');
+  reportId = signal('');
   text = '';
   freshFrom = 0;
+  private offerCache = new Map<string, OfferEvent | null>();
   private poll: any;
 
   async ionViewWillEnter() {
@@ -117,6 +151,7 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
     try {
       const t = await this.api.thread(this.id());
       this.conv.set(t.conversation);
+      if (first && t.conversation.blocked) this.api.blocks().then((b) => this.iBlocked.set(b.some((u) => u.id === t.conversation.other.id))).catch(() => {});
       const before = this.messages().length;
       if (first) this.freshFrom = t.messages.length;
       if (t.messages.length !== before || first) {
@@ -149,8 +184,46 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
     this.sending.set(false);
   }
 
-  report() {
+  offerOf(m: ChatMessage) {
+    if (!this.offerCache.has(m.id)) this.offerCache.set(m.id, parseOfferEvent(m.body));
+    return this.offerCache.get(m.id)!;
+  }
+  evText(e: OfferEvent, mine: boolean) { return offerEventText(this.i18n, e, mine); }
+  evIcon(ev: string, kind: string) {
+    return ({ ACCEPTED: 'checkmark-circle', DECLINED: 'close-circle', AUTO_DECLINED: 'close-circle', WITHDRAWN: 'arrow-undo', COUNTER: 'swap-vertical' } as Record<string, string>)[ev]
+      ?? (kind === 'SWAP' ? 'swap-horizontal' : 'pricetag');
+  }
+
+  async menu() {
     const c = this.conv();
-    if (c) this.nav.navigateForward(['/support'], { queryParams: { listingId: c.listing.id, reportedUserId: c.other.id } });
+    if (!c) return;
+    const opts = [
+      { text: this.i18n.t('chat.viewListing'), icon: 'pricetag-outline' },
+      { text: this.i18n.t('nav.offers'), icon: 'swap-vertical-outline' },
+      { text: this.i18n.t('report.reportUser'), icon: 'flag-outline', danger: true },
+      { text: this.i18n.t(c.blocked ? 'block.unblock' : 'block.block'), icon: 'ban-outline', danger: !c.blocked },
+    ];
+    if (c.blocked && !this.iBlocked()) opts.pop();
+    const i = await this.ui.sheet(c.other.displayName, opts);
+    if (i === 0) this.nav.navigateForward(['/listing', c.listing.id]);
+    if (i === 1) this.nav.navigateForward(['/offers']);
+    if (i === 2) this.openReport('USER', c.other.id);
+    if (i === 3) c.blocked ? this.unblock() : this.block();
+  }
+
+  private openReport(t: ReportTarget, id: string) { this.reportTarget.set(t); this.reportId.set(id); this.reportOpen.set(true); }
+  reportMessage(id: string) { this.sel.set(null); this.openReport('MESSAGE', id); }
+  report() { const c = this.conv(); if (c) this.openReport('USER', c.other.id); }
+
+  async block() {
+    const c = this.conv();
+    if (!c || !(await this.ui.confirm(this.i18n.t('block.confirm', { name: c.other.displayName }), this.i18n.t('block.block')))) return;
+    try { await this.api.block(c.other.id); this.ui.toast(this.i18n.t('block.done')); await this.load(true); } catch (e) { this.ui.error(e); }
+  }
+
+  async unblock() {
+    const c = this.conv();
+    if (!c) return;
+    try { await this.api.unblock(c.other.id); this.ui.toast(this.i18n.t('block.undone')); await this.load(true); } catch (e) { this.ui.error(e); }
   }
 }

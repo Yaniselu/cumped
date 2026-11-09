@@ -1,17 +1,20 @@
 import { MOTION } from '../shared/motion.directives';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonIcon, NavController } from '@ionic/angular';
+import { IonContent, IonIcon, NavController, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
 import { I18n, LANGUAGES, Lang, TPipe } from '../core/i18n.service';
 import { Theme, ThemePref } from '../core/theme.service';
 import { Ui } from '../core/ui.service';
 import { BackButtonComponent } from '../shared/back-button.component';
+import { AvatarComponent } from '../shared/avatar.component';
+import { RouterLink } from '@angular/router';
+import { PublicUser } from '../core/models';
 
 @Component({
   selector: 'page-settings',
-  imports: [MOTION, IonContent, IonIcon, FormsModule, TPipe, BackButtonComponent],
+  imports: [MOTION, IonContent, IonIcon, FormsModule, TPipe, BackButtonComponent, AvatarComponent, RouterLink],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
@@ -30,6 +33,29 @@ import { BackButtonComponent } from '../shared/back-button.component';
           <button class="btn block" (click)="saveProfile()">{{ 'common.save' | t }}</button>
         </div>
 
+        <h3 class="sh" id="business">{{ 'biz.title' | t }}</h3>
+        <div class="card pad stack reveal">
+          <p class="muted small">{{ 'biz.sub' | t }}</p>
+          <div class="seg in">
+            <button [class.on]="acct === 'PRIVATE'" (click)="acct = 'PRIVATE'"><ion-icon name="person-outline"></ion-icon>{{ 'seller.private' | t }}</button>
+            <button [class.on]="acct === 'BUSINESS'" (click)="acct = 'BUSINESS'"><ion-icon name="business-outline"></ion-icon>{{ 'seller.business' | t }}</button>
+          </div>
+          @if (acct === 'BUSINESS') {
+            <div class="field fade"><label>{{ 'biz.name' | t }}</label><input class="input" [(ngModel)]="biz.name" maxlength="120" autocomplete="organization" /></div>
+            <div class="two">
+              <div class="field"><label>{{ 'biz.regNo' | t }}</label><input class="input" [(ngModel)]="biz.regNo" maxlength="40" /></div>
+              <div class="field"><label>{{ 'biz.vat' | t }}</label><input class="input" [(ngModel)]="biz.vat" maxlength="30" /></div>
+            </div>
+            <div class="field"><label>{{ 'biz.address' | t }}</label><input class="input" [(ngModel)]="biz.address" maxlength="250" autocomplete="street-address" /></div>
+            <div class="two">
+              <div class="field"><label>{{ 'biz.email' | t }}</label><input class="input" type="email" [(ngModel)]="biz.email" maxlength="254" autocomplete="email" /></div>
+              <div class="field"><label>{{ 'biz.phone' | t }} <span class="faint">({{ 'common.optional' | t }})</span></label><input class="input" type="tel" [(ngModel)]="biz.phone" maxlength="30" autocomplete="tel" /></div>
+            </div>
+            <label class="chk"><input type="checkbox" [(ngModel)]="declare" /><span class="box"><ion-icon name="checkmark"></ion-icon></span><span>{{ 'biz.declare' | t }}</span></label>
+          }
+          <button class="btn block" [disabled]="acct === 'BUSINESS' && (!declare || !biz.name || !biz.regNo || !biz.address || !biz.email)" (click)="saveBusiness()">{{ 'common.save' | t }}</button>
+        </div>
+
         <h3 class="sh">{{ 'settings.language' | t }}</h3>
         <div class="card pad reveal"><div class="langs">
           @for (l of languages; track l.code) { <button class="chip" [class.active]="i18n.lang() === l.code" (click)="setLang(l.code)">{{ l.flag }} {{ l.name }}</button> }
@@ -40,6 +66,11 @@ import { BackButtonComponent } from '../shared/back-button.component';
           @for (t of themes; track t.v) { <button [class.on]="theme.pref() === t.v" (click)="theme.set(t.v)"><ion-icon [name]="t.icon"></ion-icon>{{ 'settings.' + t.v | t }}</button> }
         </div>
 
+        <div class="card toggles reveal lite">
+          <div class="toggle-row"><span><ion-icon name="flash-outline"></ion-icon><span><b>{{ 'settings.lite' | t }}</b><small>{{ 'settings.liteSub' | t }}</small></span></span>
+            <button class="switch" role="switch" [attr.aria-checked]="theme.lite()" [class.on]="theme.lite()" (click)="theme.setLite(theme.lite() ? 'off' : 'on')"></button></div>
+        </div>
+
         <h3 class="sh">{{ 'settings.security' | t }}</h3>
         <div class="card pad stack reveal">
           @if (auth.user()?.hasPassword) { <div class="field"><label>{{ 'settings.current' | t }}</label><input class="input" type="password" [(ngModel)]="current" autocomplete="current-password" /></div> }
@@ -48,10 +79,25 @@ import { BackButtonComponent } from '../shared/back-button.component';
           <button class="btn ghost block" (click)="logoutAll()"><ion-icon name="log-out-outline"></ion-icon>{{ 'settings.logoutAll' | t }}</button>
         </div>
 
+        <h3 class="sh">{{ 'block.list' | t }}</h3>
+        <div class="card pad reveal">
+          @if (!blocked().length) { <p class="muted small">{{ 'block.empty' | t }}</p> }
+          @for (u of blocked(); track u.id) {
+            <div class="buser"><cmp-avatar [name]="u.displayName" [hue]="u.avatarHue" [size]="36" [verified]="u.idVerified" /><span>{{ u.displayName }}</span>
+              <button class="btn sm light" (click)="unblock(u)">{{ 'block.unblock' | t }}</button></div>
+          }
+        </div>
+
         <h3 class="sh">{{ 'settings.privacy' | t }}</h3>
         <div class="card pad stack reveal">
           <button class="btn light block" (click)="exportData()"><ion-icon name="download-outline"></ion-icon>{{ 'settings.exportData' | t }}</button>
+          <p class="faint small">{{ 'settings.deleteInfo' | t }}</p>
           <button class="btn danger block" (click)="deleteAccount()"><ion-icon name="trash-outline"></ion-icon>{{ 'settings.deleteAccount' | t }}</button>
+        </div>
+
+        <h3 class="sh">{{ 'settings.legal' | t }}</h3>
+        <div class="card menu reveal">
+          @for (d of legalDocs; track d) { <a [routerLink]="['/legal', d]"><span>{{ 'legal.' + d | t }}</span><ion-icon name="chevron-forward"></ion-icon></a> }
         </div>
         <p class="faint small center">Cumped 0.1 · Velosyntech</p>
       </div>
@@ -67,9 +113,21 @@ import { BackButtonComponent } from '../shared/back-button.component';
     .seg button { flex: 1; height: 44px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; color: var(--text-2); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all .3s var(--ease); }
     .seg button.on { background: var(--btn-dark); color: var(--btn-dark-text); }
     .center { text-align: center; margin-top: 24px; }
+    .seg.in { box-shadow: none; background: var(--surface-2); }
+    .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px; }
+    .chk { position: relative; display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
+    .chk input { position: absolute; opacity: 0; width: 22px; height: 22px; margin: 0; }
+    .box { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--surface-3); background: var(--surface); display: grid; place-items: center; color: transparent; }
+    .chk input:checked + .box { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .toggles { padding: 4px 14px; margin-top: 12px; } .toggles .toggle-row > span { display: flex; gap: 10px; align-items: flex-start; }
+    .toggles .toggle-row > span > span { display: flex; flex-direction: column; gap: 2px; } .toggles small { font-size: 12px; color: var(--text-2); line-height: 1.35; }
+    .toggles ion-icon { color: var(--accent); font-size: 20px; margin-top: 1px; }
+    .buser { display: flex; align-items: center; gap: 10px; padding: 6px 0; } .buser span { flex: 1; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .menu { padding: 4px 0; } .menu a { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; color: var(--text); font-weight: 550; border-bottom: 1px solid var(--line); }
+    .menu a:last-child { border-bottom: 0; } .menu ion-icon { color: var(--text-3); }
   `],
 })
-export class SettingsPage {
+export class SettingsPage implements ViewWillEnter {
   auth = inject(AuthService);
   i18n = inject(I18n);
   theme = inject(Theme);
@@ -84,6 +142,29 @@ export class SettingsPage {
   displayMode = this.auth.user()?.displayMode ?? 'USERNAME';
   current = '';
   newPassword = '';
+  acct: 'PRIVATE' | 'BUSINESS' = this.auth.user()?.accountType ?? 'PRIVATE';
+  biz = { name: '', regNo: '', vat: '', address: '', email: '', phone: '', ...(this.auth.user()?.business ?? {}) } as { name: string; regNo: string; vat: string; address: string; email: string; phone: string };
+  declare = this.acct === 'BUSINESS';
+  blocked = signal<PublicUser[]>([]);
+  legalDocs = ['terms', 'privacy', 'rules', 'dsa', 'cookies', 'about'];
+
+  ionViewWillEnter() { this.api.blocks().then((b) => this.blocked.set(b)).catch(() => {}); }
+
+  async saveBusiness() {
+    try {
+      const b = this.biz;
+      const me = await this.api.updateBusiness(this.acct === 'BUSINESS'
+        ? { accountType: 'BUSINESS', name: b.name.trim(), regNo: b.regNo.trim(), vat: b.vat?.trim() || undefined, address: b.address.trim(), email: b.email.trim(), phone: b.phone?.trim() || undefined }
+        : { accountType: 'PRIVATE' });
+      this.auth.setUser(me);
+      this.ui.toast(this.i18n.t(this.acct === 'BUSINESS' ? 'biz.saved' : 'settings.saved'));
+    } catch (e) { this.ui.error(e); }
+  }
+
+  async unblock(u: PublicUser) {
+    try { await this.api.unblock(u.id); this.blocked.update((l) => l.filter((x) => x.id !== u.id)); this.ui.toast(this.i18n.t('block.undone')); }
+    catch (e) { this.ui.error(e); }
+  }
 
   async saveProfile() {
     try { this.auth.setUser(await this.api.updateMe({ username: this.username.trim(), bio: this.bio, city: this.city, displayMode: this.displayMode })); this.ui.toast(this.i18n.t('settings.saved')); }

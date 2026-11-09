@@ -17,7 +17,8 @@ public class ListingQueries {
     private static final String CARD_SELECT = """
             SELECT l.id, l.title, l.price_cents, l.currency, l.city, l.country, l.category, l.item_condition,
                    l.accepts_swap, l.status, l.created_at, (l.promoted_until > now()) AS promoted,
-                   u.id_verified, img.id AS img_id, img.storage_key AS img_key,
+                   u.id_verified, (u.account_type = 'BUSINESS') AS seller_business, l.negotiable,
+                   img.id AS img_id, img.storage_key AS img_key,
                    (SELECT max(ph.price_cents) FROM price_history ph
                      WHERE ph.listing_id = l.id AND ph.changed_at > now() - interval '30 days') AS prev_max,
                    EXISTS (SELECT 1 FROM favorites f WHERE f.listing_id = l.id AND f.user_id = CAST(:viewer AS uuid)) AS fav
@@ -27,6 +28,10 @@ public class ListingQueries {
                                WHERE li.listing_id = l.id ORDER BY li.position LIMIT 1) img ON true
             """;
 
+    /** Anunțurile utilizatorilor blocați (în orice sens) nu apar. */
+    private static final String BLOCK_FILTER = " AND NOT EXISTS (SELECT 1 FROM user_blocks b WHERE (b.blocker_id = CAST(:viewer AS uuid) AND b.blocked_id = l.seller_id)"
+            + " OR (b.blocked_id = CAST(:viewer AS uuid) AND b.blocker_id = l.seller_id))";
+
     private final JdbcClient jdbc;
 
     public ListingQueries(JdbcClient jdbc) { this.jdbc = jdbc; }
@@ -35,6 +40,7 @@ public class ListingQueries {
         StringBuilder where = new StringBuilder(" WHERE l.status = 'ACTIVE' AND u.suspended = false");
         Map<String, Object> params = new HashMap<>();
         params.put("viewer", viewer);
+        if (viewer != null) where.append(BLOCK_FILTER);
         String tsq = toPrefixQuery(p.q(), " & ", 6);
         if (tsq != null) {
             where.append(" AND (l.search_vector @@ to_tsquery('simple', :tsq) OR l.title ILIKE :like ESCAPE '\\')");
@@ -107,7 +113,8 @@ public class ListingQueries {
             params.put("tsq", tsq);
             rank = "ts_rank(l.search_vector, to_tsquery('simple', :tsq)) DESC, l.created_at DESC";
         }
-        return jdbc.sql(CARD_SELECT + " WHERE l.status = 'ACTIVE' AND u.suspended = false AND l.category = :category AND l.id <> :id ORDER BY " + rank + " LIMIT 8")
+        return jdbc.sql(CARD_SELECT + " WHERE l.status = 'ACTIVE' AND u.suspended = false AND l.category = :category AND l.id <> :id"
+                        + (viewer != null ? BLOCK_FILTER : "") + " ORDER BY " + rank + " LIMIT 8")
                 .params(params).query(this::card).list();
     }
 
@@ -119,10 +126,11 @@ public class ListingQueries {
         String key = rs.getString("img_key");
         return new ListingDtos.Card(
                 rs.getObject("id", UUID.class), rs.getString("title"), price, rs.getString("currency"), previous,
-                rs.getString("city"), rs.getString("country"), imgId == null ? null : ListingImage.url(imgId, key),
+                rs.getString("city"), rs.getString("country"), imgId == null ? null : ListingImage.thumbUrl(imgId, key),
                 rs.getString("category"), rs.getString("item_condition"), rs.getBoolean("id_verified"),
                 rs.getBoolean("promoted"), rs.getBoolean("accepts_swap"), rs.getBoolean("fav"),
-                rs.getString("status"), rs.getTimestamp("created_at").toInstant());
+                rs.getString("status"), rs.getTimestamp("created_at").toInstant(), rs.getBoolean("seller_business"),
+                rs.getBoolean("negotiable"));
     }
 
     /** Transformă textul căutat în interogare full-text cu prefix: doar litere și cifre, fără operatori injectați. */

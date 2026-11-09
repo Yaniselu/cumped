@@ -373,3 +373,34 @@ cmp-logo:active, a:hover > cmp-logo { transform: rotate(-12deg) scale(1.06); }
 @keyframes growLine { from { width: 0; } }
 .badge { transition: transform .35s var(--spring); } .badge:hover { transform: translateY(-2px); }
 ion-refresher-content { --color: var(--accent); }
+
+/* ==========================================================================
+   Mod economic (telefoane modeste / economizor de date / „reduce transparența”):
+   fără blur, fără refracție, fără animații decorative continue.
+   ========================================================================== */
+html.lite {
+  ion-content::part(background) { animation: none; background-size: 100% 100%; }
+  .glass, .icon-btn, .badge.glass-b, ion-content.scrolled .topbar {
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: var(--glass-strong);
+  }
+  .glass::before, .glass::after, .icon-btn::before { display: none; }
+  .btn::after { animation: none !important; display: none; }
+  .rv { opacity: 1; transform: none; filter: none; transition: none; }
+  .tilt { transform: none !important; } .tilt .glare { display: none; }
+  .tile img, .float-card, .shield, ion-icon[name="shield-checkmark"], .badge ion-icon { animation: none !important; }
+  .skeleton, .media:not(.ready)::before { animation-duration: 2.4s; }
+}
+
+/* telefoane foarte înguste (ex. 320 px, ecrane pliabile închise) */
+@media (max-width: 359px) {
+  .page { padding-left: 12px; padding-right: 12px; }
+  .grid { gap: 10px; }
+  h1 { font-size: 28px; }
+  .btn { height: 52px; padding: 0 18px; font-size: 15px; }
+  .hscroll { padding-left: 12px; padding-right: 12px; margin: 0 -12px; }
+}
+/* tablete și telefoane în landscape: conținutul nu se întinde exagerat */
+@media (min-width: 600px) and (max-width: 991px) { .page.narrow { max-width: 600px; } }
+@media (orientation: landscape) and (max-height: 500px) {
+  .page { padding-top: calc(env(safe-area-inset-top) + 6px); }
+}

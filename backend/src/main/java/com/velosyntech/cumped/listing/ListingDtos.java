@@ -14,9 +14,9 @@ public final class ListingDtos {
     public record Card(UUID id, String title, long priceCents, String currency, Long previousPriceCents,
                        String city, String country, String imageUrl, String category, String condition,
                        boolean sellerVerified, boolean promoted, boolean acceptsSwap, boolean favorite,
-                       String status, Instant createdAt) {}
+                       String status, Instant createdAt, boolean sellerBusiness, boolean negotiable) {}
 
-    public record Image(UUID id, String url) {}
+    public record Image(UUID id, String url, String thumbUrl) {}
 
     public record PricePoint(long priceCents, Instant at) {}
 
@@ -28,7 +28,8 @@ public final class ListingDtos {
                          Map<String, String> attributes, List<Image> images, String status, boolean promoted,
                          Instant createdAt, UserDtos.PublicUser seller, boolean favorite, boolean owner,
                          UUID conversationId, List<PricePoint> priceHistory, OwnerStats ownerStats,
-                         int favorites, int views) {}
+                         int favorites, int views, boolean negotiable, int quantity, Long minPriceCents,
+                         String moderationReason, boolean blocked) {}
 
     public record Upsert(
             @NotBlank @Size(min = 5, max = 90) String title,
@@ -43,8 +44,11 @@ public final class ListingDtos {
             @Min(1) @Max(1_000_000) Integer weightGrams,
             boolean acceptsOffers,
             boolean acceptsSwap,
-            @Size(max = 12) Map<@Size(max = 30) String, @Size(max = 60) String> attributes,
-            @Size(max = 10) List<UUID> imageIds) {}
+            @Size(max = 40) Map<@Size(max = 40) String, @Size(max = 120) String> attributes,
+            @Size(max = 10) List<UUID> imageIds,
+            Boolean negotiable,
+            @PositiveOrZero Long minPriceCents,
+            @Min(1) @Max(999) Integer quantity) {}
 
     public record PriceAnalysis(String verdict, Long medianCents, int comparables, String currency) {}
 

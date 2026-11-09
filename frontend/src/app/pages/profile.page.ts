@@ -55,6 +55,7 @@ import { AvatarComponent } from '../shared/avatar.component';
             <a routerLink="/support" class="velo"><span class="vic">V</span>{{ 'profile.support' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             @if (!u.phoneVerified) { <a routerLink="/verify" [queryParams]="{ phone: 1 }"><ion-icon name="phone-portrait-outline"></ion-icon>{{ 'profile.phone' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a> }
             <a routerLink="/settings"><ion-icon name="settings-outline"></ion-icon>{{ 'profile.settings' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
+            <a routerLink="/legal/terms"><ion-icon name="document-text-outline"></ion-icon>{{ 'legal.title' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             @if (auth.isAdmin()) { <a routerLink="/admin"><ion-icon name="shield-checkmark-outline"></ion-icon>{{ 'profile.admin' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a> }
             <button (click)="logout()" class="out"><ion-icon name="log-out-outline"></ion-icon>{{ 'profile.logout' | t }}</button>
           </div>

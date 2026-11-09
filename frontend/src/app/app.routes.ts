@@ -25,5 +25,10 @@ export const routes: Routes = [
   { path: 'plans', loadComponent: () => import('./pages/plans.page').then((m) => m.PlansPage) },
   { path: 'support', canActivate: [authGuard], loadComponent: () => import('./pages/velo.page').then((m) => m.VeloPage) },
   { path: 'admin', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin.page').then((m) => m.AdminPage) },
+  { path: 'legal/:doc', loadComponent: () => import('./pages/legal.page').then((m) => m.LegalPage) },
+  { path: 'legal', redirectTo: 'legal/terms', pathMatch: 'full' },
+  { path: 'delete-account', data: { doc: 'delete-account' }, loadComponent: () => import('./pages/legal.page').then((m) => m.LegalPage) },
+  { path: 'privacy', redirectTo: 'legal/privacy', pathMatch: 'full' },
+  { path: 'terms', redirectTo: 'legal/terms', pathMatch: 'full' },
   { path: '**', redirectTo: 'home' },
 ];

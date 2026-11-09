@@ -12,6 +12,8 @@ import com.velosyntech.cumped.user.UserDtos;
 import com.velosyntech.cumped.user.UserRepository;
 import com.velosyntech.cumped.velo.ScamDetector;
 import com.velosyntech.cumped.velo.SuspiciousActivityEvent;
+import com.velosyntech.cumped.moderation.ContentPolicy;
+import com.velosyntech.cumped.user.BlockService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -25,7 +27,7 @@ import java.util.*;
 public class ChatService {
     public record ListingMini(UUID id, String title, long priceCents, String currency, String imageUrl, String status) {}
     public record Summary(UUID id, ListingMini listing, UserDtos.PublicUser other, String role, String lastMessage,
-                          Instant lastAt, int unread) {}
+                          Instant lastAt, int unread, boolean blocked) {}
     public record Message(UUID id, boolean mine, String body, boolean flagged, String flagReason, Instant createdAt, boolean read) {}
     public record Thread(Summary conversation, List<Message> messages) {}
     public record Sent(Message message, List<String> warnings) {}
@@ -39,9 +41,12 @@ public class ChatService {
     private final NotificationService notifications;
     private final AuditService audit;
     private final ApplicationEventPublisher events;
+    private final ContentPolicy policy;
+    private final BlockService blocks;
 
     public ChatService(JdbcClient jdbc, ListingRepository listings, UserRepository users, ScamDetector scam,
-                       NotificationService notifications, AuditService audit, ApplicationEventPublisher events) {
+                       NotificationService notifications, AuditService audit, ApplicationEventPublisher events,
+                       ContentPolicy policy, BlockService blocks) {
         this.jdbc = jdbc;
         this.listings = listings;
         this.users = users;
@@ -49,6 +54,8 @@ public class ChatService {
         this.notifications = notifications;
         this.audit = audit;
         this.events = events;
+        this.policy = policy;
+        this.blocks = blocks;
     }
 
     @Transactional
@@ -57,6 +64,7 @@ public class ChatService {
         if (l.getStatus() != Listing.Status.ACTIVE) throw ApiException.conflict("LISTING_NOT_AVAILABLE");
         if (l.getSellerId().equals(buyerId)) throw ApiException.badRequest("CANNOT_MESSAGE_SELF");
         requireActive(buyerId);
+        blocks.requireNotBlocked(buyerId, l.getSellerId());
         Optional<UUID> existing = jdbc.sql("SELECT id FROM conversations WHERE listing_id = ? AND buyer_id = ?")
                 .params(listingId, buyerId).query(UUID.class).optional();
         UUID id = existing.orElseGet(() -> {
@@ -105,6 +113,10 @@ public class ChatService {
         requireActive(me);
         String body = Texts.clean(rawBody);
         if (body == null || body.isEmpty() || body.length() > 2000) throw ApiException.badRequest("VALIDATION");
+        if (body.startsWith("[[")) throw ApiException.badRequest("VALIDATION"); // rezervat mesajelor de sistem (oferte)
+        UUID otherParty = me.equals(c.buyerId()) ? c.sellerId() : c.buyerId();
+        blocks.requireNotBlocked(me, otherParty);
+        if (policy.offensive(body)) throw new ApiException(HttpStatus.UNPROCESSABLE_CONTENT, "OFFENSIVE_CONTENT");
 
         ScamDetector.Result check = scam.analyze(body);
         UUID other = me.equals(c.buyerId()) ? c.sellerId() : c.buyerId();
@@ -141,7 +153,7 @@ public class ChatService {
                 FROM listings l LEFT JOIN LATERAL (SELECT id, storage_key FROM listing_images WHERE listing_id = l.id ORDER BY position LIMIT 1) img ON true
                 WHERE l.id = ?""").param(r.listingId())
                 .query((rs, i) -> new ListingMini(rs.getObject(1, UUID.class), rs.getString(2), rs.getLong(3), rs.getString(4),
-                        rs.getObject("img_id", UUID.class) == null ? null : ListingImage.url(rs.getObject("img_id", UUID.class), rs.getString("storage_key")),
+                        rs.getObject("img_id", UUID.class) == null ? null : ListingImage.thumbUrl(rs.getObject("img_id", UUID.class), rs.getString("storage_key")),
                         rs.getString(5)))
                 .single();
         record Last(String body, Instant at) {}
@@ -150,7 +162,7 @@ public class ChatService {
         int unread = jdbc.sql("SELECT count(*) FROM messages WHERE conversation_id = ? AND sender_id <> ? AND read_at IS NULL")
                 .params(conversationId, me).query(Integer.class).single();
         return new Summary(conversationId, mini, UserDtos.toPublic(other), me.equals(r.buyerId()) ? "BUYER" : "SELLER",
-                last == null ? null : last.body(), last == null ? null : last.at(), unread);
+                last == null ? null : last.body(), last == null ? null : last.at(), unread, blocks.eitherBlocked(me, otherId));
     }
 
     private void requireActive(UUID userId) {

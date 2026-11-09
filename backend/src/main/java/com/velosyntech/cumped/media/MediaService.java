@@ -34,6 +34,7 @@ import java.util.UUID;
 @Service
 public class MediaService {
     private static final int MAX_SIDE = 1600;
+    private static final int THUMB_SIDE = 600;
     private static final long MAX_PIXELS = 50_000_000L;
     private static final int MAX_PENDING_PER_USER = 30;
 
@@ -77,20 +78,27 @@ public class MediaService {
         }
         if (src == null) throw ApiException.badRequest("INVALID_IMAGE");
 
-        BufferedImage out = resize(src);
+        BufferedImage out = resize(src, MAX_SIDE);
         String key = UUID.randomUUID() + ".jpg";
         Path target = root.resolve(key).normalize();
         if (!target.startsWith(root)) throw ApiException.badRequest("INVALID_IMAGE");
         try {
-            writeJpeg(out, target);
+            writeJpeg(out, target, 0.85f);
+            writeJpeg(resize(out, THUMB_SIDE), root.resolve(thumbKey(key)).normalize(), 0.78f);
         } catch (IOException e) {
             throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "UPLOAD_FAILED");
         }
         return images.save(new ListingImage(ownerId, key, "image/jpeg"));
     }
 
-    public byte[] read(ListingImage img) {
+    public byte[] read(ListingImage img, boolean thumb) {
         if (img.getStorageKey().startsWith("demo:")) throw ApiException.notFound();
+        if (thumb) {
+            Path t = root.resolve(thumbKey(img.getStorageKey())).normalize();
+            if (t.startsWith(root) && Files.exists(t)) {
+                try { return Files.readAllBytes(t); } catch (IOException ignored) { /* revenim la imaginea întreagă */ }
+            }
+        }
         Path p = root.resolve(img.getStorageKey()).normalize();
         if (!p.startsWith(root)) throw ApiException.notFound();
         try {
@@ -112,7 +120,10 @@ public class MediaService {
     @Transactional
     public void delete(ListingImage img) {
         if (!img.getStorageKey().startsWith("demo:")) {
-            try { Files.deleteIfExists(root.resolve(img.getStorageKey()).normalize()); } catch (IOException ignored) {}
+            try {
+                Files.deleteIfExists(root.resolve(img.getStorageKey()).normalize());
+                Files.deleteIfExists(root.resolve(thumbKey(img.getStorageKey())).normalize());
+            } catch (IOException ignored) {}
         }
         images.delete(img);
     }
@@ -120,9 +131,11 @@ public class MediaService {
     private static boolean isJpeg(byte[] b) { return b.length > 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF; }
     private static boolean isPng(byte[] b) { return b.length > 8 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G'; }
 
-    private static BufferedImage resize(BufferedImage src) {
+    private static String thumbKey(String key) { return key.replace(".jpg", "-thumb.jpg"); }
+
+    private static BufferedImage resize(BufferedImage src, int maxSide) {
         int w = src.getWidth(), h = src.getHeight();
-        double scale = Math.min(1.0, (double) MAX_SIDE / Math.max(w, h));
+        double scale = Math.min(1.0, (double) maxSide / Math.max(w, h));
         int nw = Math.max(1, (int) Math.round(w * scale)), nh = Math.max(1, (int) Math.round(h * scale));
         BufferedImage out = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = out.createGraphics();
@@ -135,11 +148,11 @@ public class MediaService {
         return out;
     }
 
-    private static void writeJpeg(BufferedImage img, Path target) throws IOException {
+    private static void writeJpeg(BufferedImage img, Path target, float quality) throws IOException {
         ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
         ImageWriteParam param = writer.getDefaultWriteParam();
         param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionQuality(0.85f);
+        param.setCompressionQuality(quality);
         try (ImageOutputStream ios = ImageIO.createImageOutputStream(target.toFile())) {
             writer.setOutput(ios);
             writer.write(null, new IIOImage(img, null, null), param);

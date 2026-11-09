@@ -34,11 +34,18 @@ public class ListingImage {
     public String getContentType() { return contentType; }
     public Instant getCreatedAt() { return createdAt; }
 
-    /** Imaginile demo sunt ilustrații servite de frontend; restul trec prin API. */
+    /** Pozele demo sunt servite de frontend; restul trec prin API. */
     public String url() { return url(id, storageKey); }
+    public String thumbUrl() { return thumbUrl(id, storageKey); }
 
     public static String url(UUID id, String storageKey) {
-        if (storageKey.startsWith("demo:")) return "assets/demo/" + storageKey.substring(5) + ".svg";
+        if (storageKey.startsWith("demo:")) return "assets/demo/" + storageKey.substring(5);
         return "/api/media/" + id;
+    }
+
+    /** Miniatura (600px) pentru carduri și liste: de 4–6 ori mai mică decât imaginea întreagă. */
+    public static String thumbUrl(UUID id, String storageKey) {
+        if (storageKey.startsWith("demo:")) return "assets/demo/" + storageKey.substring(5).replace(".jpg", "-thumb.jpg");
+        return "/api/media/" + id + "?size=thumb";
     }
 }

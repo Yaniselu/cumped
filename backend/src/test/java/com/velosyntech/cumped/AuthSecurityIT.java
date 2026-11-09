@@ -38,8 +38,13 @@ class AuthSecurityIT {
         assertThat(r.status()).isEqualTo(401);
         assertThat(r.error()).isEqualTo("INVALID_CREDENTIALS");
 
-        TestClient.Res weak = c.post("/api/auth/register", Map.of("email", "weak@test.dev", "password", "1234567890", "username", "weakling"));
+        TestClient.Res weak = c.post("/api/auth/register", Map.of("email", "weak@test.dev", "password", "1234567890", "username", "weakling",
+                "acceptTerms", true, "adultConfirmed", true));
         assertThat(weak.error()).isEqualTo("WEAK_PASSWORD");
+
+        // Fără acordul cu Termenii și confirmarea vârstei, contul nu se creează.
+        TestClient.Res noTerms = c.post("/api/auth/register", Map.of("email", "noterms@test.dev", "password", "Sigur-Parola-2026!", "username", "noterms_1"));
+        assertThat(noTerms.error()).isEqualTo("TERMS_REQUIRED");
     }
 
     @Test

@@ -11,13 +11,15 @@ import { BackButtonComponent } from '../shared/back-button.component';
 import { EmptyComponent } from '../shared/empty.component';
 import { ListingCardComponent } from '../shared/listing-card.component';
 import { SkeletonGridComponent } from '../shared/skeleton.component';
+import { RangeInputComponent } from '../shared/price-input.component';
+import { FX_APPROX, PRICE_RANGE_EUR, niceCeil } from '../core/listing-schema';
 
 interface Filters { category: string; min: number | null; max: number | null; conditions: string[]; country: string; city: string; swap: boolean; verified: boolean; shipsTo: string; }
 const EMPTY: Filters = { category: '', min: null, max: null, conditions: [], country: '', city: '', swap: false, verified: false, shipsTo: '' };
 
 @Component({
   selector: 'page-search',
-  imports: [MOTION, IonContent, IonIcon, IonModal, IonInfiniteScroll, IonInfiniteScrollContent, FormsModule, TPipe,
+  imports: [MOTION, IonContent, IonIcon, IonModal, IonInfiniteScroll, IonInfiniteScrollContent, FormsModule, TPipe, RangeInputComponent,
     ListingCardComponent, SkeletonGridComponent, EmptyComponent, BackButtonComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
@@ -59,9 +61,9 @@ const EMPTY: Filters = { category: '', min: null, max: null, conditions: [], cou
               <div class="field"><label>{{ 'search.category' | t }}</label>
                 <select class="input" [(ngModel)]="draft.category"><option value="">{{ 'search.anyCategory' | t }}</option>
                   @for (c of categories; track c) { <option [value]="c">{{ 'categories.' + c | t }}</option> }</select></div>
-              <div class="field"><label>{{ 'search.price' | t }}</label>
-                <div class="two"><input class="input" type="number" inputmode="decimal" [(ngModel)]="draft.min" [placeholder]="'search.min' | t" />
-                  <input class="input" type="number" inputmode="decimal" [(ngModel)]="draft.max" [placeholder]="'search.max' | t" /></div></div>
+              <div class="field"><label>{{ 'search.priceRange' | t }}</label>
+                <cmp-range-input [lo]="draft.min" (loChange)="draft.min = $event" [hi]="draft.max" (hiChange)="draft.max = $event"
+                  [max]="rangeMax()" [fromLabel]="'search.from' | t" [toLabel]="'search.to' | t" /></div>
               <div class="field"><label>{{ 'search.condition' | t }}</label>
                 <div class="chips">@for (c of conditions; track c) { <button class="chip" [class.active]="draft.conditions.includes(c)" (click)="toggleCond(c)">{{ 'conditions.' + c | t }}</button> }</div></div>
               <div class="two">
@@ -120,6 +122,12 @@ export class SearchPage implements OnInit {
     this.q = this.qParam() ?? '';
     if (this.category()) this.f.set({ ...EMPTY, category: this.category()! });
     this.run();
+  }
+
+  /** Capătul sliderului: după categorie, în moneda locală aproximativă (RON implicit). */
+  rangeMax() {
+    const cur = this.auth.user()?.country === 'RO' || !this.auth.user() ? 'RON' : 'EUR';
+    return niceCeil((PRICE_RANGE_EUR[this.draft.category] ?? 20000) * (FX_APPROX[cur] ?? 1));
   }
 
   activeFilters() { const f = this.f(); return !!(f.min || f.max || f.conditions.length || f.country || f.city || f.shipsTo); }

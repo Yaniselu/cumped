@@ -10,6 +10,8 @@ import com.velosyntech.cumped.user.User;
 import com.velosyntech.cumped.user.UserDtos;
 import com.velosyntech.cumped.user.UserRepository;
 import com.velosyntech.cumped.velo.ScamDetector;
+import com.velosyntech.cumped.moderation.ContentPolicy;
+import com.velosyntech.cumped.user.BlockService;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,12 +39,14 @@ public class ListingService {
     private final ScamDetector scam;
     private final JdbcClient jdbc;
     private final JsonMapper json;
+    private final ContentPolicy policy;
+    private final BlockService blocks;
     /** Deduplicare vizualizări: aceeași persoană nu crește contorul de mai multe ori pe oră. */
     private final Map<String, Long> recentViews = new ConcurrentHashMap<>();
 
     public ListingService(ListingRepository listings, ListingImageRepository images, UserRepository users,
                           QuotaService quota, NotificationService notifications, ScamDetector scam,
-                          JdbcClient jdbc, JsonMapper json) {
+                          JdbcClient jdbc, JsonMapper json, ContentPolicy policy, BlockService blocks) {
         this.listings = listings;
         this.images = images;
         this.users = users;
@@ -51,6 +55,8 @@ public class ListingService {
         this.scam = scam;
         this.jdbc = jdbc;
         this.json = json;
+        this.policy = policy;
+        this.blocks = blocks;
     }
 
     @Transactional
@@ -136,7 +142,7 @@ public class ListingService {
         }
 
         List<ListingDtos.Image> imgs = images.findByListingIdOrderByPositionAsc(id).stream()
-                .map(i -> new ListingDtos.Image(i.getId(), i.url())).toList();
+                .map(i -> new ListingDtos.Image(i.getId(), i.url(), i.thumbUrl())).toList();
         List<ListingDtos.PricePoint> history = jdbc.sql("SELECT price_cents, changed_at FROM price_history WHERE listing_id = ? ORDER BY changed_at")
                 .param(id).query((rs, i) -> new ListingDtos.PricePoint(rs.getLong(1), rs.getTimestamp(2).toInstant())).list();
         Long previous = history.stream()
@@ -156,7 +162,9 @@ public class ListingService {
                 l.getCondition().name(), l.getPriceCents(), l.getCurrency(), previous, l.getCountry(), l.getCity(),
                 shipsToList(l), l.getWeightGrams(), l.isAcceptsOffers(), l.isAcceptsSwap(), readAttributes(l), imgs,
                 l.getStatus().name(), l.isPromoted(), l.getCreatedAt(), UserDtos.toPublic(seller), fav, owner,
-                conversationId, history, stats, l.getFavCount(), l.getViewCount());
+                conversationId, history, stats, l.getFavCount(), l.getViewCount(), l.isNegotiable(), l.getQuantity(),
+                owner ? l.getMinPriceCents() : null, owner || admin ? l.getModerationReason() : null,
+                viewerId != null && !owner && blocks.eitherBlocked(viewerId, l.getSellerId()));
     }
 
     @Transactional
@@ -187,6 +195,13 @@ public class ListingService {
         if (scam.containsLink(title) || scam.containsLink(description)) throw ApiException.badRequest("LINKS_NOT_ALLOWED");
         ScamDetector.Result check = scam.analyze(title + "\n" + description);
         if (check.blocked()) throw ApiException.badRequest("SUSPICIOUS_CONTENT");
+        String attrText = r.attributes() == null ? "" : String.join(" ", r.attributes().values());
+        switch (policy.check(title + "\n" + description + "\n" + attrText)) {
+            case PROHIBITED_ITEM -> throw ApiException.badRequest("PROHIBITED_ITEM");
+            case OFFENSIVE_CONTENT -> throw ApiException.badRequest("OFFENSIVE_CONTENT");
+            default -> { }
+        }
+        if (r.minPriceCents() != null && r.minPriceCents() > r.priceCents()) throw ApiException.badRequest("MIN_PRICE_TOO_HIGH");
         if (!CURRENCIES.contains(r.currency())) throw ApiException.badRequest("UNSUPPORTED_CURRENCY");
         l.setTitle(title);
         l.setDescription(description);
@@ -200,6 +215,9 @@ public class ListingService {
         l.setWeightGrams(r.weightGrams() == null ? 1000 : r.weightGrams());
         l.setAcceptsOffers(r.acceptsOffers());
         l.setAcceptsSwap(r.acceptsSwap());
+        l.setNegotiable(r.negotiable() == null || r.negotiable());
+        l.setMinPriceCents(l.isNegotiable() ? r.minPriceCents() : null);
+        l.setQuantity(r.quantity() == null ? 1 : r.quantity());
         Map<String, String> attrs = new LinkedHashMap<>();
         if (r.attributes() != null) r.attributes().forEach((k, v) -> {
             String ck = Texts.clean(k), cv = Texts.clean(v);

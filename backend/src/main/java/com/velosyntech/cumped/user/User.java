@@ -11,6 +11,7 @@ public class User {
     public enum Role { USER, ADMIN }
     public enum Plan { FREE, PLUS, PRO }
     public enum DisplayMode { USERNAME, REAL_NAME }
+    public enum AccountType { PRIVATE, BUSINESS }
 
     @Id private UUID id = UUID.randomUUID();
     @Column(nullable = false, unique = true) private String email;
@@ -43,6 +44,16 @@ public class User {
     private int ratingSum;
     private int ratingCount;
     private int tokenVersion;
+    @Enumerated(EnumType.STRING) private AccountType accountType = AccountType.PRIVATE;
+    private String businessName;
+    private String businessRegNo;
+    private String businessVat;
+    private String businessAddress;
+    private String businessEmail;
+    private String businessPhone;
+    private String termsVersion;
+    private Instant termsAcceptedAt;
+    private boolean adultConfirmed;
     private Instant createdAt = Instant.now();
 
     public UUID getId() { return id; }
@@ -106,6 +117,25 @@ public class User {
     public void setRatingCount(int ratingCount) { this.ratingCount = ratingCount; }
     public int getTokenVersion() { return tokenVersion; }
     public void bumpTokenVersion() { this.tokenVersion++; }
+    public AccountType getAccountType() { return accountType; }
+    public void setAccountType(AccountType accountType) { this.accountType = accountType; }
+    public String getBusinessName() { return businessName; }
+    public void setBusinessName(String v) { this.businessName = v; }
+    public String getBusinessRegNo() { return businessRegNo; }
+    public void setBusinessRegNo(String v) { this.businessRegNo = v; }
+    public String getBusinessVat() { return businessVat; }
+    public void setBusinessVat(String v) { this.businessVat = v; }
+    public String getBusinessAddress() { return businessAddress; }
+    public void setBusinessAddress(String v) { this.businessAddress = v; }
+    public String getBusinessEmail() { return businessEmail; }
+    public void setBusinessEmail(String v) { this.businessEmail = v; }
+    public String getBusinessPhone() { return businessPhone; }
+    public void setBusinessPhone(String v) { this.businessPhone = v; }
+    public String getTermsVersion() { return termsVersion; }
+    public Instant getTermsAcceptedAt() { return termsAcceptedAt; }
+    public boolean isAdultConfirmed() { return adultConfirmed; }
+    public void acceptTerms(String version) { this.termsVersion = version; this.termsAcceptedAt = Instant.now(); this.adultConfirmed = true; }
+    public boolean isBusiness() { return accountType == AccountType.BUSINESS && businessName != null; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 

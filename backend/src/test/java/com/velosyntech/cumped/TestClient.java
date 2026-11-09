@@ -65,7 +65,8 @@ public class TestClient {
     public JsonNode register() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         Res r = post("/api/auth/register", java.util.Map.of("email", "u" + suffix + "@test.dev",
-                "password", "Sigur-Parola-2026!", "username", "u_" + suffix, "country", "RO", "locale", "ro"));
+                "password", "Sigur-Parola-2026!", "username", "u_" + suffix, "country", "RO", "locale", "ro",
+                "acceptTerms", true, "adultConfirmed", true));
         if (r.status() != 201) throw new IllegalStateException("register failed " + r.status() + " " + r.raw().body());
         token = r.body().get("accessToken").asText();
         return r.body().get("user");

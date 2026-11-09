@@ -13,6 +13,7 @@ const ICONS: Record<string, string> = {
   PRICE_DROP: 'trending-down', OFFER_RECEIVED: 'pricetag-outline', SWAP_RECEIVED: 'swap-horizontal', OFFER_ACCEPTED: 'checkmark-circle',
   OFFER_DECLINED: 'close-outline', NEW_CONVERSATION: 'chatbubble-outline', SAVED_SEARCH_MATCH: 'search', NEW_REVIEW: 'star',
   TICKET_OPENED: 'ticket-outline', LISTING_UNDER_REVIEW: 'shield-checkmark-outline', LISTING_RESTORED: 'checkmark-circle', PURCHASE_CONFIRMED: 'bag-check-outline',
+  OFFER_COUNTERED: 'swap-vertical', OFFER_AUTO_DECLINED: 'close-circle-outline', LISTING_REMOVED: 'alert-circle-outline', OFFER_EXPIRED: 'time-outline',
 };
 
 @Component({
@@ -59,6 +60,8 @@ export class NotificationsPage implements ViewWillEnter {
   text(n: AppNotification) {
     const p: Record<string, any> = { ...n.params };
     if (p['new'] != null && p['currency']) p['new'] = this.i18n.price(p['new'], p['currency']);
+    if (p['amount'] != null && p['currency']) p['amount'] = this.i18n.price(p['amount'], p['currency']);
+    if (p['reason'] && this.i18n.has('report.reason.' + p['reason'])) p['reason'] = this.i18n.t('report.reason.' + p['reason']);
     return this.i18n.t('notifications.' + n.type, p);
   }
 

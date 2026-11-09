@@ -32,7 +32,11 @@ abstract class AuthBase implements OnInit {
     this.nav.navigateRoot(target && target.startsWith('/') && !target.startsWith('//') ? target : '/home');
   }
 
+  /** Pe ecranul de înregistrare, bifele sunt obligatorii și pentru Apple/Google. */
+  protected canSocial() { return true; }
+
   social(provider: 'google' | 'apple') {
+    if (!this.canSocial()) { this.error.set(this.i18n.t('errors.TERMS_REQUIRED')); return; }
     const enabled = provider === 'google' ? this.config()?.googleLogin : this.config()?.appleLogin;
     if (!enabled) { this.ui.toast(this.i18n.t('errors.PROVIDER_NOT_CONFIGURED'), true); return; }
     // Fluxul nativ (Google Identity Services / Sign in with Apple) se activează odată cu client ID-urile.
@@ -77,6 +81,7 @@ const STYLES = `
           <button class="btn block" [disabled]="busy() || !email || !password">{{ 'auth.loginCta' | t }}</button>
         </form>
         ${SOCIAL}
+        <p class="terms">{{ 'auth.socialTerms' | t }} <a routerLink="/legal/terms">{{ 'legal.terms' | t }}</a> · <a routerLink="/legal/privacy">{{ 'legal.privacy' | t }}</a></p>
         @if (config()?.devMode) { <div class="demo fade">{{ 'auth.demoHint' | t }}</div> }
         <div class="foot">{{ 'auth.noAccount' | t }} <a routerLink="/register" [queryParams]="{ next: next() }">{{ 'auth.createOne' | t }}</a></div>
       </div>
@@ -117,11 +122,17 @@ export class LoginPage extends AuthBase {
             <span class="hint">{{ 'auth.passwordHint' | t }}</span></div>
           <div class="field"><label>{{ 'auth.referral' | t }} <span class="faint">({{ 'common.optional' | t }})</span></label>
             <input class="input" name="ref" [(ngModel)]="referral" maxlength="12" style="text-transform: uppercase" /></div>
+          <div class="consent">
+            <label class="chk"><input type="checkbox" name="terms" [(ngModel)]="acceptTerms" />
+              <span class="box"><ion-icon name="checkmark"></ion-icon></span>
+              <span>{{ 'auth.acceptPre' | t }} <a routerLink="/legal/terms">{{ 'legal.terms' | t }}</a>, <a routerLink="/legal/rules">{{ 'legal.rules' | t }}</a> {{ 'auth.acceptAnd' | t }} <a routerLink="/legal/privacy">{{ 'legal.privacy' | t }}</a>.</span></label>
+            <label class="chk"><input type="checkbox" name="adult" [(ngModel)]="adult" />
+              <span class="box"><ion-icon name="checkmark"></ion-icon></span><span>{{ 'auth.adult' | t }}</span></label>
+          </div>
           @if (error()) { <div class="error-text fade">{{ error() }}</div> }
-          <button class="btn block" [disabled]="busy() || !email || !username || password.length < 10">{{ 'auth.registerCta' | t }}</button>
+          <button class="btn block" [disabled]="busy() || !email || !username || password.length < 10 || !acceptTerms || !adult">{{ 'auth.registerCta' | t }}</button>
         </form>
         ${SOCIAL}
-        <p class="terms">{{ 'auth.terms' | t }}</p>
         <div class="foot">{{ 'auth.haveAccount' | t }} <a routerLink="/login" [queryParams]="{ next: next() }">{{ 'auth.loginLink' | t }}</a></div>
       </div>
     </ion-content>
@@ -130,6 +141,12 @@ export class LoginPage extends AuthBase {
     .meter { height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin: 4px 4px 0; }
     .meter span { display: block; height: 100%; border-radius: 99px; transition: width .4s var(--ease), background .3s; background: var(--accent-2); }
     .meter span[data-s="3"] { background: var(--warn); } .meter span[data-s="4"] { background: var(--ok); }
+    .consent { display: flex; flex-direction: column; gap: 12px; padding: 4px 2px; }
+    .chk { position: relative; display: flex; gap: 12px; align-items: flex-start; font-size: 13.5px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
+    .chk input { position: absolute; opacity: 0; width: 22px; height: 22px; margin: 0; }
+    .box { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--surface-3); background: var(--surface); display: grid; place-items: center; color: transparent; transition: all .2s; }
+    .chk input:checked + .box { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .chk input:focus-visible + .box { box-shadow: 0 0 0 4px var(--accent-soft); }
   `],
 })
 export class RegisterPage extends AuthBase {
@@ -138,6 +155,10 @@ export class RegisterPage extends AuthBase {
   password = '';
   referral = new URLSearchParams(location.search).get('ref') ?? '';
   show = signal(false);
+  acceptTerms = false;
+  adult = false;
+
+  protected override canSocial() { return this.acceptTerms && this.adult; }
 
   strength() {
     const p = this.password;
@@ -157,6 +178,7 @@ export class RegisterPage extends AuthBase {
         email: this.email.trim(), password: this.password, username: this.username.trim(),
         referralCode: this.referral.trim().toUpperCase() || undefined, locale: this.i18n.lang(),
         country: (navigator.language.split('-')[1] || 'RO').toUpperCase().slice(0, 2),
+        acceptTerms: this.acceptTerms, adultConfirmed: this.adult,
       });
       this.done();
     } catch (e) { this.error.set(this.ui.errorText(e)); }

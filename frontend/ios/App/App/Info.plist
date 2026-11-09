@@ -22,6 +22,27 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Cumped uses the camera so you can photograph the items you sell and add them to your listing.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cumped accesses your photos only when you choose pictures to add to a listing.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ro</string>
+		<string>de</string>
+		<string>fr</string>
+		<string>es</string>
+		<string>it</string>
+		<string>hu</string>
+		<string>pl</string>
+		<string>uk</string>
+		<string>tr</string>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
@@ -49,7 +70,7 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>

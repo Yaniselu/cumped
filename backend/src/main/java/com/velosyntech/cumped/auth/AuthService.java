@@ -18,6 +18,8 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
+    /** Versiunea curentă a Termenilor și a Politicii de confidențialitate (o schimbare cere re-acceptare). */
+    public static final String TERMS_VERSION = "2026-11";
     private static final Set<String> RESERVED = Set.of("admin", "administrator", "root", "support", "suport", "velo",
             "veloai", "cumped", "moderator", "staff", "official", "oficial", "help", "ajutor", "system", "security");
     private static final int MAX_FAILED = 5;
@@ -47,6 +49,7 @@ public class AuthService {
 
     @Transactional
     public User register(AuthDtos.RegisterRequest r) {
+        if (!Boolean.TRUE.equals(r.acceptTerms()) || !Boolean.TRUE.equals(r.adultConfirmed())) throw ApiException.badRequest("TERMS_REQUIRED");
         String email = normalizeEmail(r.email());
         String username = normalizeUsername(r.username());
         PasswordPolicy.check(r.password(), email, username);
@@ -56,6 +59,7 @@ public class AuthService {
         u.setEmail(email);
         u.setUsername(username);
         u.setPasswordHash(encoder.encode(r.password()));
+        u.acceptTerms(TERMS_VERSION);
         applyCommon(u, r.locale(), r.country(), r.city());
         users.save(u);
         attachReferral(u, r.referralCode());
@@ -102,7 +106,9 @@ public class AuthService {
         }
         if (u == null) {
             if (id.email() == null || !id.emailVerified()) throw ApiException.badRequest("EMAIL_NOT_VERIFIED");
+            if (!Boolean.TRUE.equals(r.acceptTerms()) || !Boolean.TRUE.equals(r.adultConfirmed())) throw ApiException.badRequest("TERMS_REQUIRED");
             u = new User();
+            u.acceptTerms(TERMS_VERSION);
             u.setEmail(normalizeEmail(id.email()));
             u.setUsername(generateUsername(id.email()));
             applyCommon(u, r.locale(), r.country(), null);

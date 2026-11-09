@@ -32,6 +32,11 @@ public class UserController {
                         @Pattern(regexp = "^[A-Z]{2}$") String country,
                         @Pattern(regexp = "^[a-z]{2}$") String locale) {}
 
+    public record BusinessUpdate(@jakarta.validation.constraints.NotNull User.AccountType accountType,
+                                 @Size(max = 120) String name, @Size(max = 40) String regNo, @Size(max = 30) String vat,
+                                 @Size(max = 250) String address, @jakarta.validation.constraints.Email @Size(max = 254) String email,
+                                 @Pattern(regexp = "^\\+?[0-9 ()-]{6,30}$") String phone) {}
+
     public record ListingStat(UUID id, String title, String status, int views, int favorites, int messages, long offers) {}
     public record Stats(int totalViews, int totalFavorites, int totalMessages, long totalOffers, long soldCount,
                         List<Map<String, Object>> viewsByDay, List<ListingStat> listings) {}
@@ -44,9 +49,14 @@ public class UserController {
     private final TokenService tokens;
     private final UserStatusCache statusCache;
     private final ScamDetector scam;
+    private final BlockService blocks;
+    private final com.velosyntech.cumped.media.MediaService media;
+    private final com.velosyntech.cumped.media.ListingImageRepository images;
 
     public UserController(UserRepository users, QuotaService quota, ListingQueries queries, AuditService audit,
-                          JdbcClient jdbc, TokenService tokens, UserStatusCache statusCache, ScamDetector scam) {
+                          JdbcClient jdbc, TokenService tokens, UserStatusCache statusCache, ScamDetector scam,
+                          BlockService blocks, com.velosyntech.cumped.media.MediaService media,
+                          com.velosyntech.cumped.media.ListingImageRepository images) {
         this.users = users;
         this.quota = quota;
         this.queries = queries;
@@ -55,7 +65,63 @@ public class UserController {
         this.tokens = tokens;
         this.statusCache = statusCache;
         this.scam = scam;
+        this.blocks = blocks;
+        this.media = media;
+        this.images = images;
     }
+
+    /**
+     * Cont de persoană fizică sau de firmă. Firmele trebuie să-și declare datele (DSA art. 30),
+     * iar cumpărătorii văd că au de-a face cu un profesionist (drepturile de consumator se aplică).
+     */
+    @PatchMapping("/me/business")
+    @Transactional
+    UserDtos.Me updateBusiness(@Valid @RequestBody BusinessUpdate r) {
+        User u = users.findById(CurrentUser.id()).orElseThrow(ApiException::notFound);
+        if (r.accountType() == User.AccountType.BUSINESS) {
+            if (blank(r.name()) || blank(r.regNo()) || blank(r.vat()) || blank(r.address()) || blank(r.email()))
+                throw ApiException.badRequest("BUSINESS_DETAILS_REQUIRED");
+            u.setBusinessName(Texts.clean(r.name()));
+            u.setBusinessRegNo(Texts.clean(r.regNo()));
+            u.setBusinessVat(Texts.clean(r.vat()));
+            u.setBusinessAddress(Texts.clean(r.address()));
+            u.setBusinessEmail(Texts.clean(r.email()).toLowerCase(Locale.ROOT));
+            u.setBusinessPhone(Texts.clean(r.phone()));
+        }
+        u.setAccountType(r.accountType());
+        users.save(u);
+        audit.log(u.getId(), "ACCOUNT_TYPE_" + r.accountType().name(), null);
+        return UserDtos.toMe(u, quota.quotaFor(u));
+    }
+
+    /** Re-acceptarea termenilor după o actualizare a lor. */
+    @PostMapping("/me/accept-terms")
+    @Transactional
+    UserDtos.Me acceptTerms() {
+        User u = users.findById(CurrentUser.id()).orElseThrow(ApiException::notFound);
+        u.acceptTerms(com.velosyntech.cumped.auth.AuthService.TERMS_VERSION);
+        users.save(u);
+        return UserDtos.toMe(u, quota.quotaFor(u));
+    }
+
+    @PostMapping("/users/{id}/block")
+    void block(@PathVariable UUID id) {
+        users.findById(id).orElseThrow(ApiException::notFound);
+        blocks.block(CurrentUser.id(), id);
+        audit.log(CurrentUser.id(), "USER_BLOCKED", id.toString());
+    }
+
+    @DeleteMapping("/users/{id}/block")
+    void unblock(@PathVariable UUID id) { blocks.unblock(CurrentUser.id(), id); }
+
+    @GetMapping("/me/blocks")
+    List<UserDtos.PublicUser> myBlocks() {
+        List<UUID> ids = jdbc.sql("SELECT blocked_id FROM user_blocks WHERE blocker_id = ? ORDER BY created_at DESC")
+                .param(CurrentUser.id()).query(UUID.class).list();
+        return users.findAllById(ids).stream().map(UserDtos::toPublic).toList();
+    }
+
+    private static boolean blank(String s) { return s == null || s.isBlank(); }
 
     @GetMapping("/me")
     UserDtos.Me me() {
@@ -162,7 +228,14 @@ public class UserController {
     void deleteAccount() {
         UUID me = CurrentUser.id();
         User u = users.findById(me).orElseThrow(ApiException::notFound);
-        jdbc.sql("UPDATE listings SET status = 'DELETED' WHERE seller_id = ?").param(me).update();
+        // Anunțurile rămân doar ca rânduri goale (pentru ofertele/conversațiile celorlalți), fără text și fără poze.
+        jdbc.sql("UPDATE listings SET status = 'DELETED', description = '', attributes = '', min_price_cents = NULL WHERE seller_id = ?").param(me).update();
+        images.findByOwnerId(me).forEach(media::delete);
+        jdbc.sql("DELETE FROM favorites WHERE user_id = ?").param(me).update();
+        jdbc.sql("DELETE FROM saved_searches WHERE user_id = ?").param(me).update();
+        jdbc.sql("DELETE FROM notifications WHERE user_id = ?").param(me).update();
+        jdbc.sql("DELETE FROM velo_sessions WHERE user_id = ?").param(me).update();
+        jdbc.sql("DELETE FROM user_blocks WHERE blocker_id = ? OR blocked_id = ?").params(me, me).update();
         String anon = "deleted_" + Texts.randomCode(8).toLowerCase(Locale.ROOT);
         u.setEmail(anon + "@deleted.invalid");
         u.setUsername(anon);
@@ -175,6 +248,9 @@ public class UserController {
         u.setAppleSub(null);
         u.setBio(null);
         u.setCity(null);
+        u.setAccountType(User.AccountType.PRIVATE);
+        u.setBusinessName(null); u.setBusinessRegNo(null); u.setBusinessVat(null);
+        u.setBusinessAddress(null); u.setBusinessEmail(null); u.setBusinessPhone(null);
         u.setSuspended(true);
         u.setSuspendedReason("DELETED");
         u.bumpTokenVersion();

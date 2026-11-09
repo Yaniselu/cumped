@@ -14,6 +14,7 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class OfferController {
     public record Create(@NotBlank String kind, Long amountCents, UUID swapListingId, @Size(max = 400) String message) {}
+    public record Respond(Long amountCents, @Size(max = 400) String message) {}
 
     private final OfferService offers;
 
@@ -24,12 +25,15 @@ public class OfferController {
         return Map.of("id", offers.create(CurrentUser.id(), id, r.kind(), r.amountCents(), r.swapListingId(), r.message()));
     }
 
+    /** action: accept | decline | counter | withdraw */
     @PostMapping("/offers/{id}/{action}")
-    void decide(@PathVariable UUID id, @PathVariable String action) { offers.decide(CurrentUser.id(), id, action); }
+    void respond(@PathVariable UUID id, @PathVariable String action, @Valid @RequestBody(required = false) Respond r) {
+        offers.respond(CurrentUser.id(), id, action, r == null ? null : r.amountCents(), r == null ? null : r.message());
+    }
 
-    @GetMapping("/me/offers/received")
-    List<OfferService.Offer> received() { return offers.received(CurrentUser.id()); }
+    @GetMapping("/me/negotiations")
+    List<OfferService.Negotiation> list() { return offers.list(CurrentUser.id()); }
 
-    @GetMapping("/me/offers/sent")
-    List<OfferService.Offer> sent() { return offers.sent(CurrentUser.id()); }
+    @GetMapping("/negotiations/{threadId}")
+    OfferService.Negotiation thread(@PathVariable UUID threadId) { return offers.thread(CurrentUser.id(), threadId); }
 }

@@ -11,16 +11,28 @@ public final class UserDtos {
                      String legalName, boolean idVerified, boolean phoneVerified, String phoneLast2,
                      String role, String plan, Instant planUntil, String referralCode, String country, String city,
                      String locale, int avatarHue, String bio, Instant createdAt, double rating, int ratingCount,
-                     QuotaService.Quota quota, boolean hasPassword) {}
+                     QuotaService.Quota quota, boolean hasPassword, String accountType, Business business,
+                     String termsVersion) {}
+
+    /** Datele firmei: obligatorii pentru vânzătorii profesioniști (DSA art. 30) și afișate cumpărătorilor. */
+    public record Business(String name, String regNo, String vat, String address, String email, String phone) {}
 
     /** Profil public: fără email, fără telefon, fără numele complet. */
     public record PublicUser(UUID id, String username, String displayName, boolean idVerified, boolean phoneVerified,
                              String country, String city, int avatarHue, String bio, Instant memberSince,
-                             double rating, int ratingCount, int trustScore, boolean realNameAvailable) {}
+                             double rating, int ratingCount, int trustScore, boolean realNameAvailable,
+                             String accountType, Business business) {}
 
     public record RealName(String fullName) {}
 
+    public static Business business(User u) {
+        if (!u.isBusiness()) return null;
+        return new Business(u.getBusinessName(), u.getBusinessRegNo(), u.getBusinessVat(), u.getBusinessAddress(),
+                u.getBusinessEmail(), u.getBusinessPhone());
+    }
+
     public static String displayName(User u) {
+        if (u.isBusiness()) return u.getBusinessName();
         if (u.getDisplayMode() == User.DisplayMode.REAL_NAME && u.isIdVerified() && u.getLegalFirstName() != null) {
             String last = u.getLegalLastName();
             return u.getLegalFirstName() + (last != null && !last.isEmpty() ? " " + last.charAt(0) + "." : "");
@@ -43,13 +55,14 @@ public final class UserDtos {
     public static PublicUser toPublic(User u) {
         return new PublicUser(u.getId(), u.getUsername(), displayName(u), u.isIdVerified(), u.isPhoneVerified(),
                 u.getCountry(), u.getCity(), u.getAvatarHue(), u.getBio(), u.getCreatedAt(), u.ratingAverage(),
-                u.getRatingCount(), trustScore(u), u.isIdVerified());
+                u.getRatingCount(), trustScore(u), u.isIdVerified(), u.getAccountType().name(), business(u));
     }
 
     public static Me toMe(User u, QuotaService.Quota quota) {
         return new Me(u.getId(), u.getEmail(), u.getUsername(), displayName(u), u.getDisplayMode(), u.legalFullName(),
                 u.isIdVerified(), u.isPhoneVerified(), u.getPhoneLast2(), u.getRole().name(), u.effectivePlan().name(),
                 u.getPlanUntil(), u.getReferralCode(), u.getCountry(), u.getCity(), u.getLocale(), u.getAvatarHue(),
-                u.getBio(), u.getCreatedAt(), u.ratingAverage(), u.getRatingCount(), quota, u.getPasswordHash() != null);
+                u.getBio(), u.getCreatedAt(), u.ratingAverage(), u.getRatingCount(), quota, u.getPasswordHash() != null,
+                u.getAccountType().name(), business(u), u.getTermsVersion());
     }
 }

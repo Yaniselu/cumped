@@ -5,17 +5,19 @@ import { filter } from 'rxjs';
 import { LogoComponent } from './shared/logo.component';
 import { TabBarComponent } from './shared/tab-bar.component';
 import { TopNavComponent } from './shared/top-nav.component';
+import { TermsGateComponent } from './shared/terms-gate.component';
 
 const NO_CHROME = ['/welcome', '/login', '/register', '/chat/', '/sell', '/support'];
 
 @Component({
   selector: 'app-root',
-  imports: [IonApp, IonRouterOutlet, TabBarComponent, TopNavComponent, LogoComponent],
+  imports: [IonApp, IonRouterOutlet, TabBarComponent, TopNavComponent, LogoComponent, TermsGateComponent],
   template: `
     <ion-app>
       @if (!bare()) { <cmp-top-nav /> }
       <ion-router-outlet [animated]="true"></ion-router-outlet>
       <cmp-tab-bar [url]="url()" [hidden]="bare() || detail()" />
+      <cmp-terms-gate />
       @if (splash()) {
         <div class="splash" (animationend)="splashDone($event)">
           <div class="halo"></div>

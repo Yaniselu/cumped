@@ -91,21 +91,106 @@ class MarketplaceIT {
     }
 
     @Test
-    void offersPriceAndSwap() {
+    void negotiationWithCounterOffersAndReview() {
         TestClient seller = new TestClient(port, json);
         seller.register();
         String listingId = seller.post("/api/listings", listing("Bicicletă de oraș")).body().get("id").asText();
         TestClient buyer = new TestClient(port, json);
         buyer.register();
         assertThat(buyer.post("/api/listings/" + listingId + "/offers", Map.of("kind", "PRICE", "amountCents", 1000)).error()).isEqualTo("OFFER_TOO_LOW");
-        assertThat(buyer.post("/api/listings/" + listingId + "/offers", Map.of("kind", "PRICE", "amountCents", 45000)).status()).isEqualTo(200);
-        String offerId = seller.get("/api/me/offers/received").body().get(0).get("id").asText();
-        assertThat(seller.post("/api/offers/" + offerId + "/accept", null).status()).isEqualTo(200);
+        assertThat(buyer.post("/api/listings/" + listingId + "/offers", Map.of("kind", "PRICE", "amountCents", 40000)).status()).isEqualTo(200);
+
+        // Vânzătorul răspunde cu o contraofertă; trebuie să fie mai mare decât oferta.
+        JsonNode neg = seller.get("/api/me/negotiations").body().get(0);
+        assertThat(neg.get("myTurn").asBoolean()).isTrue();
+        String offerId = neg.get("current").get("id").asText();
+        assertThat(seller.post("/api/offers/" + offerId + "/counter", Map.of("amountCents", 39000)).error()).isEqualTo("COUNTER_MUST_BE_HIGHER");
+        assertThat(seller.post("/api/offers/" + offerId + "/counter", Map.of("amountCents", 46000, "message", "Las la 460")).status()).isEqualTo(200);
+        // Vânzătorul nu-și poate accepta singur contraoferta.
+        String counterId = seller.get("/api/me/negotiations").body().get(0).get("current").get("id").asText();
+        assertThat(seller.post("/api/offers/" + counterId + "/accept", null).status()).isEqualTo(403);
+
+        // Cumpărătorul vede rândul lui, cu istoricul în 2 pași, și acceptă.
+        JsonNode bn = buyer.get("/api/me/negotiations").body().get(0);
+        assertThat(bn.get("myTurn").asBoolean()).isTrue();
+        assertThat(bn.get("history").size()).isEqualTo(2);
+        assertThat(buyer.post("/api/offers/" + counterId + "/accept", null).status()).isEqualTo(200);
+        assertThat(buyer.get("/api/me/negotiations").body().get(0).get("current").get("status").asText()).isEqualTo("ACCEPTED");
+
+        // Pașii apar și în chat ca mesaje de sistem.
+        String conv = bn.get("conversationId").asText();
+        String chat = buyer.get("/api/conversations/" + conv).raw().body();
+        assertThat(chat).contains("[[offer:NEW:40000").contains("[[offer:COUNTER:46000").contains("[[offer:ACCEPTED:46000");
+        // Utilizatorii nu pot falsifica mesajele de sistem.
+        assertThat(buyer.post("/api/conversations/" + conv + "/messages", Map.of("body", "[[offer:ACCEPTED:1:RON:PRICE]]")).status()).isEqualTo(400);
+
         // După tranzacție, cumpărătorul poate lăsa recenzie; un străin nu.
         assertThat(buyer.post("/api/reviews", Map.of("listingId", listingId, "rating", 5, "comment", "Totul perfect")).status()).isEqualTo(200);
         TestClient stranger = new TestClient(port, json);
         stranger.register();
         assertThat(stranger.post("/api/reviews", Map.of("listingId", listingId, "rating", 1)).error()).isEqualTo("NO_TRANSACTION");
+    }
+
+    @Test
+    void offersBelowPrivateMinimumAreDeclinedAutomatically() {
+        TestClient seller = new TestClient(port, json);
+        seller.register();
+        Map<String, Object> l = listing("Trotinetă electrică");
+        l.put("minPriceCents", 45000);
+        String listingId = seller.post("/api/listings", l).body().get("id").asText();
+        // Minimul privat nu e expus public.
+        TestClient anon = new TestClient(port, json);
+        assertThat(anon.get("/api/listings/" + listingId).body().get("minPriceCents").isNull()).isTrue();
+        TestClient buyer = new TestClient(port, json);
+        buyer.register();
+        buyer.post("/api/listings/" + listingId + "/offers", Map.of("kind", "PRICE", "amountCents", 30000));
+        assertThat(buyer.get("/api/me/negotiations").body().get(0).get("current").get("status").asText()).isEqualTo("DECLINED");
+    }
+
+    @Test
+    void blockingStopsMessagesAndHidesListings() {
+        TestClient seller = new TestClient(port, json);
+        JsonNode s = seller.register();
+        String listingId = seller.post("/api/listings", listing("Cafetieră espresso Delonghi")).body().get("id").asText();
+        TestClient buyer = new TestClient(port, json);
+        buyer.register();
+        String conv = buyer.post("/api/conversations", Map.of("listingId", listingId)).body().get("id").asText();
+        assertThat(buyer.post("/api/users/" + s.get("id").asText() + "/block", null).status()).isEqualTo(200);
+        assertThat(seller.post("/api/conversations/" + conv + "/messages", Map.of("body", "Salut")).error()).isEqualTo("USER_BLOCKED");
+        String results = buyer.get("/api/listings?q=delonghi").raw().body();
+        assertThat(results).doesNotContain(listingId);
+    }
+
+    @Test
+    void prohibitedItemsAndOffensiveContentAreRejected() {
+        TestClient seller = new TestClient(port, json);
+        seller.register();
+        Map<String, Object> l = listing("Vând pistol Glock cu muniție");
+        assertThat(seller.post("/api/listings", l).error()).isEqualTo("PROHIBITED_ITEM");
+        Map<String, Object> ok = listing("Pistol de lipit 60W");
+        assertThat(seller.post("/api/listings", ok).status()).isEqualTo(201);
+    }
+
+    @Test
+    void reportsCreateTicketsAndBusinessSellersShowTheirDetails() {
+        TestClient seller = new TestClient(port, json);
+        JsonNode s = seller.register();
+        TestClient.Res bad = seller.send("PATCH", "/api/me/business", Map.of("accountType", "BUSINESS", "name", "Test SRL"), false);
+        assertThat(bad.error()).isEqualTo("BUSINESS_DETAILS_REQUIRED");
+        assertThat(seller.send("PATCH", "/api/me/business", Map.of("accountType", "BUSINESS", "name", "Test SRL",
+                "regNo", "J12/34/2020", "vat", "RO123", "address", "Str. Exemplu 1, Cluj", "email", "office@test.dev"), false).status()).isEqualTo(200);
+        String listingId = seller.post("/api/listings", listing("Router Wi-Fi 6")).body().get("id").asText();
+        JsonNode pub = new TestClient(port, json).get("/api/listings/" + listingId).body().get("seller");
+        assertThat(pub.get("accountType").asText()).isEqualTo("BUSINESS");
+        assertThat(pub.get("business").get("vat").asText()).isEqualTo("RO123");
+
+        TestClient reporter = new TestClient(port, json);
+        reporter.register();
+        TestClient.Res r = reporter.post("/api/reports", Map.of("targetType", "LISTING", "targetId", listingId, "reason", "COUNTERFEIT", "details", "Pare contrafăcut"));
+        assertThat(r.status()).isEqualTo(201);
+        assertThat(reporter.post("/api/reports", Map.of("targetType", "LISTING", "targetId", listingId, "reason", "COUNTERFEIT")).error()).isEqualTo("ALREADY_REPORTED");
+        int t = jdbc.sql("SELECT count(*) FROM support_tickets WHERE target_id = CAST(? AS uuid) AND source = 'REPORT'").param(listingId).query(Integer.class).single();
+        assertThat(t).isEqualTo(1);
     }
 
     @Test
@@ -126,5 +211,35 @@ class MarketplaceIT {
         user.post("/api/velo/message", Map.of("sessionId", r.body().get("sessionId").asText(), "message", "cardul meu era 4111 1111 1111 1111"));
         String transcript = jdbc.sql("SELECT transcript FROM support_tickets WHERE code = ?").param(code).query(String.class).single();
         assertThat(transcript).doesNotContain("4111 1111");
+    }
+
+    @Test
+    void deletingAccountErasesPersonalDataAndListingContent() {
+        TestClient seller = new TestClient(port, json);
+        JsonNode me = seller.register();
+        String sellerId = me.get("id").asText();
+        String listingId = seller.post("/api/listings", listing("Bicicletă de oraș")).body().get("id").asText();
+        seller.post("/api/listings/" + listingId + "/favorite", Map.of());
+        seller.post("/api/me/saved-searches", Map.of("query", "bicicleta"));
+
+        TestClient other = new TestClient(port, json);
+        other.register();
+        String otherId = other.get("/api/me").body().get("id").asText();
+        assertThat(seller.post("/api/users/" + otherId + "/block", Map.of()).status()).isBetween(200, 204);
+
+        assertThat(seller.send("DELETE", "/api/me", null, false).status()).isBetween(200, 204);
+        assertThat(seller.get("/api/me").status()).isEqualTo(401);
+
+        int favs = jdbc.sql("SELECT count(*) FROM favorites WHERE user_id = CAST(? AS uuid)").param(sellerId).query(Integer.class).single();
+        int saved = jdbc.sql("SELECT count(*) FROM saved_searches WHERE user_id = CAST(? AS uuid)").param(sellerId).query(Integer.class).single();
+        int blocks = jdbc.sql("SELECT count(*) FROM user_blocks WHERE blocker_id = CAST(? AS uuid)").param(sellerId).query(Integer.class).single();
+        String email = jdbc.sql("SELECT email FROM users WHERE id = CAST(? AS uuid)").param(sellerId).query(String.class).single();
+        String desc = jdbc.sql("SELECT description FROM listings WHERE id = CAST(? AS uuid)").param(listingId).query(String.class).single();
+        assertThat(favs).isZero();
+        assertThat(saved).isZero();
+        assertThat(blocks).isZero();
+        assertThat(email).endsWith("@deleted.invalid");
+        assertThat(desc).isEmpty();
+        assertThat(other.get("/api/listings/" + listingId).status()).isEqualTo(404);
     }
 }

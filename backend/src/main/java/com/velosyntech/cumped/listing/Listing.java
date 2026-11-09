@@ -29,6 +29,10 @@ public class Listing {
     private boolean acceptsOffers = true;
     private boolean acceptsSwap;
     private String attributes = "";
+    private boolean negotiable = true;
+    private Long minPriceCents;
+    private int quantity = 1;
+    private String moderationReason;
     @Enumerated(EnumType.STRING) private Status status = Status.ACTIVE;
     private UUID soldToId;
     private Instant promotedUntil;
@@ -69,6 +73,14 @@ public class Listing {
     public void setAcceptsSwap(boolean acceptsSwap) { this.acceptsSwap = acceptsSwap; }
     public String getAttributes() { return attributes; }
     public void setAttributes(String attributes) { this.attributes = attributes; }
+    public boolean isNegotiable() { return negotiable; }
+    public void setNegotiable(boolean negotiable) { this.negotiable = negotiable; }
+    public Long getMinPriceCents() { return minPriceCents; }
+    public void setMinPriceCents(Long minPriceCents) { this.minPriceCents = minPriceCents; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public String getModerationReason() { return moderationReason; }
+    public void setModerationReason(String moderationReason) { this.moderationReason = moderationReason; }
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
     public UUID getSoldToId() { return soldToId; }

@@ -25,7 +25,13 @@ public record AppProperties(
         String adminPassword,
         boolean devMode,
         boolean demoData,
-        Boolean rateLimit
+        Boolean rateLimit,
+        String companyName,
+        String companyAddress,
+        String companyRegNo,
+        String companyVat,
+        String companyEmail,
+        String dpoEmail
 ) {
     public boolean rateLimitEnabled() { return rateLimit == null || rateLimit; }
     public List<String> corsOriginList() { return split(corsOrigins); }

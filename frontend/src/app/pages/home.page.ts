@@ -35,11 +35,6 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
         </header>
 
         <section class="hero" cmpParallax>
-          <div class="deco" aria-hidden="true">
-            <img class="d1 cutout-img" src="assets/demo/headphones.svg" alt="" />
-            <img class="d2 cutout-img" src="assets/demo/watch.svg" alt="" />
-            <img class="d3 cutout-img" src="assets/demo/sneakers.svg" alt="" />
-          </div>
           <h1 [cmpSplit]="'home.heroTitle' | t"></h1>
           <a routerLink="/search" class="searchbar glass press sb-in">
             <ion-icon name="search"></ion-icon><span class="ph">{{ 'home.searchPh' | t }}</span>
@@ -79,7 +74,8 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
         <a routerLink="/sell" class="sellcta press rv tilt"><span class="glare"></span><span class="orb o1"></span><span class="orb o2"></span>
           <div><h3>{{ 'home.sellTitle' | t }}</h3><p>{{ 'home.sellSub' | t }}</p></div>
           <span class="btn sm">{{ 'home.sellCta' | t }}</span>
-          <img src="assets/demo/camera.svg" alt="" />
+          <span class="ph1"><img src="assets/demo/photos/camera-1-thumb.jpg" alt="" /></span>
+          <span class="ph2"><img src="assets/demo/photos/watch-2-thumb.jpg" alt="" /></span>
         </a>
 
         <div class="section-head rv"><h2>{{ 'home.recent' | t }}</h2></div>
@@ -97,14 +93,7 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
     .hdr { display: flex; align-items: center; gap: 12px; margin: 4px 0 18px; }
     .hello { flex: 1; display: flex; flex-direction: column; line-height: 1.2; } .hello strong { font-family: var(--font-display); font-size: 18px; }
     .hero { position: relative; }
-    .hero h1 { position: relative; font-size: 36px; margin-bottom: 18px; max-width: 520px; transform: translateY(calc(var(--scroll, 0) * -0.12px)); }
-    .deco { position: absolute; right: -10px; top: 2px; width: 44%; height: 120px; pointer-events: none; z-index: 0;
-      transform: translate(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -14px + var(--scroll, 0) * 0.25px)); transition: transform .4s var(--ease); }
-    .deco img { position: absolute; animation: floaty 6s ease-in-out infinite; opacity: .95; }
-    .d1 { width: 48%; right: 44%; top: 4px; --rot: -10deg; }
-    .d2 { width: 34%; right: 2%; top: -4px; --rot: 12deg; animation-delay: -2s !important; }
-    .d3 { width: 44%; right: 18%; top: 50px; --rot: -6deg; animation-delay: -4s !important; opacity: .85; }
-    @media (min-width: 992px) { .deco { width: 34%; height: 200px; top: -30px; } }
+    .hero h1 { position: relative; font-size: clamp(28px, 8.6vw, 36px); margin-bottom: 18px; max-width: 520px; transform: translateY(calc(var(--scroll, 0) * -0.12px)); }
     .sb-in { animation: fadeUp .8s .35s var(--spring) both; }
     .cat:hover .ic ion-icon, .cat:active .ic ion-icon { animation: pop .6s var(--spring); }
     @media (min-width: 992px) { .hero h1 { font-size: 52px; } .hero { margin: 10px 0 8px; } }
@@ -120,11 +109,17 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
     .shield ion-icon { font-size: 24px; }
     .safe div { flex: 1; } .safe p { margin-top: 2px; }
     .dropic { color: var(--accent-2); vertical-align: -3px; }
-    .sellcta { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 28px; padding: 22px; min-height: 150px;
+    .sellcta { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 28px; padding: 22px; min-height: 150px;
       border-radius: var(--r-xl); overflow: hidden; color: #fff; background: linear-gradient(135deg, #5b3df5 0%, #8b6dff 55%, #ff7a6e 130%); box-shadow: 0 24px 50px -24px rgba(91,61,245,.7); }
     .sellcta div { position: relative; z-index: 2; max-width: 60%; } .sellcta p { opacity: .85; font-size: 14px; margin-top: 6px; }
     .sellcta .btn { position: relative; z-index: 2; background: #fff; color: #111; }
-    .sellcta img { position: absolute; right: -6px; top: -6px; width: 190px; animation: floaty 6s ease-in-out infinite; --rot: 12deg; filter: drop-shadow(0 20px 26px rgba(20,10,60,.4)); }
+    .ph1, .ph2 { position: absolute; border-radius: 16px; overflow: hidden; border: 3px solid rgba(255,255,255,.9); box-shadow: 0 18px 30px -12px rgba(20,10,60,.55); z-index: 1; }
+    .ph1 { width: 118px; height: 96px; right: 18px; top: -10px; transform: rotate(8deg); }
+    .ph2 { width: 86px; height: 72px; right: 108px; top: 6px; transform: rotate(-7deg); }
+    .ph1 img, .ph2 img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sellcta:hover .ph1 { transform: rotate(4deg) translateY(4px); } .sellcta:hover .ph2 { transform: rotate(-3deg) translateY(6px); }
+    .ph1, .ph2 { transition: transform .6s var(--spring); }
+    @media (max-width: 380px) { .ph2 { display: none; } .sellcta div { max-width: 58%; } }
     .orb { position: absolute; border-radius: 50%; filter: blur(22px); opacity: .7; animation: blob 9s ease-in-out infinite; }
     .o1 { width: 140px; height: 140px; background: #ffb4ab; right: 20%; bottom: -60px; } .o2 { width: 110px; height: 110px; background: #9f8bff; left: -30px; top: -30px; animation-delay: -4s; }
   `],

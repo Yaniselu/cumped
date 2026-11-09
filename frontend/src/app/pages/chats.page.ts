@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonRefresher, IonRefresherContent, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { I18n, TPipe } from '../core/i18n.service';
+import { offerEventShort, parseOfferEvent } from '../core/offer-event';
 import { ConversationSummary } from '../core/models';
 import { AvatarComponent } from '../shared/avatar.component';
 import { EmptyComponent } from '../shared/empty.component';
@@ -27,7 +28,7 @@ import { SkeletonLinesComponent } from '../shared/skeleton.component';
               <div class="mid">
                 <div class="row between"><strong>{{ c.other.displayName }}</strong><span class="faint small">{{ c.lastAt ? i18n.ago(c.lastAt) : '' }}</span></div>
                 <span class="lt small muted">{{ c.listing.title }} · {{ i18n.price(c.listing.priceCents, c.listing.currency) }}</span>
-                <div class="row between"><span class="last" [class.unread]="c.unread">{{ c.lastMessage ?? '…' }}</span>
+                <div class="row between"><span class="last" [class.unread]="c.unread">{{ preview(c) }}</span>
                   @if (c.unread) { <span class="count">{{ c.unread }}</span> }</div>
               </div>
             </a>
@@ -54,6 +55,11 @@ export class ChatsPage implements ViewWillEnter {
   items = signal<ConversationSummary[]>([]);
   loading = signal(true);
   ionViewWillEnter() { this.load(); }
+  preview(c: ConversationSummary) {
+    if (c.blocked) return this.i18n.t('block.convBlocked');
+    const e = parseOfferEvent(c.lastMessage);
+    return e ? '🏷️ ' + offerEventShort(this.i18n, e) : c.lastMessage ?? '…';
+  }
   async load(ev?: any) {
     try { this.items.set(await this.api.conversations()); } catch { /* ignore */ }
     this.loading.set(false);

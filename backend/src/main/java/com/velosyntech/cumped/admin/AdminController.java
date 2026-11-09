@@ -94,7 +94,14 @@ public class AdminController {
             case "confirm" -> {
                 if (!"APPLIED".equals(t.state())) throw ApiException.conflict("NO_PENDING_ACTION");
                 if ("HIDE_LISTING".equals(t.autoAction()) && t.listingId() != null) {
-                    listings.findById(t.listingId()).ifPresent(l -> { l.setStatus(Listing.Status.REMOVED); listings.save(l); });
+                    listings.findById(t.listingId()).ifPresent(l -> {
+                        l.setStatus(Listing.Status.REMOVED);
+                        String reason = jdbc.sql("SELECT coalesce(reason, category) FROM support_tickets WHERE id = ?").param(id).query(String.class).single();
+                        l.setModerationReason(reason);
+                        listings.save(l);
+                        // Expunerea motivelor (DSA art. 17): vânzătorul află de ce și poate contesta.
+                        notifications.notify(l.getSellerId(), "LISTING_REMOVED", Map.of("title", l.getTitle(), "reason", reason), "/listing/" + l.getId());
+                    });
                 }
                 setState(id, "CONFIRMED", "RESOLVED");
             }

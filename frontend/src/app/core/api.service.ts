@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
-  AdminTicket, AppNotification, Card, ConversationSummary, Detail, Me, Offer, Page, PriceAnalysis, PublicUser,
+  AdminTicket, AppNotification, Card, ConversationSummary, Detail, Me, Negotiation, Page, PriceAnalysis, PublicUser,
   Review, ServerConfig, ShippingEstimate, Stats, Thread, Ticket, VeloReply,
 } from './models';
 
@@ -74,9 +74,16 @@ export class Api {
   sendMessage(id: string, body: string) { return this.post<{ message: any; warnings: string[] }>(`/conversations/${id}/messages`, { body }); }
 
   makeOffer(listingId: string, body: { kind: 'PRICE' | 'SWAP'; amountCents?: number; swapListingId?: string; message?: string }) { return this.post<{ id: string }>(`/listings/${listingId}/offers`, body); }
-  decideOffer(id: string, action: 'accept' | 'decline' | 'withdraw') { return this.post(`/offers/${id}/${action}`); }
-  offersReceived() { return this.get<Offer[]>('/me/offers/received'); }
-  offersSent() { return this.get<Offer[]>('/me/offers/sent'); }
+  respondOffer(id: string, action: 'accept' | 'decline' | 'withdraw' | 'counter', body?: { amountCents?: number; message?: string }) { return this.post(`/offers/${id}/${action}`, body ?? {}); }
+  negotiations() { return this.get<Negotiation[]>('/me/negotiations'); }
+  negotiation(threadId: string) { return this.get<Negotiation>(`/negotiations/${threadId}`); }
+  block(userId: string) { return this.post(`/users/${userId}/block`); }
+  unblock(userId: string) { return this.del(`/users/${userId}/block`); }
+  blocks() { return this.get<PublicUser[]>('/me/blocks'); }
+  report(body: { targetType: 'LISTING' | 'USER' | 'MESSAGE'; targetId: string; reason: string; details?: string }) { return this.post<Ticket>('/reports', body); }
+  appeal(listingId: string, message: string) { return this.post<Ticket>('/appeals', { listingId, message }); }
+  updateBusiness(body: { accountType: 'PRIVATE' | 'BUSINESS'; name?: string; regNo?: string; vat?: string; address?: string; email?: string; phone?: string }) { return this.patch<Me>('/me/business', body); }
+  acceptTerms() { return this.post<Me>('/me/accept-terms'); }
   review(body: { listingId: string; revieweeId?: string; rating: number; comment?: string }) { return this.post('/reviews', body); }
 
   notifications() { return this.get<AppNotification[]>('/me/notifications'); }

@@ -16,14 +16,18 @@ public final class AuthDtos {
             @Size(max = 12) String referralCode,
             @Pattern(regexp = "^[A-Za-z]{2}$") String country,
             @Size(max = 80) String city,
-            @Pattern(regexp = "^[a-z]{2}$") String locale) {}
+            @Pattern(regexp = "^[a-z]{2}$") String locale,
+            Boolean acceptTerms,
+            Boolean adultConfirmed) {}
 
     public record LoginRequest(@NotBlank @Size(max = 254) String email, @NotBlank @Size(max = 128) String password) {}
 
     public record SocialRequest(@NotBlank @Size(max = 5000) String idToken,
                                 @Size(max = 12) String referralCode,
                                 @Pattern(regexp = "^[a-z]{2}$") String locale,
-                                @Pattern(regexp = "^[A-Za-z]{2}$") String country) {}
+                                @Pattern(regexp = "^[A-Za-z]{2}$") String country,
+                                Boolean acceptTerms,
+                                Boolean adultConfirmed) {}
 
     public record AuthResponse(String accessToken, long expiresIn, UserDtos.Me user) {}
 

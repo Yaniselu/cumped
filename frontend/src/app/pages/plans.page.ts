@@ -6,6 +6,7 @@ import { AuthService } from '../core/auth.service';
 import { I18n, TPipe } from '../core/i18n.service';
 import { Ui } from '../core/ui.service';
 import { BackButtonComponent } from '../shared/back-button.component';
+import { Purchases } from '../core/purchases.service';
 
 const ICONS: Record<string, string> = { EXTRA_LISTING: 'add-circle', PLUS: 'sparkles', PRO: 'business-outline', PROMOTE_7D: 'rocket-outline', BUMP: 'arrow-up' };
 
@@ -24,12 +25,13 @@ const ICONS: Record<string, string> = { EXTRA_LISTING: 'add-circle', PLUS: 'spar
               <span class="ic"><ion-icon [name]="icons[p.id]"></ion-icon></span>
               <div class="tx"><strong>{{ 'plans.' + p.id | t }}</strong><span class="small muted">{{ 'plans.' + p.id + '_d' | t }}</span></div>
               <div class="pr"><strong>{{ i18n.price(p.priceCents, p.currency) }}</strong><span class="faint small">{{ p.period === 'MONTH' ? ('plans.month' | t) : '' }}</span></div>
-              @if (p.id === 'PLUS' || p.id === 'PRO' || p.id === 'EXTRA_LISTING') {
+              @if (purchases.allowed() && (p.id === 'PLUS' || p.id === 'PRO' || p.id === 'EXTRA_LISTING')) {
                 <button class="btn sm" [class.light]="p.id !== 'PLUS'" [disabled]="auth.user()?.plan === p.id" (click)="buy(p.id)">{{ (auth.user()?.plan === p.id ? 'plans.current' : 'plans.buy') | t }}</button>
               }
             </div>
           }
         </div>
+        @if (!purchases.allowed()) { <div class="prot card pad reveal"><ion-icon name="time-outline" class="soon"></ion-icon><span>{{ 'plans.nativeSoon' | t }}</span></div> }
         <div class="prot card pad reveal"><ion-icon name="shield-checkmark"></ion-icon><span>{{ 'plans.protection' | t }}</span></div>
         @if (simulated()) { <p class="faint small center">{{ 'common.simulated' | t }}</p> }
       </div>
@@ -44,7 +46,7 @@ const ICONS: Record<string, string> = { EXTRA_LISTING: 'add-circle', PLUS: 'spar
     .ic { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 22px; }
     .hl .ic { background: rgba(255,255,255,.2); color: #fff; }
     .tx { display: flex; flex-direction: column; gap: 2px; } .pr { text-align: right; display: flex; flex-direction: column; } .pr strong { font-family: var(--font-display); font-size: 20px; }
-    .prot { display: flex; gap: 12px; align-items: center; margin-top: 16px; font-size: 14px; } .prot ion-icon { color: var(--ok); font-size: 26px; flex: 0 0 auto; }
+    .prot { display: flex; gap: 12px; align-items: center; margin-top: 16px; font-size: 14px; } .prot ion-icon { color: var(--ok); font-size: 26px; flex: 0 0 auto; } .prot ion-icon.soon { color: var(--accent); }
     .center { text-align: center; margin-top: 12px; }
   `],
 })
@@ -54,6 +56,7 @@ export class PlansPage implements OnInit {
   private api = inject(Api);
   private ui = inject(Ui);
   private nav = inject(NavController);
+  purchases = inject(Purchases);
   icons = ICONS;
   products = signal<{ id: string; priceCents: number; currency: string; period: string }[]>([]);
   simulated = signal(false);

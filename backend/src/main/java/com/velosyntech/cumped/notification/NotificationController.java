@@ -2,6 +2,7 @@ package com.velosyntech.cumped.notification;
 
 import com.velosyntech.cumped.common.CurrentUser;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import com.velosyntech.cumped.offer.OfferService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,10 +14,12 @@ import java.util.UUID;
 public class NotificationController {
     private final NotificationService notifications;
     private final JdbcClient jdbc;
+    private final OfferService offers;
 
-    public NotificationController(NotificationService notifications, JdbcClient jdbc) {
+    public NotificationController(NotificationService notifications, JdbcClient jdbc, OfferService offers) {
         this.notifications = notifications;
         this.jdbc = jdbc;
+        this.offers = offers;
     }
 
     @GetMapping("/notifications")
@@ -33,9 +36,6 @@ public class NotificationController {
                 SELECT count(*) FROM messages m JOIN conversations c ON c.id = m.conversation_id
                 WHERE (c.buyer_id = :me OR c.seller_id = :me) AND m.sender_id <> :me AND m.read_at IS NULL""")
                 .param("me", me).query(Integer.class).single();
-        int offers = jdbc.sql("""
-                SELECT count(*) FROM offers o JOIN listings l ON l.id = o.listing_id
-                WHERE l.seller_id = ? AND o.status = 'PENDING'""").param(me).query(Integer.class).single();
-        return Map.of("notifications", notifications.unread(me), "messages", messages, "offers", offers);
+        return Map.of("notifications", notifications.unread(me), "messages", messages, "offers", offers.awaitingMe(me));
     }
 }

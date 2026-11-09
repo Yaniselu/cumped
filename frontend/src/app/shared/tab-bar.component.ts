@@ -12,14 +12,14 @@ import { TPipe } from '../core/i18n.service';
   template: `
     <nav class="tabbar glass" [class.hidden]="hidden()">
       <span class="blob" [class.show]="blobX() !== null" [class.moving]="moving()" [style.--bx]="(blobX() ?? 0) + 'px'"></span>
-      <a #tab data-k="home" routerLink="/home" class="tab" [class.active]="active() === 'home'" aria-label="Home"><ion-icon [name]="active() === 'home' ? 'home' : 'home-outline'"></ion-icon></a>
-      <a #tab data-k="search" routerLink="/search" class="tab" [class.active]="active() === 'search'" aria-label="Search"><ion-icon name="search"></ion-icon></a>
-      <a routerLink="/sell" class="sell"><span class="plus"><ion-icon name="add"></ion-icon></span><span>{{ 'nav.sell' | t }}</span></a>
-      <a #tab data-k="chats" [routerLink]="auth.loggedIn() ? '/chats' : '/login'" class="tab" [class.active]="active() === 'chats'" aria-label="Messages">
+      <a #tab data-k="home" routerLink="/home" class="tab" [class.active]="active() === 'home'" [attr.aria-label]="'nav.home' | t"><ion-icon [name]="active() === 'home' ? 'home' : 'home-outline'"></ion-icon></a>
+      <a #tab data-k="search" routerLink="/search" class="tab" [class.active]="active() === 'search'" [attr.aria-label]="'nav.search' | t"><ion-icon name="search"></ion-icon></a>
+      <a routerLink="/sell" class="sell" [attr.aria-label]="'nav.sell' | t"><span class="plus"><ion-icon name="add"></ion-icon></span><span class="lbl">{{ 'nav.sell' | t }}</span></a>
+      <a #tab data-k="chats" [routerLink]="auth.loggedIn() ? '/chats' : '/login'" class="tab" [class.active]="active() === 'chats'" [attr.aria-label]="'nav.chats' | t">
         <ion-icon [name]="active() === 'chats' ? 'chatbubbles' : 'chatbubble-outline'"></ion-icon>
         @if (badges.counts().messages) { <span class="count">{{ badges.counts().messages }}</span> }
       </a>
-      <a #tab data-k="profile" [routerLink]="auth.loggedIn() ? '/profile' : '/login'" class="tab" [class.active]="active() === 'profile'" aria-label="Profile">
+      <a #tab data-k="profile" [routerLink]="auth.loggedIn() ? '/profile' : '/login'" class="tab" [class.active]="active() === 'profile'" [attr.aria-label]="'nav.profile' | t">
         <ion-icon [name]="active() === 'profile' ? 'person' : 'person-outline'"></ion-icon>
         @if (badges.counts().notifications + badges.counts().offers) { <span class="dot"></span> }
       </a>
@@ -51,6 +51,16 @@ import { TPipe } from '../core/i18n.service';
       color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; border: 2px solid var(--surface); animation: pop .5s var(--spring); }
     .dot { position: absolute; top: 10px; right: 11px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent-2); border: 2px solid var(--surface); animation: pulseRing 2s infinite; }
     @media (min-width: 992px) { .tabbar { display: none; } }
+    /* telefoane înguste: butonul Vinde rămâne doar cu „+”, taburile se strâng */
+    @media (max-width: 374px) {
+      .tabbar { gap: 2px; padding: 6px; max-width: calc(100vw - 16px); }
+      .tab, .blob { width: 46px; height: 46px; } .blob { top: 6px; }
+      .sell { height: 46px; padding: 0 14px 0 6px; margin: 0 2px; gap: 6px; }
+    }
+    @media (max-width: 330px) {
+      .tab, .blob { width: 42px; height: 42px; } .tab ion-icon { font-size: 20px; }
+      .sell { padding: 0 5px; } .sell .lbl { display: none; } .plus { width: 34px; height: 34px; }
+    }
   `],
 })
 export class TabBarComponent implements AfterViewInit {

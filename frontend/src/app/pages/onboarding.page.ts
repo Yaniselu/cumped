@@ -12,19 +12,19 @@ import { LogoComponent } from '../shared/logo.component';
     <ion-content cmpScrollFx [fullscreen]="true" class="ob">
       <div class="wrap">
         <section class="hero" cmpParallax>
-          <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
-          <div class="ring"></div><div class="ring r2"></div>
-          <div class="sparkles">@for (s of sparkles; track $index) { <i [style.left.%]="s.x" [style.top.%]="s.y" [style.animation-delay]="s.d + 's'"></i> }</div>
-          <div class="layer l1"><img class="float f1" src="assets/demo/car-ev.svg" alt="" /></div>
-          <div class="layer l2"><img class="float f2" src="assets/demo/phone.svg" alt="" /></div>
-          <div class="layer l3"><img class="float f3" src="assets/demo/headphones.svg" alt="" /></div>
-          <div class="layer l4"><img class="float f4" src="assets/demo/watch.svg" alt="" /></div>
-          <div class="layer l5"><img class="float f5" src="assets/demo/sneakers.svg" alt="" /></div>
-          <div class="logo-wrap"><cmp-logo [size]="74" [animate]="true" /></div>
+          <div class="mosaic" aria-hidden="true">
+            @for (t of tiles; track t.src; let i = $index) {
+              <figure [class]="'tile t' + i"><img [src]="'assets/demo/photos/' + t.src + '.jpg'" alt="" decoding="async" /></figure>
+            }
+          </div>
+          <div class="veil"></div>
+          <div class="float-card c1 glass"><ion-icon name="checkmark-circle"></ion-icon><div><b>{{ 'onboarding.chipFair' | t }}</b><span>{{ 'onboarding.chipFairSub' | t }}</span></div></div>
+          <div class="float-card c2 glass"><ion-icon name="shield-checkmark"></ion-icon><div><b>{{ 'onboarding.chipVerified' | t }}</b><span>{{ 'onboarding.chipVerifiedSub' | t }}</span></div></div>
+          <div class="float-card c3 glass"><ion-icon name="pricetag"></ion-icon><div><b>{{ 'onboarding.chipOffer' | t }}</b><span>{{ 'onboarding.chipOfferSub' | t }}</span></div></div>
+          <div class="logo-wrap"><cmp-logo [size]="64" [animate]="true" /></div>
         </section>
 
         <section class="body">
-          <span class="rocket reveal" style="--i:1">🚀</span>
           <div class="headline">
             @for (s of slides; track s; let i = $index) {
               <div class="slide" [class.on]="slide() === i">
@@ -61,37 +61,35 @@ import { LogoComponent } from '../shared/logo.component';
   `,
   styles: [`
     .wrap { max-width: 520px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
-    .hero { position: relative; height: 42vh; min-height: 300px; margin: 10px 10px 0; border-radius: 34px; overflow: hidden;
-      background: linear-gradient(160deg, #cfc6ff 0%, #a99bf2 45%, #ece9ff 100%); box-shadow: inset 0 -60px 80px -40px rgba(255,255,255,.9); }
-    :host-context(.dark) .hero { background: linear-gradient(160deg, #2b2356 0%, #1b1640 50%, #121216 100%); box-shadow: inset 0 -60px 80px -40px rgba(10,10,12,.9); }
-    .blob { position: absolute; border-radius: 50%; filter: blur(30px); opacity: .75; animation: blob 12s ease-in-out infinite; }
-    .b1 { width: 220px; height: 220px; background: #ff8a7f; top: -40px; right: -40px; }
-    .b2 { width: 260px; height: 260px; background: #7b5cff; bottom: -80px; left: -60px; animation-delay: -4s; }
-    .b3 { width: 160px; height: 160px; background: #fff; top: 40%; left: 40%; opacity: .5; animation-delay: -8s; }
-    .ring { position: absolute; width: 420px; height: 420px; left: 50%; top: 52%; margin: -210px 0 0 -210px; border-radius: 50%;
-      border: 1.5px dashed rgba(255,255,255,.55); animation: spinSlow 40s linear infinite; }
-    .layer { position: absolute; inset: 0; transition: transform .5s var(--ease); pointer-events: none; }
-    .l1 { transform: translate(calc(var(--px, 0) * 26px), calc(var(--py, 0) * 18px)); z-index: 3; }
-    .l2 { transform: translate(calc(var(--px, 0) * -40px), calc(var(--py, 0) * -30px)); }
-    .l3 { transform: translate(calc(var(--px, 0) * -34px), calc(var(--py, 0) * 26px)); }
-    .l4 { transform: translate(calc(var(--px, 0) * 50px), calc(var(--py, 0) * -36px)); }
-    .l5 { transform: translate(calc(var(--px, 0) * 44px), calc(var(--py, 0) * 34px)); }
-    .float { position: absolute; animation: floaty 6s ease-in-out infinite; filter: drop-shadow(0 26px 30px rgba(40, 20, 120, .35)); }
-    .f1 { width: 76%; left: 12%; top: 26%; --rot: -3deg; }
-    .f2 { width: 30%; left: 2%; top: 2%; --rot: -14deg; animation-delay: -2s; }
-    .f3 { width: 32%; right: 2%; top: 0%; --rot: 10deg; animation-delay: -4s; }
-    .f4 { width: 22%; right: 6%; bottom: 4%; --rot: 14deg; animation-delay: -1s; }
-    .f5 { width: 30%; left: 2%; bottom: 6%; --rot: -8deg; animation-delay: -3s; }
-    .ring.r2 { width: 300px; height: 300px; margin: -150px 0 0 -150px; border-style: solid; border-color: rgba(255,255,255,.35); animation-direction: reverse; animation-duration: 28s; }
-    .sparkles i { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px 3px rgba(255,255,255,.8);
-      animation: twinkle 3s ease-in-out infinite; }
-    @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.3); } 50% { opacity: 1; transform: scale(1); } }
+    .hero { position: relative; height: clamp(280px, 44vh, 440px); margin: 10px 10px 0; border-radius: 30px; overflow: hidden; background: #15131f; isolation: isolate; }
+    .mosaic { position: absolute; inset: -6%; display: grid; grid-template-columns: 1.2fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 8px;
+      transform: rotate(-8deg) scale(1.08) translate(calc(var(--px, 0) * -10px), calc(var(--py, 0) * -8px)); transition: transform .6s var(--ease); }
+    .tile { margin: 0; border-radius: 18px; overflow: hidden; background: #222; animation: tileIn .9s var(--ease) both; animation-delay: calc(var(--d, 0) * 70ms); }
+    .tile img { width: 100%; height: 100%; object-fit: cover; animation: kenburns 18s ease-in-out infinite alternate; }
+    .t0 { grid-row: span 2; --d: 0; } .t1 { --d: 1; } .t2 { --d: 2; } .t3 { --d: 3; } .t4 { --d: 4; } .t5 { grid-column: span 2; --d: 5; } .t6 { --d: 6; }
+    .t1 img, .t4 img { animation-delay: -6s; } .t2 img, .t5 img { animation-delay: -11s; }
+    @keyframes tileIn { from { opacity: 0; transform: translateY(24px) scale(.94); } }
+    @keyframes kenburns { from { transform: scale(1.02); } to { transform: scale(1.14) translate(-2%, -1%); } }
+    .veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14,12,26,.05) 30%, rgba(14,12,26,.72) 100%); }
+    .float-card { position: absolute; z-index: 3; display: flex; align-items: center; gap: 10px; padding: 9px 14px 9px 10px; border-radius: 18px;
+      color: #fff; max-width: 62%; animation: cardIn .8s var(--spring) both, drift 7s ease-in-out infinite alternate; }
+    .float-card ion-icon { font-size: 26px; flex: 0 0 auto; }
+    .float-card div { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+    .float-card b { font-size: 13.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .float-card span { font-size: 11.5px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .c1 { top: 16px; left: 14px; animation-delay: .5s, 0s; } .c1 ion-icon { color: #4ee0a2; }
+    .c2 { top: 38%; right: 14px; animation-delay: .7s, -2s; } .c2 ion-icon { color: #b9a8ff; }
+    .c3 { bottom: 84px; left: 22px; animation-delay: .9s, -4s; } .c3 ion-icon { color: #ffb0a8; }
+    .hero .glass { background: rgba(20, 18, 34, .38); border-color: rgba(255,255,255,.22); box-shadow: 0 14px 30px -14px rgba(0,0,0,.6), inset 1px 1px 0 rgba(255,255,255,.25); }
+    .hero .glass::before { opacity: .2; }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(16px) scale(.92); } }
+    @keyframes drift { from { translate: 0 0; } to { translate: 0 -6px; } }
     .feat { transition: transform .4s var(--spring); } .feat:hover { transform: translateX(6px); }
     .ck { animation: pop .7s var(--spring) both; animation-delay: inherit; }
-    .logo-wrap { position: absolute; left: 24px; bottom: 20px; z-index: 3; }
+    .logo-wrap { position: absolute; left: 20px; bottom: 18px; z-index: 3; }
+    @media (max-width: 340px) { .float-card { max-width: 78%; padding: 7px 10px 7px 8px; } .c2 { display: none; } .slide h1 { font-size: 30px !important; } }
     .body { padding: 22px 22px 26px; display: flex; flex-direction: column; flex: 1; }
-    .rocket { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 15px; background: var(--surface); box-shadow: var(--shadow-card); font-size: 20px; }
-    .headline { position: relative; min-height: 132px; margin-top: 16px; }
+    .headline { position: relative; min-height: 132px; margin-top: 6px; }
     .slide { position: absolute; inset: 0; opacity: 0; transform: translateY(-18px); filter: blur(6px); transition: opacity .3s var(--ease), transform .4s var(--ease), filter .3s; pointer-events: none; }
     .slide.on { opacity: 1; transform: none; filter: none; transition: opacity .5s .28s var(--ease), transform .7s .28s var(--spring), filter .5s .28s; }
     .slide h1 { font-size: 36px; } .slide p { margin-top: 10px; font-size: 15px; line-height: 1.5; max-width: 380px; }
@@ -115,7 +113,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
   languages = LANGUAGES;
   slides = [1, 2, 3];
   slide = signal(0);
-  sparkles = Array.from({ length: 14 }, () => ({ x: Math.random() * 96, y: Math.random() * 90, d: -Math.random() * 3 }));
+  /** Fotografii reale (Unsplash, vezi docs/CREDITS.md) într-un mozaic înclinat. */
+  tiles = ['bmw-1', 'iphone-pro-1', 'watch-1', 'sofa-1', 'headphones-1', 'apartment-1', 'nike-1'].map((src) => ({ src }));
   private timer: any;
 
   ngOnInit() { this.timer = setInterval(() => this.slide.update((s) => (s + 1) % 3), 3600); }

@@ -78,3 +78,10 @@ cumped:
   dev-mode: ${DEV_MODE:false}
   demo-data: ${DEMO_DATA:false}
   rate-limit: ${RATE_LIMIT:true}
+  # Datele firmei afișate în Termeni, Confidențialitate și „Despre” (obligatorii legal). Completează-le.
+  company-name: ${COMPANY_NAME:Velosyntech}
+  company-address: ${COMPANY_ADDRESS:}
+  company-reg-no: ${COMPANY_REG_NO:}
+  company-vat: ${COMPANY_VAT:}
+  company-email: ${COMPANY_EMAIL:contact@velosyntech.com}
+  dpo-email: ${DPO_EMAIL:contact@velosyntech.com}

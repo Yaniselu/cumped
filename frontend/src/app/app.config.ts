@@ -26,7 +26,7 @@ export const appConfig: ApplicationConfig = {
       motion.init();
       // Refracția SVG pe fundal funcționează doar în motoarele Chromium.
       const ua = navigator.userAgent;
-      if (/Chrome\/|Chromium\/|Edg\//.test(ua) && !/Firefox\//.test(ua)) document.documentElement.classList.add('lg-refract');
+      if (/Chrome\/|Chromium\/|Edg\//.test(ua) && !/Firefox\//.test(ua) && !theme.lite()) document.documentElement.classList.add('lg-refract');
       return i18n.init().then(() => auth.init());
     }),
   ],
