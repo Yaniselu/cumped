@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, inject, input, signal } from '@angular/core';
 import { IonContent, IonIcon, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
@@ -11,9 +12,9 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
 
 @Component({
   selector: 'page-user',
-  imports: [IonContent, IonIcon, TPipe, AvatarComponent, BackButtonComponent, ListingCardComponent, SkeletonGridComponent],
+  imports: [MOTION, IonContent, IonIcon, TPipe, AvatarComponent, BackButtonComponent, ListingCardComponent, SkeletonGridComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page">
         <div class="topbar app-only"><cmp-back /><div class="title"></div><div class="spacer"></div></div>
         @if (u(); as u) {
@@ -35,7 +36,7 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
             </div>
           </div>
           <div class="section-head"><h2>{{ 'profile.listings' | t }}</h2></div>
-          <div class="grid">@for (c of listings(); track c.id; let i = $index) { <cmp-listing-card class="reveal" [style.--i]="i" [item]="c" /> }</div>
+          <div class="grid">@for (c of listings(); track c.id; let i = $index) { <cmp-listing-card class="rv" [style.--i]="i" [item]="c" /> }</div>
           @if (reviews().length) {
             <div class="section-head"><h2>{{ 'profile.reviews' | t }}</h2></div>
             @for (r of reviews(); track r.id) {

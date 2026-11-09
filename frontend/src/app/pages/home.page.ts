@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonRefresher, IonRefresherContent, ViewDidEnter } from '@ionic/angular';
@@ -14,13 +15,13 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
 
 @Component({
   selector: 'page-home',
-  imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, IonInfiniteScroll, IonInfiniteScrollContent, RouterLink, TPipe,
+  imports: [MOTION, IonContent, IonIcon, IonRefresher, IonRefresherContent, IonInfiniteScroll, IonInfiniteScrollContent, RouterLink, TPipe,
     ListingCardComponent, SkeletonGridComponent, AvatarComponent, LogoComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
       <div class="page">
-        <header class="hdr app-only reveal">
+        <header class="hdr topbar app-only">
           <cmp-logo [size]="40" />
           <div class="hello">
             <span class="faint small">{{ greeting() }}</span>
@@ -33,54 +34,59 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
           }
         </header>
 
-        <section class="hero reveal" style="--i:1">
-          <h1>{{ 'home.heroTitle' | t }}</h1>
-          <a routerLink="/search" class="searchbar press">
+        <section class="hero" cmpParallax>
+          <div class="deco" aria-hidden="true">
+            <img class="d1 cutout-img" src="assets/demo/headphones.svg" alt="" />
+            <img class="d2 cutout-img" src="assets/demo/watch.svg" alt="" />
+            <img class="d3 cutout-img" src="assets/demo/sneakers.svg" alt="" />
+          </div>
+          <h1 [cmpSplit]="'home.heroTitle' | t"></h1>
+          <a routerLink="/search" class="searchbar glass press sb-in">
             <ion-icon name="search"></ion-icon><span class="ph">{{ 'home.searchPh' | t }}</span>
             <span class="icon-btn"><ion-icon name="options-outline"></ion-icon></span>
           </a>
         </section>
 
-        <div class="hscroll cats reveal" style="--i:2">
+        <div class="hscroll cats">
           @for (c of categories; track c; let i = $index) {
-            <a class="cat press" [routerLink]="['/search']" [queryParams]="{ category: c }" [style.--h]="(i * 37) % 360">
-              <span class="ic"><ion-icon [name]="icons[c]"></ion-icon></span>
+            <a class="cat rv" [routerLink]="['/search']" [queryParams]="{ category: c }" [style.--h]="(i * 37) % 360" [style.--i]="i % 6">
+              <span class="ic glass"><ion-icon [name]="icons[c]"></ion-icon></span>
               <span class="lb">{{ 'categories.' + c | t }}</span>
             </a>
           }
         </div>
 
-        <a routerLink="/support" class="safe card press reveal" style="--i:3">
+        <a routerLink="/support" class="safe card press rv">
           <span class="shield"><ion-icon name="shield-checkmark"></ion-icon></span>
           <div><strong>{{ 'home.safeTitle' | t }}</strong><p class="muted small">{{ 'home.safeSub' | t }}</p></div>
           <ion-icon name="chevron-forward" class="faint"></ion-icon>
         </a>
 
         @if (promoted().length) {
-          <div class="section-head"><h2>{{ 'home.promoted' | t }}</h2><a routerLink="/search">{{ 'common.seeAll' | t }}</a></div>
+          <div class="section-head rv"><h2>{{ 'home.promoted' | t }}</h2><a routerLink="/search">{{ 'common.seeAll' | t }}</a></div>
           <div class="hscroll">
-            @for (c of promoted(); track c.id; let i = $index) { <cmp-listing-card class="reveal" [style.--i]="i" [item]="c" [compact]="true" /> }
+            @for (c of promoted(); track c.id; let i = $index) { <cmp-listing-card class="rv" [style.--i]="i" [item]="c" [compact]="true" /> }
           </div>
         }
 
         @if (drops().length) {
-          <div class="section-head"><h2><ion-icon name="trending-down" class="dropic"></ion-icon> {{ 'home.drops' | t }}</h2></div>
+          <div class="section-head rv"><h2><ion-icon name="trending-down" class="dropic"></ion-icon> {{ 'home.drops' | t }}</h2></div>
           <div class="hscroll">
-            @for (c of drops(); track c.id; let i = $index) { <cmp-listing-card class="reveal" [style.--i]="i" [item]="c" [compact]="true" /> }
+            @for (c of drops(); track c.id; let i = $index) { <cmp-listing-card class="rv" [style.--i]="i" [item]="c" [compact]="true" /> }
           </div>
         }
 
-        <a routerLink="/sell" class="sellcta press reveal">
+        <a routerLink="/sell" class="sellcta press rv tilt"><span class="glare"></span><span class="orb o1"></span><span class="orb o2"></span>
           <div><h3>{{ 'home.sellTitle' | t }}</h3><p>{{ 'home.sellSub' | t }}</p></div>
           <span class="btn sm">{{ 'home.sellCta' | t }}</span>
           <img src="assets/demo/camera.svg" alt="" />
         </a>
 
-        <div class="section-head"><h2>{{ 'home.recent' | t }}</h2></div>
+        <div class="section-head rv"><h2>{{ 'home.recent' | t }}</h2></div>
         @if (loading()) { <cmp-skeleton-grid [count]="8" /> }
         @else {
           <div class="grid">
-            @for (c of recent(); track c.id; let i = $index) { <cmp-listing-card class="reveal" [style.--i]="i % 8" [item]="c" /> }
+            @for (c of recent(); track c.id; let i = $index) { <cmp-listing-card class="rv" [style.--i]="i % 4" [item]="c" /> }
           </div>
         }
         <ion-infinite-scroll (ionInfinite)="more($event)" [disabled]="!hasMore()"><ion-infinite-scroll-content></ion-infinite-scroll-content></ion-infinite-scroll>
@@ -90,16 +96,27 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
   styles: [`
     .hdr { display: flex; align-items: center; gap: 12px; margin: 4px 0 18px; }
     .hello { flex: 1; display: flex; flex-direction: column; line-height: 1.2; } .hello strong { font-family: var(--font-display); font-size: 18px; }
-    .hero h1 { font-size: 34px; margin-bottom: 16px; max-width: 520px; }
+    .hero { position: relative; }
+    .hero h1 { position: relative; font-size: 36px; margin-bottom: 18px; max-width: 520px; transform: translateY(calc(var(--scroll, 0) * -0.12px)); }
+    .deco { position: absolute; right: -10px; top: 2px; width: 44%; height: 120px; pointer-events: none; z-index: 0;
+      transform: translate(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -14px + var(--scroll, 0) * 0.25px)); transition: transform .4s var(--ease); }
+    .deco img { position: absolute; animation: floaty 6s ease-in-out infinite; opacity: .95; }
+    .d1 { width: 48%; right: 44%; top: 4px; --rot: -10deg; }
+    .d2 { width: 34%; right: 2%; top: -4px; --rot: 12deg; animation-delay: -2s !important; }
+    .d3 { width: 44%; right: 18%; top: 50px; --rot: -6deg; animation-delay: -4s !important; opacity: .85; }
+    @media (min-width: 992px) { .deco { width: 34%; height: 200px; top: -30px; } }
+    .sb-in { animation: fadeUp .8s .35s var(--spring) both; }
+    .cat:hover .ic ion-icon, .cat:active .ic ion-icon { animation: pop .6s var(--spring); }
     @media (min-width: 992px) { .hero h1 { font-size: 52px; } .hero { margin: 10px 0 8px; } }
     .ph { flex: 1; color: var(--text-3); font-size: 15px; }
     .cats { margin-top: 18px; }
     .cat { width: 84px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text); }
-    .ic { width: 66px; height: 66px; border-radius: 24px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); }
+    .ic { width: 66px; height: 66px; border-radius: 24px; display: grid; place-items: center; transition: transform .45s var(--spring); }
+    .cat:hover .ic { transform: translateY(-4px) rotate(-4deg); }
     .ic ion-icon { font-size: 26px; color: hsl(calc(250 + var(--h) * 0.3) 70% 58%); }
     .lb { font-size: 12px; font-weight: 550; text-align: center; color: var(--text-2); line-height: 1.2; }
     .safe { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin-top: 12px; color: inherit; }
-    .shield { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: 0 0 auto; }
+    .shield { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: 0 0 auto; animation: pulseSoft 2.8s ease-in-out infinite; }
     .shield ion-icon { font-size: 24px; }
     .safe div { flex: 1; } .safe p { margin-top: 2px; }
     .dropic { color: var(--accent-2); vertical-align: -3px; }
@@ -107,7 +124,9 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
       border-radius: var(--r-xl); overflow: hidden; color: #fff; background: linear-gradient(135deg, #5b3df5 0%, #8b6dff 55%, #ff7a6e 130%); box-shadow: 0 24px 50px -24px rgba(91,61,245,.7); }
     .sellcta div { position: relative; z-index: 2; max-width: 60%; } .sellcta p { opacity: .85; font-size: 14px; margin-top: 6px; }
     .sellcta .btn { position: relative; z-index: 2; background: #fff; color: #111; }
-    .sellcta img { position: absolute; right: -20px; top: -10px; width: 170px; opacity: .9; transform: rotate(12deg); border-radius: 24px; animation: floaty 6s ease-in-out infinite; --rot: 12deg; }
+    .sellcta img { position: absolute; right: -6px; top: -6px; width: 190px; animation: floaty 6s ease-in-out infinite; --rot: 12deg; filter: drop-shadow(0 20px 26px rgba(20,10,60,.4)); }
+    .orb { position: absolute; border-radius: 50%; filter: blur(22px); opacity: .7; animation: blob 9s ease-in-out infinite; }
+    .o1 { width: 140px; height: 140px; background: #ffb4ab; right: 20%; bottom: -60px; } .o2 { width: 110px; height: 110px; background: #9f8bff; left: -30px; top: -30px; animation-delay: -4s; }
   `],
 })
 export class HomePage implements ViewDidEnter {

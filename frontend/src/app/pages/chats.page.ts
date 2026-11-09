@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonRefresher, IonRefresherContent, ViewWillEnter } from '@ionic/angular';
@@ -10,9 +11,9 @@ import { SkeletonLinesComponent } from '../shared/skeleton.component';
 
 @Component({
   selector: 'page-chats',
-  imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, RouterLink, TPipe, AvatarComponent, EmptyComponent, SkeletonLinesComponent],
+  imports: [MOTION, IonContent, IonIcon, IonRefresher, IonRefresherContent, RouterLink, TPipe, AvatarComponent, EmptyComponent, SkeletonLinesComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <ion-refresher slot="fixed" (ionRefresh)="load($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
       <div class="page narrow">
         <div class="topbar"><h1>{{ 'chat.title' | t }}</h1><a class="icon-btn" routerLink="/offers"><ion-icon name="pricetag-outline"></ion-icon></a></div>

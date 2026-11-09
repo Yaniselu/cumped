@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonModal } from '@ionic/angular';
@@ -16,10 +17,10 @@ const EMPTY: Filters = { category: '', min: null, max: null, conditions: [], cou
 
 @Component({
   selector: 'page-search',
-  imports: [IonContent, IonIcon, IonModal, IonInfiniteScroll, IonInfiniteScrollContent, FormsModule, TPipe,
+  imports: [MOTION, IonContent, IonIcon, IonModal, IonInfiniteScroll, IonInfiniteScrollContent, FormsModule, TPipe,
     ListingCardComponent, SkeletonGridComponent, EmptyComponent, BackButtonComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page">
         <div class="topbar app-only"><cmp-back /><div class="title">{{ 'search.title' | t }}</div><div class="spacer"></div></div>
 
@@ -45,7 +46,7 @@ const EMPTY: Filters = { category: '', min: null, max: null, conditions: [], cou
         } @else {
           <div class="row between meta"><span class="muted small">{{ 'search.resultsMore' | t }}</span>
             @if (auth.loggedIn()) { <button class="linkbtn" (click)="save()"><ion-icon name="notifications-outline"></ion-icon>{{ 'search.saveSearch' | t }}</button> }</div>
-          <div class="grid">@for (c of items(); track c.id; let i = $index) { <cmp-listing-card class="reveal" [style.--i]="i % 8" [item]="c" /> }</div>
+          <div class="grid">@for (c of items(); track c.id; let i = $index) { <cmp-listing-card class="rv" [style.--i]="i % 4" [item]="c" /> }</div>
         }
         <ion-infinite-scroll (ionInfinite)="more($event)" [disabled]="!hasMore()"><ion-infinite-scroll-content></ion-infinite-scroll-content></ion-infinite-scroll>
       </div>

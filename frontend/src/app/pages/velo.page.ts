@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, OnInit, ViewChild, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonFooter, IonIcon } from '@ionic/angular';
@@ -11,9 +12,9 @@ interface Bubble { from: 'me' | 'velo'; text: string; ticket?: Ticket | null; }
 
 @Component({
   selector: 'page-velo',
-  imports: [IonContent, IonFooter, IonIcon, FormsModule, TPipe, BackButtonComponent],
+  imports: [MOTION, IonContent, IonFooter, IonIcon, FormsModule, TPipe, BackButtonComponent],
   template: `
-    <ion-content #content [fullscreen]="true">
+    <ion-content cmpScrollFx #content [fullscreen]="true">
       <div class="page narrow">
         <div class="head glass">
           <cmp-back />

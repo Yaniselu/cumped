@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, NavController, ViewWillEnter } from '@ionic/angular';
@@ -10,14 +11,14 @@ import { AvatarComponent } from '../shared/avatar.component';
 
 @Component({
   selector: 'page-profile',
-  imports: [IonContent, IonIcon, RouterLink, TPipe, AvatarComponent],
+  imports: [MOTION, IonContent, IonIcon, RouterLink, TPipe, AvatarComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       @if (auth.user(); as u) {
         <div class="page narrow">
           <div class="topbar app-only"><h1>{{ 'profile.title' | t }}</h1><a class="icon-btn" routerLink="/settings"><ion-icon name="settings-outline"></ion-icon></a></div>
 
-          <div class="hero card reveal">
+          <div class="hero card rv in">
             <div class="glow" [style.--h]="u.avatarHue"></div>
             <cmp-avatar [name]="u.displayName" [hue]="u.avatarHue" [size]="84" [verified]="u.idVerified" />
             <h2>{{ u.displayName }}</h2>
@@ -30,19 +31,19 @@ import { AvatarComponent } from '../shared/avatar.component';
             }
             <div class="kpis">
               <div><strong>{{ u.rating || '—' }}</strong><span>★ {{ 'profile.rating' | t }}</span></div>
-              <div><strong>{{ u.quota.active }}/{{ u.quota.limit }}</strong><span>{{ 'profile.quota' | t }}</span></div>
+              <div><strong><span [cmpCount]="u.quota.active"></span>/{{ u.quota.limit }}</strong><span>{{ 'profile.quota' | t }}</span></div>
               <div><strong>{{ u.plan }}</strong><span>{{ 'profile.plan' | t }}</span></div>
             </div>
           </div>
 
-          <div class="invite card pad reveal" style="--i:1">
+          <div class="invite card pad rv" style="--i:1">
             <div class="row between"><div><h3><ion-icon name="gift-outline"></ion-icon> {{ 'profile.inviteTitle' | t }}</h3>
               <p class="muted small">{{ 'profile.inviteSub' | t: { n: u.quota.qualifiedReferrals, need: u.quota.referralsNeeded } }}</p></div></div>
             <div class="prog"><span [style.width.%]="(u.quota.qualifiedReferrals / u.quota.referralsNeeded) * 100"></span></div>
             <div class="code"><span>{{ u.referralCode }}</span><button class="btn sm" (click)="copy(u.referralCode)"><ion-icon name="copy-outline"></ion-icon>{{ 'profile.copyCode' | t }}</button></div>
           </div>
 
-          <div class="menu card reveal" style="--i:2">
+          <div class="menu card rv" style="--i:2">
             <a routerLink="/my-listings"><ion-icon name="grid-outline"></ion-icon>{{ 'profile.myListings' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             <a routerLink="/offers"><ion-icon name="pricetag-outline"></ion-icon>{{ 'profile.offers' | t }}@if (badges.counts().offers) { <span class="count">{{ badges.counts().offers }}</span> }<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             <a routerLink="/favorites"><ion-icon name="heart-outline"></ion-icon>{{ 'profile.favorites' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
@@ -50,7 +51,7 @@ import { AvatarComponent } from '../shared/avatar.component';
             <a routerLink="/stats"><ion-icon name="stats-chart-outline"></ion-icon>{{ 'profile.stats' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             <a routerLink="/plans"><ion-icon name="rocket-outline"></ion-icon>{{ 'plans.title' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
           </div>
-          <div class="menu card reveal" style="--i:3">
+          <div class="menu card rv" style="--i:3">
             <a routerLink="/support" class="velo"><span class="vic">V</span>{{ 'profile.support' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             @if (!u.phoneVerified) { <a routerLink="/verify" [queryParams]="{ phone: 1 }"><ion-icon name="phone-portrait-outline"></ion-icon>{{ 'profile.phone' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a> }
             <a routerLink="/settings"><ion-icon name="settings-outline"></ion-icon>{{ 'profile.settings' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
@@ -81,6 +82,8 @@ import { AvatarComponent } from '../shared/avatar.component';
     .code { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 18px; border-radius: 999px; background: var(--surface-2); }
     .code span { font-family: var(--font-display); font-weight: 700; letter-spacing: .12em; font-size: 18px; }
     .menu { margin-top: 14px; padding: 6px; }
+    .menu a:hover ion-icon:first-child, .menu button:hover ion-icon:first-child { transform: scale(1.15) rotate(-6deg); }
+    .menu ion-icon:first-child { transition: transform .4s var(--spring); }
     .menu a, .menu button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 12px; border-radius: 16px; color: var(--text); font-weight: 550; font-size: 15px; background: none; border: 0; cursor: pointer; transition: background .2s; }
     .menu a:active, .menu button:active { background: var(--surface-2); }
     .menu ion-icon { font-size: 21px; color: var(--text-2); } .chev { margin-left: auto; font-size: 17px !important; color: var(--text-3) !important; }

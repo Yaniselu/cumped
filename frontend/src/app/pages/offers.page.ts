@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, ViewWillEnter } from '@ionic/angular';
@@ -12,9 +13,9 @@ import { SkeletonLinesComponent } from '../shared/skeleton.component';
 
 @Component({
   selector: 'page-offers',
-  imports: [IonContent, IonIcon, RouterLink, TPipe, AvatarComponent, BackButtonComponent, EmptyComponent, SkeletonLinesComponent],
+  imports: [MOTION, IonContent, IonIcon, RouterLink, TPipe, AvatarComponent, BackButtonComponent, EmptyComponent, SkeletonLinesComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
         <div class="topbar"><cmp-back fallback="/profile" /><div class="title">{{ 'nav.offers' | t }}</div><div class="spacer"></div></div>
         <div class="seg">

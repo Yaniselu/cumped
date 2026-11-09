@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { IonContent, IonIcon, NavController } from '@ionic/angular';
 import { Api } from '../core/api.service';
@@ -10,9 +11,9 @@ const ICONS: Record<string, string> = { EXTRA_LISTING: 'add-circle', PLUS: 'spar
 
 @Component({
   selector: 'page-plans',
-  imports: [IonContent, IonIcon, TPipe, BackButtonComponent],
+  imports: [MOTION, IonContent, IonIcon, TPipe, BackButtonComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
         <div class="topbar"><cmp-back fallback="/profile" /><div class="title"></div><div class="spacer"></div></div>
         <h1 class="reveal">{{ 'plans.title' | t }}</h1>

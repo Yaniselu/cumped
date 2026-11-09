@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, inject, signal } from '@angular/core';
 import { IonContent, IonIcon, NavController, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
@@ -16,9 +17,9 @@ const ICONS: Record<string, string> = {
 
 @Component({
   selector: 'page-notifications',
-  imports: [IonContent, IonIcon, TPipe, BackButtonComponent, EmptyComponent, SkeletonLinesComponent],
+  imports: [MOTION, IonContent, IonIcon, TPipe, BackButtonComponent, EmptyComponent, SkeletonLinesComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
         <div class="topbar"><cmp-back /><div class="title">{{ 'notifications.title' | t }}</div>
           <button class="icon-btn" (click)="readAll()" [attr.aria-label]="'notifications.markRead' | t"><ion-icon name="checkmark"></ion-icon></button></div>

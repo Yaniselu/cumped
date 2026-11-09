@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { MOTION } from '../shared/motion.directives';
+import { Component, ElementRef, ViewChild, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonModal, NavController, ViewWillEnter } from '@ionic/angular';
@@ -8,15 +9,17 @@ import { I18n, TPipe } from '../core/i18n.service';
 import { CATEGORY_ICONS } from '../core/icons';
 import { COUNTRIES, Card, Detail, PriceAnalysis, ShippingEstimate } from '../core/models';
 import { Ui } from '../core/ui.service';
+import { HeroTransition } from '../core/hero.service';
+import { Motion, isCutout } from '../core/motion.service';
 import { AvatarComponent } from '../shared/avatar.component';
 import { BackButtonComponent } from '../shared/back-button.component';
 import { ListingCardComponent } from '../shared/listing-card.component';
 
 @Component({
   selector: 'page-listing',
-  imports: [IonContent, IonIcon, IonModal, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent, ListingCardComponent],
+  imports: [MOTION, IonContent, IonIcon, IonModal, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent, ListingCardComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page detail">
         <div class="topbar">
           <cmp-back />
@@ -26,14 +29,15 @@ import { ListingCardComponent } from '../shared/listing-card.component';
         </div>
 
         @if (!d()) {
-          <div class="layout"><div class="skeleton gal-sk"></div><div class="stack"><div class="skeleton" style="height:28px;width:70%"></div><div class="skeleton" style="height:22px;width:40%"></div><div class="skeleton" style="height:140px"></div></div></div>
+          <div class="layout"><div class="skeleton gal-sk" data-hero></div><div class="stack"><div class="skeleton" style="height:28px;width:70%"></div><div class="skeleton" style="height:22px;width:40%"></div><div class="skeleton" style="height:140px"></div></div></div>
         } @else {
           @let x = d()!;
           <div class="layout">
             <section class="left">
-              <div class="gallery card reveal">
+              <div class="gallery card" [class.cut]="cut()" [class.glass]="cut()" cmpParallax data-hero>
+                @if (cut()) { <span class="g-spot"></span><span class="g-ring"></span><span class="g-ring r2"></span> }
                 <div class="track" (scroll)="onScroll($event)">
-                  @for (img of x.images; track img.id) { <div class="slide"><img [src]="api.url(img.url)" [alt]="x.title" /></div> }
+                  @for (img of x.images; track img.id) { <div class="slide"><img [src]="api.url(img.url)" [alt]="x.title" [class.cutout-img]="cut()" /></div> }
                   @if (!x.images.length) { <div class="slide empty"><ion-icon name="image-outline"></ion-icon></div> }
                 </div>
                 <div class="g-tl">
@@ -44,20 +48,20 @@ import { ListingCardComponent } from '../shared/listing-card.component';
                 </div>
                 <div class="g-tr">
                   <button class="icon-btn sm" (click)="share()"><ion-icon name="share-social-outline"></ion-icon></button>
-                  @if (!x.owner) { <button class="icon-btn sm" [class.faved]="fav()" (click)="toggleFav()"><ion-icon [name]="fav() ? 'heart' : 'heart-outline'" [class.pop]="popped()"></ion-icon></button> }
+                  @if (!x.owner) { <button #favBtn class="icon-btn sm" [class.faved]="fav()" (click)="toggleFav()"><ion-icon [name]="fav() ? 'heart' : 'heart-outline'" [class.pop]="popped()"></ion-icon></button> }
                 </div>
                 @if (x.images.length > 1) { <div class="gdots">@for (img of x.images; track img.id; let i = $index) { <span [class.on]="i === slide()"></span> }</div> }
               </div>
 
-              <div class="head card pad reveal" style="--i:1">
+              <div class="head card pad rv in" style="--i:1">
                 <div class="row between top">
                   <h1>{{ x.title }}</h1>
-                  <div class="prices"><div class="price">{{ i18n.price(x.priceCents, x.currency) }}</div>
+                  <div class="prices"><div class="price" [cmpCount]="x.priceCents" [currency]="x.currency"></div>
                     @if (x.previousPriceCents) { <div class="old">{{ i18n.price(x.previousPriceCents, x.currency) }}</div> }</div>
                 </div>
                 <div class="row muted small loc"><ion-icon name="location-outline"></ion-icon>{{ x.city }}, {{ x.country }} · {{ 'listing.posted' | t: { when: i18n.ago(x.createdAt) } }}</div>
                 @if (analysis(); as a) {
-                  <div class="verdict" [attr.data-v]="a.verdict">
+                  <div class="verdict pop-in" [attr.data-v]="a.verdict">
                     <span class="vi"><ion-icon name="sparkles"></ion-icon></span>
                     <div><strong>{{ 'price.' + a.verdict | t }}</strong>
                       @if (a.medianCents) { <p>{{ 'price.median' | t: { price: i18n.price(a.medianCents, a.currency), n: a.comparables } }}</p> }
@@ -65,6 +69,9 @@ import { ListingCardComponent } from '../shared/listing-card.component';
                     </div>
                     <span class="ai">AI</span>
                   </div>
+                  @if (a.medianCents) {
+                    <div class="pmeter"><span class="zone"></span><i class="mk" [style.left.%]="meterPos()"></i><b class="md"></b></div>
+                  }
                 }
                 <div class="tags">
                   @if (x.acceptsOffers) { <span class="badge accent"><ion-icon name="pricetag-outline"></ion-icon>{{ 'listing.acceptsOffers' | t }}</span> }
@@ -74,7 +81,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
               </div>
 
               @if (x.owner) {
-                <div class="card pad owner reveal" style="--i:2">
+                <div class="card pad owner rv" style="--i:2">
                   <div class="row between"><h3>{{ 'listing.yourListing' | t }}</h3><span class="badge accent">{{ 'listing.status.' + x.status | t }}</span></div>
                   @if (x.ownerStats; as s) {
                     <div class="ostats">
@@ -103,19 +110,19 @@ import { ListingCardComponent } from '../shared/listing-card.component';
             <section class="right">
               <div class="section-head"><h2>{{ 'listing.specs' | t }}</h2></div>
               <div class="specs">
-                <div class="spec card reveal" style="--i:2"><span class="si"><ion-icon [name]="icons[x.category]"></ion-icon></span><span class="sl">{{ 'search.category' | t }}</span><span class="sv">{{ 'categories.' + x.category | t }}</span></div>
-                <div class="spec card reveal" style="--i:3"><span class="si"><ion-icon name="sparkles"></ion-icon></span><span class="sl">{{ 'listing.condition' | t }}</span><span class="sv">{{ 'conditions.' + x.condition | t }}</span></div>
+                <div class="spec card rv" style="--i:2"><span class="si"><ion-icon [name]="icons[x.category]"></ion-icon></span><span class="sl">{{ 'search.category' | t }}</span><span class="sv">{{ 'categories.' + x.category | t }}</span></div>
+                <div class="spec card rv" style="--i:3"><span class="si"><ion-icon name="sparkles"></ion-icon></span><span class="sl">{{ 'listing.condition' | t }}</span><span class="sv">{{ 'conditions.' + x.condition | t }}</span></div>
                 @for (a of attrs(); track a[0]; let i = $index) {
-                  <div class="spec card reveal" [style.--i]="i + 4"><span class="si"><ion-icon name="information-circle-outline"></ion-icon></span><span class="sl">{{ a[0] }}</span><span class="sv">{{ a[1] }}</span></div>
+                  <div class="spec card rv" [style.--i]="i + 4"><span class="si"><ion-icon name="information-circle-outline"></ion-icon></span><span class="sl">{{ a[0] }}</span><span class="sv">{{ a[1] }}</span></div>
                 }
               </div>
 
               <div class="section-head"><h2>{{ 'listing.description' | t }}</h2></div>
-              <div class="card pad desc reveal">{{ x.description }}</div>
+              <div class="card pad desc rv">{{ x.description }}</div>
 
               @if (x.priceHistory.length > 1) {
                 <div class="section-head"><h2>{{ 'listing.priceHistory' | t }}</h2></div>
-                <div class="card pad chart reveal">
+                <div class="card pad chart rv">
                   <svg viewBox="0 0 300 90" preserveAspectRatio="none">
                     <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".25"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
                     <path [attr.d]="chart().area" fill="url(#pg)" />
@@ -127,7 +134,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
               }
 
               <div class="section-head"><h2>{{ 'listing.seller' | t }}</h2></div>
-              <div class="card pad seller reveal">
+              <div class="card pad seller rv">
                 <a class="row" [routerLink]="['/user', x.seller.id]">
                   <cmp-avatar [name]="x.seller.displayName" [hue]="x.seller.avatarHue" [size]="56" [verified]="x.seller.idVerified" />
                   <div class="sinfo">
@@ -150,7 +157,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
               </div>
 
               <div class="section-head"><h2>{{ 'listing.shipping' | t }}</h2></div>
-              <div class="card pad reveal">
+              <div class="card pad rv">
                 @if (!x.shipsTo.length) { <p class="muted">{{ 'listing.pickupOnly' | t }}</p> }
                 @else {
                   <p class="muted small">{{ 'listing.shipsTo' | t: { n: x.shipsTo[0] === '*' ? '🌍' : x.shipsTo.length } }}</p>
@@ -165,7 +172,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
                 }
               </div>
 
-              <div class="card pad safety reveal">
+              <div class="card pad safety rv">
                 <h3><ion-icon name="shield-checkmark-outline"></ion-icon> {{ 'listing.safetyTitle' | t }}</h3>
                 <ul><li>{{ 'listing.safety1' | t }}</li><li>{{ 'listing.safety2' | t }}</li><li>{{ 'listing.safety3' | t }}</li></ul>
               </div>
@@ -174,7 +181,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
 
           @if (similar().length) {
             <div class="section-head"><h2>{{ 'listing.similar' | t }}</h2></div>
-            <div class="hscroll">@for (c of similar(); track c.id) { <cmp-listing-card [item]="c" [compact]="true" /> }</div>
+            <div class="hscroll">@for (c of similar(); track c.id; let i = $index) { <cmp-listing-card class="rv" [style.--i]="i" [item]="c" [compact]="true" /> }</div>
           }
         }
       </div>
@@ -229,6 +236,22 @@ import { ListingCardComponent } from '../shared/listing-card.component';
     .slide { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 4 / 3.2; background: var(--image-bg); display: grid; place-items: center; }
     .slide img { width: 100%; height: 100%; object-fit: cover; animation: fadeIn .6s var(--ease); }
     .slide.empty ion-icon { font-size: 42px; color: var(--text-3); }
+    .gallery.cut { overflow: hidden; }
+    .cut .track { position: relative; z-index: 1; }
+    .cut .slide { background: transparent; }
+    .cut .slide img { width: 92%; height: 92%; animation: fadeIn .6s var(--ease), bob 6s ease-in-out infinite;
+      transform: translate(calc(var(--px, 0) * 22px), calc(var(--py, 0) * 16px)); transition: transform .5s var(--ease); }
+    .g-spot { position: absolute; inset: 12% 14% 4%; border-radius: 50%; background: radial-gradient(closest-side, rgba(139,109,255,.5), rgba(255,122,110,.22) 55%, transparent);
+      filter: blur(14px); animation: spotlight 5s ease-in-out infinite; }
+    .g-ring { position: absolute; left: 50%; top: 50%; width: 78%; aspect-ratio: 1; margin: -39% 0 0 -39%; border-radius: 50%; border: 1.5px dashed rgba(91,61,245,.25);
+      animation: spinSlow 30s linear infinite; transform-origin: center; }
+    .g-ring.r2 { width: 58%; margin: -29% 0 0 -29%; border-style: solid; border-color: rgba(255,90,78,.14); animation-duration: 18s; animation-direction: reverse; }
+    .pop-in { animation: fadeUp .6s var(--spring) both; }
+    .pmeter { position: relative; height: 10px; margin: 16px 4px 4px; border-radius: 99px; background: linear-gradient(90deg, var(--ok), var(--accent) 50%, var(--warn)); }
+    .pmeter .md { position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px; background: var(--text); opacity: .25; border-radius: 2px; }
+    .pmeter .mk { position: absolute; top: 50%; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 3px solid var(--text);
+      transform: translate(-50%, -50%); box-shadow: 0 6px 14px -4px rgba(0,0,0,.35); animation: slideMeter 1.2s .3s var(--spring) both; }
+    @keyframes slideMeter { from { left: 50%; transform: translate(-50%, -50%) scale(.4); } }
     .g-tl { position: absolute; top: 20px; left: 20px; display: flex; gap: 6px; flex-wrap: wrap; }
     .g-tr { position: absolute; top: 18px; right: 18px; display: flex; gap: 8px; }
     .faved ion-icon, .coral { color: var(--accent-2); } .pop { animation: pop .5s var(--spring); }
@@ -298,6 +321,10 @@ export class ListingPage implements ViewWillEnter {
   ui = inject(Ui);
   private nav = inject(NavController);
   private router = inject(Router);
+  private hero = inject(HeroTransition);
+  private motion = inject(Motion);
+  private host = inject(ElementRef<HTMLElement>);
+  @ViewChild('favBtn') favBtn?: ElementRef<HTMLElement>;
   id = input.required<string>();
   icons = CATEGORY_ICONS;
   countries = COUNTRIES;
@@ -320,6 +347,12 @@ export class ListingPage implements ViewWillEnter {
   offerMsg = '';
 
   fav = () => this.favOverride() ?? this.d()?.favorite ?? false;
+  cut = computed(() => isCutout(this.d()?.images[0]?.url));
+  meterPos = computed(() => {
+    const a = this.analysis(), d = this.d();
+    if (!a?.medianCents || !d) return 50;
+    return Math.max(5, Math.min(95, 50 + (d.priceCents / a.medianCents - 1) * 110));
+  });
   attrs = computed(() => Object.entries(this.d()?.attributes ?? {}));
   round = Math.round;
 
@@ -336,6 +369,8 @@ export class ListingPage implements ViewWillEnter {
   async ionViewWillEnter() {
     this.favOverride.set(null);
     this.realName.set('');
+    // Imaginea de pe card zboară spre locul galeriei (scheletul are aceeași poziție).
+    this.hero.play(this.id(), () => this.host.nativeElement.querySelector('[data-hero]'));
     try {
       const d = await this.api.listing(this.id());
       this.d.set(d);
@@ -365,7 +400,7 @@ export class ListingPage implements ViewWillEnter {
     if (!this.requireLogin()) return;
     const next = !this.fav();
     this.favOverride.set(next);
-    if (next) { this.popped.set(false); queueMicrotask(() => this.popped.set(true)); this.ui.tap(); }
+    if (next) { this.popped.set(false); queueMicrotask(() => this.popped.set(true)); this.ui.tap(); if (this.favBtn) this.motion.burst(this.favBtn.nativeElement); }
     try { await this.api.favorite(this.id(), next); } catch (e) { this.favOverride.set(!next); this.ui.error(e); }
   }
 
@@ -409,6 +444,7 @@ export class ListingPage implements ViewWillEnter {
         swapListingId: this.kind() === 'SWAP' ? this.swapId : undefined, message: this.offerMsg || undefined,
       });
       this.offerOpen.set(false);
+      this.motion.confetti(40);
       this.ui.toast(this.i18n.t('offer.sent'));
       this.ui.tap();
     } catch (e) { this.ui.error(e); }

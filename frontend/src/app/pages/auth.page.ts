@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, Directive, OnInit, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -61,9 +62,9 @@ const STYLES = `
 
 @Component({
   selector: 'page-login',
-  imports: [IonContent, IonIcon, FormsModule, RouterLink, TPipe, LogoComponent, BackButtonComponent],
+  imports: [MOTION, IonContent, IonIcon, FormsModule, RouterLink, TPipe, LogoComponent, BackButtonComponent],
   template: `
-    <ion-content>
+    <ion-content cmpScrollFx>
       <div class="wrap">
         <cmp-back fallback="/welcome" />
         <div class="head reveal"><cmp-logo [size]="56" [animate]="true" /><h1>{{ 'auth.loginTitle' | t }}</h1><p class="muted">{{ 'auth.loginSub' | t }}</p></div>
@@ -99,9 +100,9 @@ export class LoginPage extends AuthBase {
 
 @Component({
   selector: 'page-register',
-  imports: [IonContent, IonIcon, FormsModule, RouterLink, TPipe, LogoComponent, BackButtonComponent],
+  imports: [MOTION, IonContent, IonIcon, FormsModule, RouterLink, TPipe, LogoComponent, BackButtonComponent],
   template: `
-    <ion-content>
+    <ion-content cmpScrollFx>
       <div class="wrap">
         <cmp-back fallback="/welcome" />
         <div class="head reveal"><cmp-logo [size]="56" [animate]="true" /><h1>{{ 'auth.registerTitle' | t }}</h1><p class="muted">{{ 'auth.registerSub' | t }}</p></div>

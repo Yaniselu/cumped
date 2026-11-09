@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, NavController } from '@ionic/angular';
@@ -9,9 +10,9 @@ import { BackButtonComponent } from '../shared/back-button.component';
 
 @Component({
   selector: 'page-verify',
-  imports: [IonContent, IonIcon, FormsModule, TPipe, BackButtonComponent],
+  imports: [MOTION, IonContent, IonIcon, FormsModule, TPipe, BackButtonComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
         <div class="topbar"><cmp-back fallback="/profile" /><div class="title"></div><div class="spacer"></div></div>
         @if (!phoneMode()) {

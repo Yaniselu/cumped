@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, ViewWillEnter } from '@ionic/angular';
@@ -8,15 +9,15 @@ import { BackButtonComponent } from '../shared/back-button.component';
 
 @Component({
   selector: 'page-stats',
-  imports: [IonContent, IonIcon, RouterLink, TPipe, BackButtonComponent],
+  imports: [MOTION, IonContent, IonIcon, RouterLink, TPipe, BackButtonComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
         <div class="topbar"><cmp-back fallback="/profile" /><div class="title">{{ 'stats.title' | t }}</div><div class="spacer"></div></div>
         @if (s(); as s) {
           <div class="kpis">
             @for (k of kpis(); track k.label; let i = $index) {
-              <div class="kpi card reveal" [style.--i]="i"><ion-icon [name]="k.icon"></ion-icon><strong>{{ k.value }}</strong><span>{{ k.label | t }}</span></div>
+              <div class="kpi card rv tilt" [style.--i]="i"><span class="glare"></span><ion-icon [name]="k.icon"></ion-icon><strong [cmpCount]="k.value"></strong><span>{{ k.label | t }}</span></div>
             }
           </div>
           <div class="section-head"><h2>{{ 'stats.last14' | t }}</h2></div>

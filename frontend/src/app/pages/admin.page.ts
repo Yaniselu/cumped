@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonModal } from '@ionic/angular';
@@ -10,9 +11,9 @@ import { EmptyComponent } from '../shared/empty.component';
 
 @Component({
   selector: 'page-admin',
-  imports: [IonContent, IonIcon, IonModal, RouterLink, TPipe, BackButtonComponent, EmptyComponent],
+  imports: [MOTION, IonContent, IonIcon, IonModal, RouterLink, TPipe, BackButtonComponent, EmptyComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page">
         <div class="topbar"><cmp-back fallback="/profile" /><div class="title">{{ 'admin.title' | t }}</div><button class="icon-btn" (click)="load()"><ion-icon name="arrow-up"></ion-icon></button></div>
         <div class="kpis">

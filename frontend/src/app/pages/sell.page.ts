@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,15 +9,16 @@ import { I18n, TPipe } from '../core/i18n.service';
 import { CATEGORY_ICONS } from '../core/icons';
 import { CATEGORIES, CONDITIONS, COUNTRIES, CURRENCIES, PriceAnalysis } from '../core/models';
 import { Ui } from '../core/ui.service';
+import { Motion } from '../core/motion.service';
 import { BackButtonComponent } from '../shared/back-button.component';
 
 interface Photo { id?: string; url: string; uploading: boolean; }
 
 @Component({
   selector: 'page-sell',
-  imports: [IonContent, IonIcon, FormsModule, RouterLink, TPipe, BackButtonComponent],
+  imports: [MOTION, IonContent, IonIcon, FormsModule, RouterLink, TPipe, BackButtonComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
         <div class="topbar"><cmp-back icon="close" /><div class="title">{{ (id() ? 'sell.editTitle' : 'sell.title') | t }}</div><div class="spacer"></div></div>
 
@@ -33,7 +35,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
           <div class="done reveal">
             <div class="confetti">@for (c of confetti; track $index) { <i [style.--x]="c.x" [style.--d]="c.d" [style.--c]="c.c" [style.--r]="c.r"></i> }</div>
             <div class="check"><ion-icon name="checkmark"></ion-icon></div>
-            <h1>{{ 'sell.published' | t }}</h1>
+            <h1 [cmpSplit]="'sell.published' | t" [delay]="350"></h1>
             <p class="muted">{{ 'sell.publishedSub' | t }}</p>
             <button class="btn block" (click)="view()">{{ 'sell.viewListing' | t }}</button>
           </div>
@@ -50,7 +52,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
 
           @switch (step()) {
             @case (0) {
-              <section class="reveal" [attr.data-k]="step()">
+              <section class="step-in">
                 <div class="photos">
                   @for (p of photos(); track p.url; let i = $index) {
                     <div class="ph reveal" [style.--i]="i">
@@ -69,7 +71,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
               </section>
             }
             @case (1) {
-              <section class="stack reveal">
+              <section class="stack step-in">
                 <div class="field"><label>{{ 'sell.titleLabel' | t }}</label><input class="input" [(ngModel)]="f.title" maxlength="90" [placeholder]="'sell.titlePh' | t" /></div>
                 <div class="field"><label>{{ 'sell.category' | t }}</label>
                   <div class="catgrid">@for (c of categories; track c) {
@@ -87,8 +89,8 @@ interface Photo { id?: string; url: string; uploading: boolean; }
               </section>
             }
             @case (2) {
-              <section class="stack reveal">
-                <div class="pricebox card pad">
+              <section class="stack step-in">
+                <div class="pricebox card pad glass">
                   <label>{{ 'sell.price' | t }}</label>
                   <div class="pinput"><input type="number" inputmode="decimal" [(ngModel)]="f.price" (ngModelChange)="checkPrice()" placeholder="0" />
                     <select [(ngModel)]="f.currency" (ngModelChange)="checkPrice()">@for (c of currencies; track c) { <option>{{ c }}</option> }</select></div>
@@ -108,7 +110,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
               </section>
             }
             @case (3) {
-              <section class="stack reveal">
+              <section class="stack step-in">
                 <div class="two">
                   <div class="field"><label>{{ 'sell.country' | t }}</label><select class="input" [(ngModel)]="f.country">@for (c of countries; track c) { <option>{{ c }}</option> }</select></div>
                   <div class="field"><label>{{ 'sell.city' | t }}</label><input class="input" [(ngModel)]="f.city" maxlength="80" /></div>
@@ -134,6 +136,12 @@ interface Photo { id?: string; url: string; uploading: boolean; }
     </ion-content>
   `,
   styles: [`
+    .step-in { animation: slideInR .55s var(--spring) both; }
+    .step-in > * { animation: fadeUp .6s var(--spring) both; }
+    .step-in > *:nth-child(2) { animation-delay: .06s; } .step-in > *:nth-child(3) { animation-delay: .12s; } .step-in > *:nth-child(4) { animation-delay: .18s; } .step-in > *:nth-child(5) { animation-delay: .24s; }
+    .ph { animation: pop .5s var(--spring) both; }
+    .add { transition: transform .4s var(--spring), border-color .3s; } .add:hover { transform: translateY(-3px); border-color: var(--accent); }
+    .add ion-icon { animation: pulseSoft 2.4s ease-in-out infinite; }
     .steps { position: relative; display: flex; justify-content: space-between; margin: 6px 0 8px; }
     .st { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 0; background: none; color: var(--text-3); font-size: 12px; font-weight: 600; cursor: pointer; }
     .n { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); transition: all .4s var(--spring); }
@@ -187,6 +195,7 @@ export class SellPage implements OnInit {
   i18n = inject(I18n);
   private ui = inject(Ui);
   private nav = inject(NavController);
+  private motion = inject(Motion);
   id = input<string>();
 
   stepKeys = ['photos', 'details', 'price', 'delivery'];
@@ -304,7 +313,7 @@ export class SellPage implements OnInit {
       const r = this.id() ? await this.api.updateListing(this.id()!, body) : await this.api.createListing(body);
       this.ui.tap();
       if (this.id()) { this.nav.navigateBack(['/listing', r.id]); }
-      else { this.published.set(r.id); this.api.me().then((m) => this.auth.setUser(m)).catch(() => {}); }
+      else { this.published.set(r.id); this.motion.confetti(90); this.api.me().then((m) => this.auth.setUser(m)).catch(() => {}); }
     } catch (e) { this.error.set(this.ui.errorText(e)); }
     this.busy.set(false);
   }

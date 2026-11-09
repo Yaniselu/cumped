@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, ViewWillEnter } from '@ionic/angular';
@@ -11,14 +12,14 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
 
 @Component({
   selector: 'page-my-listings',
-  imports: [IonContent, IonIcon, RouterLink, TPipe, BackButtonComponent, EmptyComponent, ListingCardComponent, SkeletonGridComponent],
+  imports: [MOTION, IonContent, IonIcon, RouterLink, TPipe, BackButtonComponent, EmptyComponent, ListingCardComponent, SkeletonGridComponent],
   template: `
-    <ion-content [fullscreen]="true">
+    <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page">
         <div class="topbar"><cmp-back fallback="/profile" /><div class="title">{{ 'profile.myListings' | t }}</div><a class="icon-btn" routerLink="/sell"><ion-icon name="add"></ion-icon></a></div>
         @if (loading()) { <cmp-skeleton-grid [count]="4" /> }
         @else if (!items().length) { <cmp-empty icon="pricetag-outline" [title]="'home.sellTitle' | t" [sub]="'home.sellSub' | t"><a class="btn sm" routerLink="/sell">{{ 'home.sellCta' | t }}</a></cmp-empty> }
-        @else { <div class="grid">@for (c of items(); track c.id; let i = $index) { <cmp-listing-card class="reveal" [style.--i]="i" [item]="c" /> }</div> }
+        @else { <div class="grid">@for (c of items(); track c.id; let i = $index) { <cmp-listing-card class="rv" [style.--i]="i" [item]="c" /> }</div> }
       </div>
     </ion-content>
   `,

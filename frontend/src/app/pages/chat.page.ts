@@ -1,3 +1,4 @@
+import { MOTION } from '../shared/motion.directives';
 import { Component, ElementRef, ViewChild, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -12,9 +13,9 @@ import { BackButtonComponent } from '../shared/back-button.component';
 
 @Component({
   selector: 'page-chat',
-  imports: [IonContent, IonFooter, IonIcon, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent],
+  imports: [MOTION, IonContent, IonFooter, IonIcon, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent],
   template: `
-    <ion-content #content [fullscreen]="true">
+    <ion-content cmpScrollFx #content [fullscreen]="true">
       <div class="page narrow chat">
         <div class="head glass">
           <cmp-back fallback="/chats" />
