@@ -36,7 +36,7 @@ import { LogoComponent } from '../shared/logo.component';
           <div class="dots">@for (s of slides; track s; let i = $index) { <span [class.on]="slide() === i"></span> }</div>
 
           <div class="features">
-            @for (f of ['f1', 'f2', 'f3']; track f; let i = $index) {
+            @for (f of ['f0', 'f1', 'f2', 'f3']; track f; let i = $index) {
               <div class="feat reveal" [style.--i]="i + 3"><span class="ck"><ion-icon name="checkmark"></ion-icon></span>{{ 'onboarding.' + f | t }}</div>
             }
           </div>
@@ -55,6 +55,7 @@ import { LogoComponent } from '../shared/logo.component';
             <button class="btn ghost" (click)="start('/login')">{{ 'onboarding.haveAccount' | t }}</button>
             <button class="btn ghost" (click)="start('/home')">{{ 'onboarding.guest' | t }}</button>
           </div>
+          <button class="btn light block why" (click)="start('/why')"><ion-icon name="heart-outline"></ion-icon>{{ 'why.title' | t }}</button>
         </section>
       </div>
     </ion-content>
@@ -75,8 +76,8 @@ import { LogoComponent } from '../shared/logo.component';
       color: #fff; max-width: 62%; animation: cardIn .8s var(--spring) both, drift 7s ease-in-out infinite alternate; }
     .float-card ion-icon { font-size: 26px; flex: 0 0 auto; }
     .float-card div { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-    .float-card b { font-size: 13.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .float-card span { font-size: 11.5px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .float-card b { font-size: 14.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .float-card span { font-size: 13px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .c1 { top: 16px; left: 14px; animation-delay: .5s, 0s; } .c1 ion-icon { color: #4ee0a2; }
     .c2 { top: 38%; right: 14px; animation-delay: .7s, -2s; } .c2 ion-icon { color: #b9a8ff; }
     .c3 { bottom: 84px; left: 22px; animation-delay: .9s, -4s; } .c3 ion-icon { color: #ffb0a8; }
@@ -92,19 +93,20 @@ import { LogoComponent } from '../shared/logo.component';
     .headline { position: relative; min-height: 132px; margin-top: 6px; }
     .slide { position: absolute; inset: 0; opacity: 0; transform: translateY(-18px); filter: blur(6px); transition: opacity .3s var(--ease), transform .4s var(--ease), filter .3s; pointer-events: none; }
     .slide.on { opacity: 1; transform: none; filter: none; transition: opacity .5s .28s var(--ease), transform .7s .28s var(--spring), filter .5s .28s; }
-    .slide h1 { font-size: 36px; } .slide p { margin-top: 10px; font-size: 15px; line-height: 1.5; max-width: 380px; }
+    .slide h1 { font-size: 36px; } .slide p { margin-top: 10px; font-size: 16px; line-height: 1.5; max-width: 380px; }
     .dots { display: flex; gap: 6px; margin: 6px 0 16px; }
     .dots span { width: 7px; height: 7px; border-radius: 99px; background: var(--surface-3); transition: all .4s var(--ease); }
     .dots span.on { width: 24px; background: var(--text); }
     .features { display: flex; flex-direction: column; gap: 10px; }
     .feat { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px 0 8px; border-radius: 999px; background: var(--surface);
-      box-shadow: var(--shadow-card); border: 1px solid var(--line); font-weight: 550; font-size: 14.5px; }
+      box-shadow: var(--shadow-card); border: 1px solid var(--line); font-weight: 550; font-size: 15.5px; }
     .ck { width: 36px; height: 36px; border-radius: 50%; background: var(--btn-dark); color: var(--btn-dark-text); display: grid; place-items: center; }
     .lang { margin-top: 22px; }
-    .lbl { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
+    .lbl { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
     .lang .hscroll { margin: 0 -22px; padding: 4px 22px 10px; }
     .cta { margin-top: 18px; height: 60px; font-size: 17px; }
-    .sub { display: flex; justify-content: space-between; margin-top: 4px; }
+    .sub { display: flex; justify-content: space-between; margin-top: 4px; flex-wrap: wrap; }
+    .why { margin-top: 6px; }
   `],
 })
 export class OnboardingPage implements OnInit, OnDestroy {

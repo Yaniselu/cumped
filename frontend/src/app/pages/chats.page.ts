@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonRefresher, IonRefresherContent, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { I18n, TPipe } from '../core/i18n.service';
-import { offerEventShort, parseOfferEvent } from '../core/offer-event';
+import { offerEventShort, orderEventText, parseOfferEvent, parseOrderEvent } from '../core/offer-event';
 import { ConversationSummary } from '../core/models';
 import { AvatarComponent } from '../shared/avatar.component';
 import { EmptyComponent } from '../shared/empty.component';
@@ -45,8 +45,8 @@ import { SkeletonLinesComponent } from '../shared/skeleton.component';
     .av { position: absolute; right: -6px; bottom: -6px; border-radius: 50%; border: 3px solid var(--surface); display: flex; }
     .mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
     .lt, .last { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .last { font-size: 14px; color: var(--text-2); flex: 1; } .last.unread { color: var(--text); font-weight: 650; }
-    .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+    .last { font-size: 15px; color: var(--text-2); flex: 1; } .last.unread { color: var(--text); font-weight: 650; }
+    .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; }
   `],
 })
 export class ChatsPage implements ViewWillEnter {
@@ -58,7 +58,9 @@ export class ChatsPage implements ViewWillEnter {
   preview(c: ConversationSummary) {
     if (c.blocked) return this.i18n.t('block.convBlocked');
     const e = parseOfferEvent(c.lastMessage);
-    return e ? '🏷️ ' + offerEventShort(this.i18n, e) : c.lastMessage ?? '…';
+    if (e) return '🏷️ ' + offerEventShort(this.i18n, e);
+    const o = parseOrderEvent(c.lastMessage);
+    return o ? '🛡️ ' + orderEventText(this.i18n, o) : c.lastMessage ?? '…';
   }
   async load(ev?: any) {
     try { this.items.set(await this.api.conversations()); } catch { /* ignore */ }

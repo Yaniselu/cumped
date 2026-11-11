@@ -44,15 +44,15 @@ export interface PriceChip { label: string; value: number; }
     .amount input { flex: 1; min-width: 0; border: 0; outline: none; background: none; color: var(--text); padding: 0;
       font-family: var(--font-display); font-weight: 700; letter-spacing: -0.03em; font-size: 30px; font-variant-numeric: tabular-nums; }
     .big .amount input { font-size: clamp(32px, 10vw, 44px); }
-    .cur { font-weight: 650; color: var(--text-2); font-size: 15px; padding: 8px 12px; border-radius: 12px; background: var(--surface-2); }
-    .delta { margin-top: 2px; font-size: 12.5px; font-weight: 650; color: var(--accent); }
+    .cur { font-weight: 650; color: var(--text-2); font-size: 16px; padding: 8px 12px; border-radius: 12px; background: var(--surface-2); }
+    .delta { margin-top: 2px; font-size: 13.5px; font-weight: 650; color: var(--accent); }
     .delta.neg { color: var(--text-2); }
     .slider { position: relative; height: 44px; margin-top: 8px; touch-action: pan-y; }
     .track { position: absolute; left: 0; right: 0; top: 50%; height: 8px; margin-top: -4px; border-radius: 99px; background: var(--surface-3); }
     .fill { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p) * 100%); border-radius: 99px;
       background: linear-gradient(90deg, #8b6dff, var(--accent)); }
     .mark { position: absolute; top: -6px; width: 2px; height: 20px; margin-left: -1px; border-radius: 2px; background: var(--text); opacity: .55; }
-    .mark::after { content: attr(data-l); position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 10.5px; font-weight: 700;
+    .mark::after { content: attr(data-l); position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 700;
       font-style: normal; color: var(--text-2); white-space: nowrap; letter-spacing: .02em; }
     .mark.med { background: var(--ok); opacity: 1; } .mark.med::after { color: var(--ok); }
     input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
@@ -65,9 +65,9 @@ export interface PriceChip { label: string; value: number; }
       box-shadow: 0 4px 14px -2px rgba(20, 16, 60, .35), inset 0 0 0 7px var(--accent); }
     input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
     input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 5px var(--accent-soft), inset 0 0 0 7px var(--accent); }
-    .ends { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-3); margin-top: -2px; font-variant-numeric: tabular-nums; }
+    .ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-3); margin-top: -2px; font-variant-numeric: tabular-nums; }
     .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .chips .chip { height: 32px; font-size: 12.5px; }
+    .chips .chip { height: 32px; font-size: 13.5px; }
   `],
 })
 export class PriceInputComponent {
@@ -194,7 +194,7 @@ export class PriceInputComponent {
   `,
   styles: [`
     .ins { display: flex; align-items: flex-end; gap: 8px; }
-    .ins label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+    .ins label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; color: var(--text-3); }
     .ins input { height: 48px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 0 14px; font-size: 16px;
       font-weight: 650; font-family: inherit; outline: none; width: 100%; font-variant-numeric: tabular-nums; }
     .ins input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }

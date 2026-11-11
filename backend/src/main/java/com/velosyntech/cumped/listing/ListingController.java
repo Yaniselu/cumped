@@ -111,6 +111,20 @@ public class ListingController {
         return Map.of("favorite", service.toggleFavorite(CurrentUser.id(), id, true));
     }
 
+    public record PriceAlert(Long targetPriceCents) {}
+
+    @PutMapping("/listings/{id}/price-alert")
+    Map<String, Object> priceAlert(@PathVariable UUID id, @RequestBody PriceAlert r) {
+        Long t = service.setPriceAlert(CurrentUser.id(), id, r.targetPriceCents());
+        return java.util.Collections.singletonMap("targetPriceCents", t);
+    }
+
+    @DeleteMapping("/listings/{id}/price-alert")
+    Map<String, Object> clearPriceAlert(@PathVariable UUID id) {
+        service.setPriceAlert(CurrentUser.id(), id, null);
+        return java.util.Collections.singletonMap("targetPriceCents", null);
+    }
+
     @DeleteMapping("/listings/{id}/favorite")
     Map<String, Object> unfavorite(@PathVariable UUID id) {
         return Map.of("favorite", service.toggleFavorite(CurrentUser.id(), id, false));

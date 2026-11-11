@@ -111,6 +111,9 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
                   <button class="btn sm ghost" [disabled]="busy()" (click)="act(n, 'withdraw')">{{ 'neg.withdraw' | t }}</button>
                 } @else if (c.status === 'ACCEPTED') {
                   <span class="deal small"><ion-icon name="checkmark-circle"></ion-icon>{{ (n.myRole === 'BUYER' ? 'neg.dealBuyer' : 'neg.dealSeller') | t }}</span>
+                  @if (n.myRole === 'BUYER' && c.kind === 'PRICE' && n.listing?.status === 'ACTIVE') {
+                    <a class="btn sm accent paynow" [routerLink]="['/listing', n.listing!.id]" [queryParams]="{ buy: 1 }"><ion-icon name="shield-checkmark"></ion-icon>{{ 'buy.payAccepted' | t: { amount: i18n.price(c.amountCents, cur) } }}</a>
+                  }
                 }
                 @if (n.conversationId) { <button class="icon-btn sm" (click)="chat(n)" [attr.aria-label]="'neg.openChat' | t"><ion-icon name="chatbubble-ellipses-outline"></ion-icon></button> }
               </footer>
@@ -146,10 +149,10 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
   `,
   styles: [`
     .seg { display: flex; padding: 4px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-card); border: 1px solid var(--line); margin-bottom: 16px; }
-    .seg button { flex: 1; min-width: 0; height: 40px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; font-size: 13.5px; color: var(--text-2);
+    .seg button { flex: 1; min-width: 0; height: 40px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; font-size: 14.5px; color: var(--text-2);
       cursor: pointer; transition: all .3s var(--ease); display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; overflow: hidden; }
     .seg button.on { background: var(--btn-dark); color: var(--btn-dark-text); }
-    .cnt { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--accent-2); color: #fff; font-size: 11px; display: inline-grid; place-items: center; }
+    .cnt { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--accent-2); color: #fff; font-size: 12.5px; display: inline-grid; place-items: center; }
     .neg { padding: 14px; margin-bottom: 12px; transition: box-shadow .3s; }
     .neg.turn { box-shadow: var(--shadow-card), 0 0 0 2px var(--accent-soft); }
     .neg.hl { box-shadow: var(--shadow-card), 0 0 0 2px var(--accent); }
@@ -157,33 +160,33 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
     .thumb { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 16px; overflow: hidden; background: var(--image-bg); }
     .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .ttl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .lt { color: var(--text); font-weight: 650; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lt { color: var(--text); font-weight: 650; font-size: 15.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cp { display: inline-flex; align-items: center; gap: 4px 6px; color: var(--text-2); margin-top: 2px; min-width: 0; flex-wrap: wrap; }
     .cp b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .st { flex: 0 0 auto; height: 24px; font-size: 11.5px; background: var(--surface-2); color: var(--text-2); }
+    .st { flex: 0 0 auto; height: 24px; font-size: 13px; background: var(--surface-2); color: var(--text-2); }
     .st[data-s="PENDING"] { background: var(--accent-soft); color: var(--accent); }
     .st[data-s="ACCEPTED"] { background: var(--ok-soft); color: var(--ok); }
     .st[data-s="DECLINED"], .st[data-s="EXPIRED"] { background: var(--accent-2-soft); color: var(--accent-2); }
     .now { margin: 14px 0 4px; padding: 14px; border-radius: 18px; background: var(--surface-2); }
     .amt { font-family: var(--font-display); font-weight: 700; font-size: 28px; letter-spacing: -0.03em; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-    .off { font-family: var(--font-body); font-size: 13px; font-weight: 650; color: var(--ok); }
+    .off { font-family: var(--font-body); font-size: 14px; font-weight: 650; color: var(--ok); }
     .swap { display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
-    .sw { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: 600; font-size: 14px; min-width: 0; }
+    .sw { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: 600; font-size: 15px; min-width: 0; }
     .sw img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; }
     .sw span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .plus { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
-    .msg { font-size: 14px; color: var(--text-2); font-style: italic; margin-top: 6px; overflow-wrap: anywhere; }
+    .msg { font-size: 15px; color: var(--text-2); margin-top: 6px; overflow-wrap: anywhere; }
     .meta { display: flex; align-items: center; gap: 5px; margin-top: 8px; color: var(--text-2); flex-wrap: wrap; }
-    .histbtn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--text-2); font-weight: 600; font-size: 13px; padding: 8px 2px; cursor: pointer; }
+    .histbtn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--text-2); font-weight: 600; font-size: 14px; padding: 8px 2px; cursor: pointer; }
     .timeline { list-style: none; margin: 0 0 6px; padding: 0 0 0 6px; }
-    .timeline li { position: relative; display: flex; align-items: center; gap: 10px; padding: 7px 0 7px 18px; font-size: 13px; border-left: 2px solid var(--surface-3); }
+    .timeline li { position: relative; display: flex; align-items: center; gap: 10px; padding: 7px 0 7px 18px; font-size: 14px; border-left: 2px solid var(--surface-3); }
     .timeline li div { flex: 1; min-width: 0; }
     .timeline .dot { position: absolute; left: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface-3); border: 2px solid var(--surface); }
     .timeline li.mine .dot { background: var(--accent); }
-    .hs { font-size: 11px; font-weight: 650; color: var(--text-3); white-space: nowrap; }
+    .hs { font-size: 12.5px; font-weight: 650; color: var(--text-3); white-space: nowrap; }
     .hs[data-s="ACCEPTED"] { color: var(--ok); } .hs[data-s="PENDING"] { color: var(--accent); }
     .acts { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-    .acts .grow { flex: 1 1 160px; } .acts cmp-hold-button.full { flex: 1 1 100%; }
+    .acts .grow { flex: 1 1 160px; } .paynow { flex: 1 1 100%; } .acts cmp-hold-button.full { flex: 1 1 100%; }
     .acts .icon-btn { margin-left: auto; }
     .wait { display: inline-flex; align-items: center; gap: 8px; flex: 1; }
     .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulseRing 1.6s infinite; box-shadow: 0 0 0 0 rgba(91,61,245,.5); }

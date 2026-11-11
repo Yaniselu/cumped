@@ -61,7 +61,7 @@ import { NavController } from '@ionic/angular';
     .hero { display: flex; gap: 18px; padding: 20px; align-items: flex-start; }
     .info { flex: 1; display: flex; flex-direction: column; gap: 6px; } .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
     .biz { margin-top: 6px; overflow-wrap: anywhere; }
-    .bio { color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
+    .bio { color: var(--text-2); font-size: 15.5px; line-height: 1.5; }
     .realname { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); font-weight: 650; }
     .rev { margin-bottom: 10px; } .rev p { margin: 8px 0 6px; line-height: 1.5; } .stars { color: var(--warn); letter-spacing: 1px; } .vf { color: var(--accent); margin-left: 4px; vertical-align: -2px; }
   `],

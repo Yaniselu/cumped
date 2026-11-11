@@ -36,7 +36,7 @@ const NO_CHROME = ['/welcome', '/login', '/register', '/chat/', '/sell', '/suppo
     .mark { position: relative; animation: pop .9s var(--spring) both; }
     .word { position: relative; font-family: var(--font-display); font-weight: 700; font-size: 38px; letter-spacing: -0.03em; color: #fff;
       animation: wordIn .8s .45s var(--spring) both; }
-    .tag { position: relative; display: flex; gap: 8px; color: rgba(255,255,255,.72); font-size: 15px; font-weight: 550; }
+    .tag { position: relative; display: flex; gap: 8px; color: rgba(255,255,255,.72); font-size: 16px; font-weight: 550; }
     .tag span { animation: wordIn .7s var(--spring) both; } .tag span:nth-child(1) { animation-delay: .75s; } .tag span:nth-child(2) { animation-delay: .9s; } .tag span:nth-child(3) { animation-delay: 1.05s; color: #ff8a7f; }
   `],
 })

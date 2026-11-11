@@ -242,4 +242,97 @@ class MarketplaceIT {
         assertThat(desc).isEmpty();
         assertThat(other.get("/api/listings/" + listingId).status()).isEqualTo(404);
     }
+
+    @Test
+    void safePaymentHoldsMoneyUntilBuyerConfirms() {
+        TestClient seller = new TestClient(port, json);
+        seller.register();
+        String listingId = seller.post("/api/listings", listing("Cască de moto Shoei")).body().get("id").asText();
+        TestClient buyer = new TestClient(port, json);
+        buyer.register();
+
+        JsonNode quote = buyer.get("/api/listings/" + listingId + "/order-quote?delivery=COURIER&country=RO").body();
+        assertThat(quote.get("feeCents").asLong()).isGreaterThan(0);
+        assertThat(quote.get("totalCents").asLong()).isEqualTo(quote.get("itemCents").asLong() + quote.get("shippingCents").asLong() + quote.get("feeCents").asLong());
+
+        Map<String, Object> addr = Map.of("name", "Ion Popescu", "address", "Str. Lalelelor 10", "city", "Cluj-Napoca",
+                "postcode", "400000", "country", "RO", "phone", "+40 712 345 678");
+        assertThat(buyer.post("/api/listings/" + listingId + "/orders", Map.of("delivery", "COURIER")).error()).isEqualTo("ADDRESS_REQUIRED");
+        TestClient.Res created = buyer.post("/api/listings/" + listingId + "/orders", Map.of("delivery", "COURIER", "address", addr));
+        assertThat(created.status()).isEqualTo(201);
+        String orderId = created.body().get("id").asText();
+        assertThat(created.body().get("status").asText()).isEqualTo("PAID");
+        // produsul nu mai poate fi cumpărat de altcineva
+        assertThat(new TestClient(port, json).get("/api/listings/" + listingId).body().get("status").asText()).isEqualTo("SOLD");
+
+        // cumpărătorul nu poate marca expedierea; vânzătorul are nevoie de AWB
+        assertThat(buyer.post("/api/orders/" + orderId + "/ship", Map.of("carrier", "SAMEDAY", "trackingCode", "1ONB123456")).status()).isEqualTo(404);
+        assertThat(seller.post("/api/orders/" + orderId + "/ship", Map.of("carrier", "SAMEDAY", "trackingCode", "x")).error()).isEqualTo("TRACKING_REQUIRED");
+        JsonNode shipped = seller.post("/api/orders/" + orderId + "/ship", Map.of("carrier", "SAMEDAY", "trackingCode", "1ONB123456")).body();
+        assertThat(shipped.get("status").asText()).isEqualTo("SHIPPED");
+        assertThat(shipped.get("shipTo").get("city").asText()).isEqualTo("Cluj-Napoca");
+
+        // vânzătorul nu poate confirma în locul cumpărătorului
+        assertThat(seller.post("/api/orders/" + orderId + "/confirm", Map.of()).status()).isEqualTo(404);
+        assertThat(buyer.post("/api/orders/" + orderId + "/confirm", Map.of()).body().get("status").asText()).isEqualTo("COMPLETED");
+        // comanda finalizată permite recenzia
+        assertThat(buyer.post("/api/reviews", Map.of("listingId", listingId, "rating", 5, "comment", "Totul perfect")).status()).isBetween(200, 201);
+    }
+
+    @Test
+    void sellerCancelRefundsAndDisputeOpensTicket() {
+        TestClient seller = new TestClient(port, json);
+        seller.register();
+        String l1 = seller.post("/api/listings", listing("Trotinetă electrică Xiaomi")).body().get("id").asText();
+        TestClient buyer = new TestClient(port, json);
+        buyer.register();
+        String o1 = buyer.post("/api/listings/" + l1 + "/orders", Map.of("delivery", "PICKUP")).body().get("id").asText();
+        // cumpărătorul nu poate anula înainte de termenul de expediere
+        assertThat(buyer.post("/api/orders/" + o1 + "/cancel", Map.of()).error()).isEqualTo("TOO_EARLY_TO_CANCEL");
+        assertThat(seller.post("/api/orders/" + o1 + "/cancel", Map.of()).body().get("status").asText()).isEqualTo("REFUNDED");
+        assertThat(buyer.get("/api/listings/" + l1).body().get("status").asText()).isEqualTo("ACTIVE");
+
+        String o2 = buyer.post("/api/listings/" + l1 + "/orders", Map.of("delivery", "PICKUP")).body().get("id").asText();
+        assertThat(buyer.post("/api/orders/" + o2 + "/dispute", Map.of("reason", "NOT_AS_DESCRIBED", "details", "scurt")).error()).isEqualTo("DETAILS_REQUIRED");
+        JsonNode d = buyer.post("/api/orders/" + o2 + "/dispute", Map.of("reason", "NOT_AS_DESCRIBED",
+                "details", "Bateria nu ține deloc, în anunț scria că ține 30 km.")).body();
+        assertThat(d.get("status").asText()).isEqualTo("DISPUTED");
+        int tickets = jdbc.sql("SELECT count(*) FROM support_tickets WHERE target_id = CAST(? AS uuid) AND target_type = 'ORDER'").param(o2).query(Integer.class).single();
+        assertThat(tickets).isEqualTo(1);
+        // banii rămân blocați: nici confirmarea, nici anularea nu mai sunt posibile
+        assertThat(seller.post("/api/orders/" + o2 + "/cancel", Map.of()).error()).isEqualTo("INVALID_STATE");
+    }
+
+    @Test
+    void priceAlertNotifiesWhenTargetReachedAndSellerStatsArePublic() {
+        TestClient seller = new TestClient(port, json);
+        JsonNode s = seller.register();
+        Map<String, Object> l = listing("Monitor LG 27 inch");
+        String id = seller.post("/api/listings", l).body().get("id").asText();
+        long price = seller.get("/api/listings/" + id).body().get("priceCents").asLong();
+        TestClient fan = new TestClient(port, json);
+        fan.register();
+        assertThat(fan.send("PUT", "/api/listings/" + id + "/price-alert", Map.of("targetPriceCents", price + 100), false).error()).isEqualTo("INVALID_AMOUNT");
+        assertThat(fan.send("PUT", "/api/listings/" + id + "/price-alert", Map.of("targetPriceCents", price - 1000), false).status()).isEqualTo(200);
+        assertThat(fan.get("/api/listings/" + id).body().get("priceAlertCents").asLong()).isEqualTo(price - 1000);
+        l.put("priceCents", price - 2000);
+        assertThat(seller.put("/api/listings/" + id, l).status()).isEqualTo(200);
+        JsonNode notes = fan.get("/api/me/notifications").body();
+        boolean reached = false;
+        for (JsonNode n : notes) if ("PRICE_TARGET_REACHED".equals(n.get("type").asText())) reached = true;
+        assertThat(reached).isTrue();
+
+        JsonNode stats = new TestClient(port, json).get("/api/users/" + s.get("id").asText() + "/stats").body();
+        assertThat(stats.get("lastActive").asText()).isEqualTo("TODAY");
+        assertThat(stats.has("responseMinutes")).isTrue();
+    }
+
+    @Test
+    void aiFeaturesNeedAnApiKey() {
+        TestClient u = new TestClient(port, json);
+        u.register();
+        TestClient.Res r = u.post("/api/ai/listing-draft", Map.of("imageIds", java.util.List.of(java.util.UUID.randomUUID()), "lang", "ro"));
+        assertThat(r.status()).isEqualTo(503);
+        assertThat(r.error()).isEqualTo("AI_NOT_CONFIGURED");
+    }
 }

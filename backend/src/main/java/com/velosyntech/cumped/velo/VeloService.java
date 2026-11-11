@@ -157,6 +157,13 @@ public class VeloService {
                 listing = listings.findById(targetId).orElseThrow(ApiException::notFound);
                 if (!listing.getSellerId().equals(reporterId)) throw ApiException.notFound();
             }
+            case "ORDER" -> {
+                // dispută la o comandă cu plată sigură: doar cumpărătorul sau vânzătorul acelei comenzi
+                Map<String, Object> o = jdbc.sql("SELECT listing_id, buyer_id, seller_id FROM orders WHERE id = ? AND (buyer_id = ? OR seller_id = ?)")
+                        .params(targetId, reporterId, reporterId).query().listOfRows().stream().findFirst().orElseThrow(ApiException::notFound);
+                listing = listings.findById((UUID) o.get("listing_id")).orElse(null);
+                reported = reporterId.equals(o.get("buyer_id")) ? (UUID) o.get("seller_id") : (UUID) o.get("buyer_id");
+            }
             default -> throw ApiException.badRequest("INVALID_TARGET");
         }
         if (reported != null && reported.equals(reporterId)) throw ApiException.badRequest("CANNOT_REPORT_SELF");
@@ -164,7 +171,8 @@ public class VeloService {
                 .params(reporterId, targetId).query(Integer.class).single();
         if (dup > 0) throw ApiException.conflict("ALREADY_REPORTED");
         boolean appeal = "APPEAL".equals(targetType);
-        String category = appeal ? "APPEAL" : switch (reason) {
+        boolean order = "ORDER".equals(targetType);
+        String category = appeal ? "APPEAL" : order ? ("NOT_RECEIVED".equals(reason) || "DAMAGED".equals(reason) ? "DELIVERY" : "PAYMENT") : switch (reason) {
             case "FRAUD", "COUNTERFEIT" -> "FRAUD";
             case "PROHIBITED", "IP_INFRINGEMENT", "WRONG_CATEGORY", "DUPLICATE" -> "LISTING";
             default -> "OTHER";
@@ -172,14 +180,14 @@ public class VeloService {
         int risk = switch (reason == null ? "" : reason) { case "FRAUD" -> 60; case "PROHIBITED", "COUNTERFEIT" -> 55; case "OFFENSIVE" -> 45; default -> 25; };
         String text = Texts.clean(details == null ? "" : redactSecrets(details));
         if (text.length() > 1500) text = text.substring(0, 1500);
-        String summary = (appeal ? "Contestație la eliminarea anunțului. " : "Raportare " + targetType + " – motiv " + reason + ". ") + text;
+        String summary = (appeal ? "Contestație la eliminarea anunțului. " : order ? "Dispută plată sigură – motiv " + reason + ". " : "Raportare " + targetType + " – motiv " + reason + ". ") + text;
         VeloDecision d = new VeloDecision("", "REPORT", category, risk >= 55 ? "HIGH" : "MEDIUM", risk, true, summary, List.of());
         Ticket t = openTicket(reporter, d, "REPORT " + targetType + " " + reason + ": " + text + "\n", listing, reported, appeal ? "APPEAL" : "REPORT");
         jdbc.sql("UPDATE support_tickets SET target_type = ?, target_id = ?, reason = ? WHERE id = ?")
                 .params(targetType, targetId, reason, t.id()).update();
 
         // Mai mulți reclamanți independenți pentru același anunț: îl ascundem până la verificarea umană.
-        if (!appeal && listing != null && listing.getStatus() == Listing.Status.ACTIVE && Set.of("FRAUD", "PROHIBITED", "COUNTERFEIT").contains(reason)) {
+        if (!appeal && !order && listing != null && listing.getStatus() == Listing.Status.ACTIVE && Set.of("FRAUD", "PROHIBITED", "COUNTERFEIT").contains(reason)) {
             int reporters = jdbc.sql("SELECT count(DISTINCT reporter_id) FROM support_tickets WHERE target_id = ? AND source = 'REPORT' AND created_at > now() - interval '7 days'")
                     .param(listing.getId()).query(Integer.class).single();
             if (reporters >= 3) {

@@ -13,7 +13,9 @@ const ICONS: Record<string, string> = {
   PRICE_DROP: 'trending-down', OFFER_RECEIVED: 'pricetag-outline', SWAP_RECEIVED: 'swap-horizontal', OFFER_ACCEPTED: 'checkmark-circle',
   OFFER_DECLINED: 'close-outline', NEW_CONVERSATION: 'chatbubble-outline', SAVED_SEARCH_MATCH: 'search', NEW_REVIEW: 'star',
   TICKET_OPENED: 'ticket-outline', LISTING_UNDER_REVIEW: 'shield-checkmark-outline', LISTING_RESTORED: 'checkmark-circle', PURCHASE_CONFIRMED: 'bag-check-outline',
-  OFFER_COUNTERED: 'swap-vertical', OFFER_AUTO_DECLINED: 'close-circle-outline', LISTING_REMOVED: 'alert-circle-outline', OFFER_EXPIRED: 'time-outline',
+  ORDER_PAID: 'cash-outline', ORDER_SHIPPED: 'cube-outline', ORDER_HANDED_OVER: 'hand-right-outline', ORDER_COMPLETED: 'checkmark-done',
+  ORDER_AUTO_COMPLETED: 'checkmark-done', ORDER_RELEASED: 'checkmark-done', ORDER_DISPUTED: 'alert-circle-outline', ORDER_REFUNDED: 'arrow-undo-outline',
+  PRICE_TARGET_REACHED: 'notifications', OFFER_COUNTERED: 'swap-vertical', OFFER_AUTO_DECLINED: 'close-circle-outline', LISTING_REMOVED: 'alert-circle-outline', OFFER_EXPIRED: 'time-outline',
 };
 
 @Component({
@@ -37,7 +39,7 @@ const ICONS: Record<string, string> = {
     </ion-content>
   `,
   styles: [`
-    .note { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; margin-bottom: 10px; text-align: left; color: var(--text); cursor: pointer; font-size: 14.5px; }
+    .note { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; margin-bottom: 10px; text-align: left; color: var(--text); cursor: pointer; font-size: 15.5px; }
     .note.unread { border-color: var(--accent-soft); }
     .ic { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 21px; flex: 0 0 auto; }
     .ic[data-t="PRICE_DROP"] { background: var(--accent-2-soft); color: var(--accent-2); }
@@ -61,6 +63,7 @@ export class NotificationsPage implements ViewWillEnter {
     const p: Record<string, any> = { ...n.params };
     if (p['new'] != null && p['currency']) p['new'] = this.i18n.price(p['new'], p['currency']);
     if (p['amount'] != null && p['currency']) p['amount'] = this.i18n.price(p['amount'], p['currency']);
+    if (p['carrier']) p['carrier'] = this.i18n.t('orders.carriers.' + p['carrier']);
     if (p['reason'] && this.i18n.has('report.reason.' + p['reason'])) p['reason'] = this.i18n.t('report.reason.' + p['reason']);
     return this.i18n.t('notifications.' + n.type, p);
   }

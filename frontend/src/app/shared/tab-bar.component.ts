@@ -42,13 +42,13 @@ import { TPipe } from '../core/i18n.service';
     :host-context(.dark) .tab { color: rgba(255,255,255,.78); } :host-context(.dark) .tab.active { color: #fff; }
     .tab:active ion-icon { transform: scale(.82); }
     .sell { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 20px 0 8px; margin: 0 4px; border-radius: 999px;
-      color: var(--btn-dark-text); background: var(--btn-dark); box-shadow: var(--btn-dark-shadow); font-weight: 650; font-size: 15px; overflow: hidden; transition: transform .4s var(--spring); }
+      color: var(--btn-dark-text); background: var(--btn-dark); box-shadow: var(--btn-dark-shadow); font-weight: 650; font-size: 16px; overflow: hidden; transition: transform .4s var(--spring); }
     .sell:active { transform: scale(.94); }
     .plus { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.16); transition: transform .5s var(--spring); }
     :host-context(.dark) .plus { background: rgba(0,0,0,.08); }
     .sell:hover .plus { transform: rotate(90deg); } .plus ion-icon { font-size: 22px; }
     .count { position: absolute; top: -2px; right: -2px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--accent-2);
-      color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; border: 2px solid var(--surface); animation: pop .5s var(--spring); }
+      color: #fff; font-size: 12.5px; font-weight: 700; display: grid; place-items: center; border: 2px solid var(--surface); animation: pop .5s var(--spring); }
     .dot { position: absolute; top: 10px; right: 11px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent-2); border: 2px solid var(--surface); animation: pulseRing 2s infinite; }
     @media (min-width: 992px) { .tabbar { display: none; } }
     /* telefoane înguste: butonul Vinde rămâne doar cu „+”, taburile se strâng */

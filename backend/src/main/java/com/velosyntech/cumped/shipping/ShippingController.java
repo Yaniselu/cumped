@@ -31,6 +31,11 @@ public class ShippingController {
         String dest = to.trim().toUpperCase(Locale.ROOT);
         if (!dest.matches("^[A-Z]{2}$")) throw ApiException.badRequest("INVALID_COUNTRY");
         Listing l = listings.findById(listingId).filter(Listing::isPubliclyVisible).orElseThrow(ApiException::notFound);
+        return compute(l, dest);
+    }
+
+    /** Estimarea pentru un anunț și o țară (folosită și la plata sigură). */
+    public static Estimate compute(Listing l, String dest) {
         if (!l.shipsTo(dest)) return new Estimate(false, null, 0, 0, "EUR", 0, 0);
         double kg = Math.max(0.5, l.getWeightGrams() / 1000.0);
         String zone;

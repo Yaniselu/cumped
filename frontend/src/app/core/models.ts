@@ -35,8 +35,23 @@ export interface Detail {
   favorite: boolean; owner: boolean; conversationId: string | null; priceHistory: { priceCents: number; at: string }[];
   ownerStats: { views: number; favorites: number; messages: number; offers: number; expiresAt: string } | null;
   favorites: number; views: number; negotiable: boolean; quantity: number; minPriceCents: number | null;
-  moderationReason: string | null; blocked: boolean;
+  moderationReason: string | null; blocked: boolean; priceAlertCents: number | null; sellerStats: SellerStats | null;
 }
+
+export interface SellerStats { responseMinutes: number | null; responseRate: number | null; lastActive: 'TODAY' | 'WEEK' | 'MONTH' | 'OLDER'; completedSales: number; }
+
+export interface ShipAddress { name: string; address: string; city: string; postcode: string; country: string; phone: string; }
+export interface OrderQuote { itemCents: number; shippingCents: number; feeCents: number; totalCents: number; currency: string; offerApplied: boolean; courierAvailable: boolean; minDays: number; maxDays: number; }
+export type OrderStatus = 'PAID' | 'SHIPPED' | 'COMPLETED' | 'DISPUTED' | 'REFUNDED';
+export interface Order {
+  id: string; code: string; role: 'BUYER' | 'SELLER'; listing: Card | null; counterpart: PublicUser | null;
+  itemCents: number; shippingCents: number; feeCents: number; totalCents: number; currency: string; delivery: 'PICKUP' | 'COURIER';
+  shipTo: ShipAddress | null; carrier: string | null; trackingCode: string | null; status: OrderStatus; disputeReason: string | null; refundReason: string | null;
+  createdAt: string; paidAt: string | null; shipBy: string | null; shippedAt: string | null; autoReleaseAt: string | null; completedAt: string | null; refundedAt: string | null;
+  canShip: boolean; canConfirm: boolean; canDispute: boolean; canCancel: boolean; conversationId: string | null; simulated: boolean;
+}
+export interface ListingDraft { title: string; category: string; condition: string; description: string; attributes: { key: string; value: string }[];
+  priceLow: number; priceHigh: number; confidence: 'LOW' | 'MEDIUM' | 'HIGH'; tips: string[]; }
 
 export interface PriceAnalysis { verdict: 'BELOW' | 'FAIR' | 'ABOVE' | 'UNKNOWN'; medianCents: number | null; comparables: number; currency: string; }
 

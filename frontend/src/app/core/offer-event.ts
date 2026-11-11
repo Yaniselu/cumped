@@ -22,3 +22,14 @@ export function offerEventShort(i18n: I18n, e: OfferEvent): string {
   const kind = e.kind === 'SWAP' && e.event === 'NEW' ? 'SWAP' : e.event;
   return i18n.t(`neg.evShort.${kind}`, { amount: e.amountCents ? i18n.price(e.amountCents, e.currency) : '' });
 }
+
+/** Evenimentele plății sigure din chat: [[order:EVENT:sumă:MONEDĂ]]. */
+const ORX = /^\[\[order:([A-Z_]+):(\d+):([A-Z]{3})\]\]$/;
+export interface OrderEvent { event: string; amountCents: number; currency: string; }
+export function parseOrderEvent(body: string | null | undefined): OrderEvent | null {
+  const m = body ? ORX.exec(body) : null;
+  return m ? { event: m[1], amountCents: Number(m[2]), currency: m[3] } : null;
+}
+export function orderEventText(i18n: I18n, e: OrderEvent): string {
+  return i18n.t('orders.ev.' + e.event, { amount: i18n.price(e.amountCents, e.currency) });
+}

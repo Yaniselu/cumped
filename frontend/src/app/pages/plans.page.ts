@@ -49,7 +49,7 @@ const ICONS: Record<string, string> = { EXTRA_LISTING: 'add-circle', PLUS: 'spar
     .ic { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 22px; }
     .hl .ic { background: rgba(255,255,255,.2); color: #fff; }
     .tx { display: flex; flex-direction: column; gap: 2px; } .pr { text-align: right; display: flex; flex-direction: column; } .pr strong { font-family: var(--font-display); font-size: 20px; }
-    .prot { display: flex; gap: 12px; align-items: center; margin-top: 16px; font-size: 14px; } .prot ion-icon { color: var(--ok); font-size: 26px; flex: 0 0 auto; } .prot ion-icon.soon { color: var(--accent); }
+    .prot { display: flex; gap: 12px; align-items: center; margin-top: 16px; font-size: 15px; } .prot ion-icon { color: var(--ok); font-size: 26px; flex: 0 0 auto; } .prot ion-icon.soon { color: var(--accent); }
     .center { text-align: center; margin-top: 12px; }
   `],
 })

@@ -52,11 +52,13 @@ public class UserController {
     private final BlockService blocks;
     private final com.velosyntech.cumped.media.MediaService media;
     private final com.velosyntech.cumped.media.ListingImageRepository images;
+    private final SellerStatsService sellerStats;
 
     public UserController(UserRepository users, QuotaService quota, ListingQueries queries, AuditService audit,
                           JdbcClient jdbc, TokenService tokens, UserStatusCache statusCache, ScamDetector scam,
                           BlockService blocks, com.velosyntech.cumped.media.MediaService media,
-                          com.velosyntech.cumped.media.ListingImageRepository images) {
+                          com.velosyntech.cumped.media.ListingImageRepository images, SellerStatsService sellerStats) {
+        this.sellerStats = sellerStats;
         this.users = users;
         this.quota = quota;
         this.queries = queries;
@@ -74,6 +76,12 @@ public class UserController {
      * Cont de persoană fizică sau de firmă. Firmele trebuie să-și declare datele (DSA art. 30),
      * iar cumpărătorii văd că au de-a face cu un profesionist (drepturile de consumator se aplică).
      */
+    @GetMapping("/users/{id}/stats")
+    SellerStatsService.Stats stats(@PathVariable UUID id) {
+        users.findById(id).filter(u -> !u.isSuspended()).orElseThrow(ApiException::notFound);
+        return sellerStats.of(id);
+    }
+
     @PatchMapping("/me/business")
     @Transactional
     UserDtos.Me updateBusiness(@Valid @RequestBody BusinessUpdate r) {

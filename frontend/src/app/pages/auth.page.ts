@@ -55,12 +55,12 @@ const STYLES = `
   .wrap { max-width: 460px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 12px) 22px 40px; }
   .head { margin: 18px 0 26px; } .head h1 { margin-top: 22px; } .head p { margin-top: 8px; }
   form { display: flex; flex-direction: column; gap: 16px; }
-  .or { display: flex; align-items: center; gap: 12px; color: var(--text-3); font-size: 13px; margin: 22px 0 14px; }
+  .or { display: flex; align-items: center; gap: 12px; color: var(--text-3); font-size: 14px; margin: 22px 0 14px; }
   .or::before, .or::after { content: ''; height: 1px; flex: 1; background: var(--line); }
   .social { display: flex; flex-direction: column; gap: 10px; }
-  .foot { text-align: center; margin-top: 22px; color: var(--text-2); font-size: 14.5px; }
-  .demo { margin-top: 16px; padding: 12px 14px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); font-size: 13px; text-align: center; }
-  .terms { font-size: 12px; color: var(--text-3); text-align: center; margin-top: 14px; }
+  .foot { text-align: center; margin-top: 22px; color: var(--text-2); font-size: 15.5px; }
+  .demo { margin-top: 16px; padding: 12px 14px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); font-size: 14px; text-align: center; }
+  .terms { font-size: 13px; color: var(--text-3); text-align: center; margin-top: 14px; }
   .pw { position: relative; } .pw button { position: absolute; right: 8px; top: 7px; }
 `;
 
@@ -162,7 +162,7 @@ export class LoginPage extends AuthBase implements OnDestroy {
     .meter span { display: block; height: 100%; border-radius: 99px; transition: width .4s var(--ease), background .3s; background: var(--accent-2); }
     .meter span[data-s="3"] { background: var(--warn); } .meter span[data-s="4"] { background: var(--ok); }
     .consent { display: flex; flex-direction: column; gap: 12px; padding: 4px 2px; }
-    .chk { position: relative; display: flex; gap: 12px; align-items: flex-start; font-size: 13.5px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
+    .chk { position: relative; display: flex; gap: 12px; align-items: flex-start; font-size: 14.5px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
     .chk input { position: absolute; opacity: 0; width: 22px; height: 22px; margin: 0; }
     .box { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--surface-3); background: var(--surface); display: grid; place-items: center; color: transparent; transition: all .2s; }
     .chk input:checked + .box { background: var(--accent); border-color: var(--accent); color: #fff; }

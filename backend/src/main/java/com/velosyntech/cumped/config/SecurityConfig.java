@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/config", "/api/categories", "/api/listings", "/api/listings/*",
                         "/api/listings/*/price-analysis", "/api/listings/*/similar", "/api/users/*",
-                        "/api/users/*/listings", "/api/users/*/reviews", "/api/media/*", "/api/shipping/estimate",
+                        "/api/users/*/listings", "/api/users/*/reviews", "/api/users/*/stats", "/api/media/*", "/api/shipping/estimate",
                         "/api/billing/plans").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()

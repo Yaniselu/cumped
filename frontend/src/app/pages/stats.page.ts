@@ -46,16 +46,16 @@ import { BackButtonComponent } from '../shared/back-button.component';
     @media (min-width: 720px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
     .kpi { padding: 16px; display: flex; flex-direction: column; gap: 4px; }
     .kpi ion-icon { font-size: 22px; color: var(--accent); margin-bottom: 6px; }
-    .kpi strong { font-family: var(--font-display); font-size: 30px; letter-spacing: -0.03em; } .kpi span { font-size: 12.5px; color: var(--text-2); }
+    .kpi strong { font-family: var(--font-display); font-size: 30px; letter-spacing: -0.03em; } .kpi span { font-size: 13.5px; color: var(--text-2); }
     .bars { display: flex; align-items: flex-end; gap: 6px; height: 170px; }
     .col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
-    .col span { font-size: 10.5px; color: var(--text-3); }
+    .col span { font-size: 12px; color: var(--text-3); }
     .b { width: 100%; min-height: 4px; border-radius: 10px 10px 4px 4px; background: linear-gradient(180deg, var(--accent), #9f8bff);
       transform-origin: bottom; animation: grow .9s var(--spring) both; animation-delay: calc(var(--i) * 40ms); }
     @keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
     .lrow { display: block; padding: 14px 16px; margin-bottom: 10px; color: inherit; }
     .lt { display: flex; justify-content: space-between; align-items: center; gap: 10px; } .lt strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .nums { display: flex; gap: 16px; margin-top: 10px; color: var(--text-2); font-size: 13.5px; } .nums span { display: inline-flex; align-items: center; gap: 5px; }
+    .nums { display: flex; gap: 16px; margin-top: 10px; color: var(--text-2); font-size: 14.5px; } .nums span { display: inline-flex; align-items: center; gap: 5px; }
   `],
 })
 export class StatsPage implements ViewWillEnter {

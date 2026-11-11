@@ -94,6 +94,8 @@ public class ReviewController {
 
     private boolean isBuyer(Listing l, UUID userId) {
         if (userId.equals(l.getSoldToId())) return true;
+        if (jdbc.sql("SELECT count(*) FROM orders WHERE listing_id = ? AND buyer_id = ? AND status = 'COMPLETED'")
+                .params(l.getId(), userId).query(Integer.class).single() > 0) return true;
         return jdbc.sql("SELECT count(*) FROM offers WHERE listing_id = ? AND buyer_id = ? AND status = 'ACCEPTED'")
                 .params(l.getId(), userId).query(Integer.class).single() > 0;
     }

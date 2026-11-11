@@ -72,21 +72,21 @@ interface Bubble { from: 'me' | 'velo'; text: string; ticket?: Ticket | null; }
     .msg { display: flex; gap: 8px; align-items: flex-end; max-width: 88%; animation: msgIn .45s var(--spring) both; }
     @keyframes msgIn { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
     .msg.me { align-self: flex-end; }
-    .mini { width: 28px; height: 28px; border-radius: 50%; flex: 0 0 auto; display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 800; background: linear-gradient(135deg, #5b3df5, #ff5a4e); }
-    .bubble { padding: 12px 15px; border-radius: 22px 22px 22px 8px; background: var(--surface); box-shadow: var(--shadow-card); border: 1px solid var(--line); line-height: 1.5; font-size: 15px; white-space: pre-wrap; }
+    .mini { width: 28px; height: 28px; border-radius: 50%; flex: 0 0 auto; display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 800; background: linear-gradient(135deg, #5b3df5, #ff5a4e); }
+    .bubble { padding: 12px 15px; border-radius: 22px 22px 22px 8px; background: var(--surface); box-shadow: var(--shadow-card); border: 1px solid var(--line); line-height: 1.5; font-size: 16px; white-space: pre-wrap; }
     .me .bubble { border-radius: 22px 22px 8px 22px; background: var(--btn-dark); color: var(--btn-dark-text); border: 0; }
     .typing { display: flex; gap: 5px; padding: 16px; } .typing i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); animation: bounce 1.2s infinite; }
     .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
     @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-6px); opacity: 1; } }
     .ticket { margin-top: 12px; padding: 12px; border-radius: 16px; background: var(--surface-2); display: flex; flex-direction: column; gap: 6px; }
     .ticket strong { display: inline-flex; align-items: center; gap: 6px; }
-    .auto { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--ok); }
+    .auto { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--ok); }
     .sugg { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
     .trow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 8px; } .trow > ion-icon { font-size: 22px; color: var(--accent); }
     .trow div { flex: 1; display: flex; flex-direction: column; }
     ion-footer { background: transparent; }
     .composer { display: flex; align-items: flex-end; gap: 8px; margin: 0 auto calc(env(safe-area-inset-bottom) + 12px); width: min(640px, calc(100% - 24px)); padding: 7px 7px 7px 18px; border-radius: 28px; }
-    textarea { flex: 1; border: 0; outline: none; resize: none; background: transparent; font-family: inherit; font-size: 15.5px; color: var(--text); max-height: 120px; padding: 12px 0; }
+    textarea { flex: 1; border: 0; outline: none; resize: none; background: transparent; font-family: inherit; font-size: 16px; color: var(--text); max-height: 120px; padding: 12px 0; }
     .sendbtn { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--btn-dark); color: var(--btn-dark-text); display: grid; place-items: center; cursor: pointer; }
     .sendbtn:disabled { opacity: .35; }
   `],

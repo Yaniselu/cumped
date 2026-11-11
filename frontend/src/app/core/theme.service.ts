@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 
 export type ThemePref = 'system' | 'light' | 'dark';
 export type LitePref = 'auto' | 'on' | 'off';
+export type TextSize = 'normal' | 'lg' | 'xl';
 
 /** Telefoane modeste, „Economizor de date” sau „Reduce transparența”: pornim modul economic automat. */
 function lowEnd(): boolean {
@@ -16,12 +17,27 @@ export class Theme {
   readonly dark = signal(false);
   readonly litePref = signal<LitePref>((localStorage.getItem('cmp_lite') as LitePref) || 'auto');
   readonly lite = signal(false);
+  readonly textSize = signal<TextSize>((localStorage.getItem('cmp_text') as TextSize) || 'normal');
   private media = window.matchMedia('(prefers-color-scheme: dark)');
 
   init() {
     this.media.addEventListener('change', () => this.apply());
     this.apply();
     this.applyLite();
+    this.applyText();
+  }
+
+  /** Text mai mare pentru cine citește greu (scalează toată interfața, proporțional). */
+  setTextSize(t: TextSize) {
+    this.textSize.set(t);
+    localStorage.setItem('cmp_text', t);
+    this.applyText();
+  }
+
+  private applyText() {
+    const c = document.documentElement.classList;
+    c.toggle('ts-lg', this.textSize() === 'lg');
+    c.toggle('ts-xl', this.textSize() === 'xl');
   }
 
   setLite(p: LitePref) {

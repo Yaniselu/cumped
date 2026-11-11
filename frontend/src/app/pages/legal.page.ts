@@ -47,7 +47,7 @@ const DOCS = ['terms', 'privacy', 'rules', 'dsa', 'cookies', 'about', 'delete-ac
   styles: [`
     .doc h1 { font-size: 26px; line-height: 1.15; margin-bottom: 6px; overflow-wrap: anywhere; }
     .doc h2 { font-size: 17px; margin: 22px 0 8px; }
-    .doc p { line-height: 1.6; font-size: 14.5px; color: var(--text-2); margin-top: 8px; overflow-wrap: anywhere; }
+    .doc p { line-height: 1.6; font-size: 15.5px; color: var(--text-2); margin-top: 8px; overflow-wrap: anywhere; }
     .doc .draft { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; background: var(--warn-soft); color: var(--warn); font-weight: 600; margin: 12px 0 4px; }
     .doc .draft ion-icon { flex: 0 0 auto; font-size: 17px; margin-top: 1px; }
     .doc .btn { margin-top: 22px; }

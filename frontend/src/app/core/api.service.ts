@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
-  AdminTicket, AppNotification, Card, ConversationSummary, Detail, Me, Negotiation, Page, PriceAnalysis, PublicUser,
+  AdminTicket, AppNotification, Card, ConversationSummary, Detail, ListingDraft, Me, Negotiation, Order, OrderQuote, Page, SellerStats, ShipAddress, PriceAnalysis, PublicUser,
   Review, ServerConfig, ShippingEstimate, Stats, Thread, Ticket, VeloReply,
 } from './models';
 
@@ -84,6 +84,23 @@ export class Api {
   appeal(listingId: string, message: string) { return this.post<Ticket>('/appeals', { listingId, message }); }
   updateBusiness(body: { accountType: 'PRIVATE' | 'BUSINESS'; name?: string; regNo?: string; vat?: string; address?: string; email?: string; phone?: string }) { return this.patch<Me>('/me/business', body); }
   acceptTerms() { return this.post<Me>('/me/accept-terms'); }
+  // plata sigură
+  orderQuote(listingId: string, delivery: 'PICKUP' | 'COURIER', country?: string) { return this.get<OrderQuote>(`/listings/${listingId}/order-quote`, { delivery, country }); }
+  createOrder(listingId: string, body: { delivery: 'PICKUP' | 'COURIER'; address?: ShipAddress }) { return this.post<Order>(`/listings/${listingId}/orders`, body); }
+  orders() { return this.get<Order[]>('/me/orders'); }
+  order(id: string) { return this.get<Order>(`/orders/${id}`); }
+  shipOrder(id: string, carrier?: string, trackingCode?: string) { return this.post<Order>(`/orders/${id}/ship`, { carrier, trackingCode }); }
+  confirmOrder(id: string) { return this.post<Order>(`/orders/${id}/confirm`); }
+  disputeOrder(id: string, reason: string, details: string) { return this.post<Order>(`/orders/${id}/dispute`, { reason, details }); }
+  cancelOrder(id: string) { return this.post<Order>(`/orders/${id}/cancel`); }
+  disputedOrders() { return this.get<Order[]>('/admin/orders/disputed'); }
+  resolveOrder(id: string, outcome: 'REFUND' | 'RELEASE') { return this.post(`/admin/orders/${id}/resolve`, { outcome }); }
+  // alertă preț, statistici vânzător, AI
+  setPriceAlert(listingId: string, targetPriceCents: number) { return this.put<{ targetPriceCents: number }>(`/listings/${listingId}/price-alert`, { targetPriceCents }); }
+  clearPriceAlert(listingId: string) { return this.del(`/listings/${listingId}/price-alert`); }
+  sellerStats(userId: string) { return this.get<SellerStats>(`/users/${userId}/stats`); }
+  listingDraft(imageIds: string[], lang: string, currency: string) { return this.post<ListingDraft>('/ai/listing-draft', { imageIds, lang, currency }); }
+  translate(messageId: string, lang: string) { return this.post<{ text: string }>(`/messages/${messageId}/translate`, { lang }); }
   review(body: { listingId: string; revieweeId?: string; rating: number; comment?: string }) { return this.post('/reviews', body); }
 
   notifications() { return this.get<AppNotification[]>('/me/notifications'); }

@@ -16,8 +16,8 @@
   --surface-2: #f4f4f6;
   --surface-3: #e9e9ed;
   --text: #111113;
-  --text-2: #5f5f68;
-  --text-3: #9a9aa3;
+  --text-2: #45454d;
+  --text-3: #6b6b75;
   --line: rgba(17, 17, 19, 0.07);
   --accent: #5b3df5;
   --accent-soft: rgba(91, 61, 245, 0.1);
@@ -37,16 +37,16 @@
   --shadow-card: 0 1px 2px rgba(17, 17, 19, 0.04), 0 10px 30px -12px rgba(17, 17, 19, 0.12);
   --shadow-pop: 0 24px 60px -20px rgba(17, 17, 19, 0.35);
   --image-bg: linear-gradient(160deg, #f7f7f9 0%, #e4e4ea 100%);
-  --aur-1: rgba(123, 92, 255, 0.30);
-  --aur-2: rgba(255, 110, 96, 0.24);
-  --aur-3: rgba(90, 200, 255, 0.22);
-  --aur-4: rgba(255, 201, 60, 0.18);
-  --lg-fill: linear-gradient(140deg, rgba(255, 255, 255, 0.46) 0%, rgba(255, 255, 255, 0.16) 55%, rgba(255, 255, 255, 0.30) 100%);
+  --aur-1: rgba(123, 92, 255, 0.14);
+  --aur-2: rgba(255, 110, 96, 0.10);
+  --aur-3: rgba(90, 200, 255, 0.10);
+  --aur-4: rgba(255, 201, 60, 0.08);
+  --lg-fill: linear-gradient(140deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.66) 55%, rgba(255, 255, 255, 0.76) 100%);
   --lg-border: rgba(255, 255, 255, 0.7);
   --lg-edge: inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.95), inset -1px -1px 0 rgba(255, 255, 255, 0.45), inset 0 0 24px rgba(255, 255, 255, 0.32), inset 0 -10px 22px -14px rgba(91, 61, 245, 0.18);
   --lg-drop: 0 14px 34px -14px rgba(18, 16, 48, 0.32), 0 2px 6px -2px rgba(18, 16, 48, 0.12);
   --lg-blur: blur(14px) saturate(210%) brightness(1.05);
-  --card-fill: rgba(255, 255, 255, 0.74);
+  --card-fill: rgba(255, 255, 255, 0.95);
   --r-xl: 30px;
   --r-lg: 24px;
   --r-md: 18px;
@@ -72,8 +72,8 @@
   --surface-2: #1e1e22;
   --surface-3: #2a2a30;
   --text: #f4f4f6;
-  --text-2: #a7a7b0;
-  --text-3: #6e6e78;
+  --text-2: #c9c9d2;
+  --text-3: #a0a0ab;
   --line: rgba(255, 255, 255, 0.08);
   --accent: #7b5cff;
   --accent-soft: rgba(123, 92, 255, 0.18);
@@ -86,21 +86,22 @@
   --glass-shadow: 0 10px 34px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 30px -14px rgba(0, 0, 0, 0.8);
   --image-bg: linear-gradient(160deg, #222228 0%, #141417 100%);
-  --aur-1: rgba(123, 92, 255, 0.34);
-  --aur-2: rgba(255, 90, 78, 0.22);
-  --aur-3: rgba(60, 170, 255, 0.18);
-  --aur-4: rgba(255, 201, 60, 0.08);
-  --lg-fill: linear-gradient(140deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 55%, rgba(255, 255, 255, 0.10) 100%);
+  --aur-1: rgba(123, 92, 255, 0.18);
+  --aur-2: rgba(255, 90, 78, 0.10);
+  --aur-3: rgba(60, 170, 255, 0.08);
+  --aur-4: rgba(255, 201, 60, 0.04);
+  --lg-fill: linear-gradient(140deg, rgba(44, 44, 50, 0.86) 0%, rgba(34, 34, 40, 0.80) 55%, rgba(40, 40, 46, 0.84) 100%);
   --lg-border: rgba(255, 255, 255, 0.16);
   --lg-edge: inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.28), inset -1px -1px 0 rgba(255, 255, 255, 0.08), inset 0 0 22px rgba(255, 255, 255, 0.06), inset 0 -10px 22px -14px rgba(123, 92, 255, 0.35);
   --lg-drop: 0 16px 38px -14px rgba(0, 0, 0, 0.75);
   --lg-blur: blur(16px) saturate(180%) brightness(1.1);
-  --card-fill: rgba(28, 28, 32, 0.72);
+  --card-fill: rgba(30, 30, 35, 0.96);
   --ion-color-primary: #7b5cff;
   --ion-color-primary-rgb: 123, 92, 255;
 }
 
-html, body { font-family: var(--font-body); color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; }
+html, body { font-family: var(--font-body); color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.45; }
+p { line-height: 1.55; }
 ion-app { background: var(--bg); }
 ion-content { --background: transparent; }
 ion-content::part(background) {
@@ -134,7 +135,7 @@ button { font-family: inherit; }
 
 .section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 28px 2px 14px; }
 .section-head h2 { font-size: 21px; }
-.section-head a, .section-head button { font-size: 14px; color: var(--text-2); background: none; border: 0; cursor: pointer; }
+.section-head a, .section-head button { font-size: 15px; color: var(--text-2); background: none; border: 0; cursor: pointer; }
 
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 @media (min-width: 720px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; } }
@@ -171,7 +172,7 @@ html.lg-refract .glass, html.lg-refract .icon-btn {
 }
 .muted { color: var(--text-2); }
 .faint { color: var(--text-3); }
-.small { font-size: 13px; }
+.small { font-size: 14px; }
 .row { display: flex; align-items: center; gap: 10px; }
 .row.between { justify-content: space-between; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
@@ -187,7 +188,7 @@ html.lg-refract .glass, html.lg-refract .icon-btn {
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.45; pointer-events: none; }
 .btn.block { width: 100%; }
-.btn.sm { height: 42px; padding: 0 18px; font-size: 14px; }
+.btn.sm { height: 42px; padding: 0 18px; font-size: 15px; }
 .btn.light { background: var(--surface); color: var(--text); box-shadow: var(--shadow-card); border: 1px solid var(--line); }
 .btn.accent { background: linear-gradient(180deg, #7457ff, #5b3df5); color: #fff; box-shadow: 0 12px 26px -10px rgba(91, 61, 245, 0.6), inset 0 1px 0 rgba(255,255,255,.25); }
 .btn.danger { background: var(--accent-2-soft); color: var(--accent-2); box-shadow: none; }
@@ -205,24 +206,24 @@ html.lg-refract .glass, html.lg-refract .icon-btn {
 .icon-btn .dot { position: absolute; top: 9px; right: 10px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent-2); border: 2px solid var(--surface); }
 
 .chip {
-  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 550;
+  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 550;
   background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-card); cursor: pointer; white-space: nowrap;
   transition: all 0.25s var(--ease);
 }
 .chip.active { background: var(--text); color: var(--surface); border-color: transparent; }
 .chip ion-icon { font-size: 16px; }
 
-.badge { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 11px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.badge { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 11px; border-radius: 999px; font-size: 13px; font-weight: 600; }
 .badge.glass-b { color: var(--text); }
 .badge.ok { background: var(--ok-soft); color: var(--ok); }
 .badge.warn { background: var(--warn-soft); color: var(--warn); }
 .badge.bad { background: var(--accent-2-soft); color: var(--accent-2); }
 .badge.accent { background: var(--accent-soft); color: var(--accent); }
-.badge ion-icon { font-size: 14px; }
+.badge ion-icon { font-size: 15px; }
 
 /* ---------- forms ---------- */
 .field { display: flex; flex-direction: column; gap: 7px; }
-.field label { font-size: 13px; font-weight: 600; color: var(--text-2); padding-left: 4px; }
+.field label { font-size: 14px; font-weight: 600; color: var(--text-2); padding-left: 4px; }
 .input {
   width: 100%; height: 54px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); color: var(--text);
   padding: 0 18px; font-size: 16px; font-family: inherit; outline: none; box-shadow: var(--shadow-card);
@@ -231,14 +232,14 @@ html.lg-refract .glass, html.lg-refract .icon-btn {
 textarea.input { height: auto; min-height: 130px; padding: 16px 18px; resize: vertical; line-height: 1.5; }
 select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--text-2) 50%), linear-gradient(135deg, var(--text-2) 50%, transparent 50%); background-position: calc(100% - 22px) 24px, calc(100% - 17px) 24px; background-size: 5px 5px; background-repeat: no-repeat; }
 .input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
-.hint { font-size: 12.5px; color: var(--text-3); padding-left: 4px; }
-.error-text { font-size: 13.5px; color: var(--accent-2); padding: 10px 14px; border-radius: 14px; background: var(--accent-2-soft); }
+.hint { font-size: 13.5px; color: var(--text-3); padding-left: 4px; }
+.error-text { font-size: 14.5px; color: var(--accent-2); padding: 10px 14px; border-radius: 14px; background: var(--accent-2-soft); }
 
 .searchbar {
   display: flex; align-items: center; gap: 10px; height: 54px; border-radius: 999px; padding: 0 8px 0 18px;
   background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card);
 }
-.searchbar input { flex: 1; border: 0; outline: none; background: transparent; font-size: 15.5px; color: var(--text); font-family: inherit; min-width: 0; }
+.searchbar input { flex: 1; border: 0; outline: none; background: transparent; font-size: 16px; color: var(--text); font-family: inherit; min-width: 0; }
 .searchbar > ion-icon { color: var(--text-2); font-size: 20px; }
 .searchbar .icon-btn { width: 40px; height: 40px; background: var(--surface-2); box-shadow: none; border: 0; }
 
@@ -316,7 +317,7 @@ ion-infinite-scroll-content { min-height: 60px; }
 :root.dark .btn:not(.light):not(.ghost):not(.danger)::after { background: linear-gradient(90deg, transparent, rgba(91,61,245,.18), transparent); }
 
 /* apariție la scroll */
-.rv { opacity: 0; transform: translateY(26px) scale(.975); filter: blur(6px); transition: opacity .8s var(--ease), transform .9s var(--spring), filter .8s var(--ease); transition-delay: calc(var(--i, 0) * 60ms); }
+.rv { opacity: 0; transform: translateY(14px); transition: opacity .5s var(--ease), transform .6s var(--ease); transition-delay: calc(var(--i, 0) * 40ms); }
 .rv.in { opacity: 1; transform: none; filter: none; }
 
 /* înclinare 3D cu reflexie */
@@ -396,7 +397,7 @@ html.lite {
   .page { padding-left: 12px; padding-right: 12px; }
   .grid { gap: 10px; }
   h1 { font-size: 28px; }
-  .btn { height: 52px; padding: 0 18px; font-size: 15px; }
+  .btn { height: 52px; padding: 0 18px; font-size: 16px; }
   .hscroll { padding-left: 12px; padding-right: 12px; margin: 0 -12px; }
 }
 /* tablete și telefoane în landscape: conținutul nu se întinde exagerat */
@@ -404,3 +405,20 @@ html.lite {
 @media (orientation: landscape) and (max-height: 500px) {
   .page { padding-top: calc(env(safe-area-inset-top) + 6px); }
 }
+
+/* ==========================================================================
+   Lizibilitate: text clar peste orice fundal, fără italic, ținte mari de atingere.
+   Mărimea textului se poate mări din Setări (html.ts-lg / html.ts-xl).
+   ========================================================================== */
+.badge.glass-b { background: rgba(255, 255, 255, .9); color: #111113; }
+:root.dark .badge.glass-b { background: rgba(24, 24, 28, .88); color: #f4f4f6; }
+em, i:not([class]), .msg { font-style: normal !important; }
+.hint { color: var(--text-2); }
+.btn { font-size: 16.5px; }
+.btn.sm { font-size: 15px; }
+.chip { font-size: 14px; height: 38px; }
+.field label { font-size: 14px; color: var(--text); }
+.input { font-size: 17px; }
+/* doar paginile și ferestrele se măresc; bara de jos rămâne la mărimea ei ca să încapă pe orice telefon */
+html.ts-lg .ion-page { zoom: 1.12; }
+html.ts-xl .ion-page { zoom: 1.25; }

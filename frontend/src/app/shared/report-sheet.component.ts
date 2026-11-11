@@ -64,11 +64,11 @@ const REASONS: Record<ReportTarget, string[]> = {
     .reasons { display: flex; flex-direction: column; gap: 8px; }
     .opt { display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 14px; border-radius: 16px; border: 1.5px solid var(--line);
       background: var(--surface); color: var(--text); cursor: pointer; transition: border-color .2s, background .2s; }
-    .opt div { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .opt b { font-size: 14.5px; } .opt span { font-size: 12.5px; color: var(--text-2); }
+    .opt div { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .opt b { font-size: 15.5px; } .opt span { font-size: 13.5px; color: var(--text-2); }
     .opt.on { border-color: var(--accent); background: var(--accent-soft); }
     .rd { flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--surface-3); transition: all .2s; }
     .opt.on .rd { border: 6px solid var(--accent); }
-    .chk { display: flex; align-items: flex-start; gap: 10px; text-align: left; border: 0; background: none; color: var(--text); font-size: 13.5px; line-height: 1.45; padding: 4px 2px; cursor: pointer; }
+    .chk { display: flex; align-items: flex-start; gap: 10px; text-align: left; border: 0; background: none; color: var(--text); font-size: 14.5px; line-height: 1.45; padding: 4px 2px; cursor: pointer; }
     .box { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--surface-3); display: grid; place-items: center; color: transparent; transition: all .2s; }
     .box.on { background: var(--accent); border-color: var(--accent); color: #fff; }
     .ok { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding-top: 20px; }

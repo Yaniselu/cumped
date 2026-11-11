@@ -17,7 +17,7 @@ import { IonIcon } from '@ionic/angular';
     .orb { width: 86px; height: 86px; border-radius: 30px; display: grid; place-items: center; margin-bottom: 8px; background: var(--surface);
       box-shadow: var(--shadow-card); border: 1px solid var(--line); animation: floaty 4s ease-in-out infinite; }
     .orb ion-icon { font-size: 36px; color: var(--accent); }
-    p { max-width: 320px; font-size: 14.5px; line-height: 1.5; }
+    p { max-width: 320px; font-size: 15.5px; line-height: 1.5; }
   `],
 })
 export class EmptyComponent {

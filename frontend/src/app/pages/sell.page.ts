@@ -78,6 +78,16 @@ interface Photo { id?: string; url: string; uploading: boolean; }
                   }
                 </div>
                 <p class="hint">{{ 'sell.photosHint' | t }}</p>
+                @if (aiOn() && photos().length && !id()) {
+                  <button class="aibtn card" [disabled]="drafting() || !photos().every(p => !!p.id)" (click)="aiDraft()">
+                    <span class="aic">@if (drafting()) { <span class="spin sm2"></span> } @else { <ion-icon name="sparkles"></ion-icon> }</span>
+                    <div><b>{{ (drafting() ? 'ai.drafting' : 'ai.draftCta') | t }}</b><span>{{ 'ai.draftSub' | t }}</span></div>
+                  </button>
+                }
+                @if (aiTips().length) {
+                  <div class="aitips card pad fade"><b><ion-icon name="sparkles"></ion-icon>{{ 'ai.tipsTitle' | t }}</b>
+                    <ul>@for (t of aiTips(); track t) { <li>{{ t }}</li> }</ul></div>
+                }
                 <ul class="tips">
                   <li><ion-icon name="sunny-outline"></ion-icon>{{ 'sell.tip1' | t }}</li>
                   <li><ion-icon name="images-outline"></ion-icon>{{ 'sell.tip2' | t }}</li>
@@ -225,7 +235,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
     .add { transition: transform .4s var(--spring), border-color .3s; } .add:hover { transform: translateY(-3px); border-color: var(--accent); }
     .add ion-icon { animation: pulseSoft 2.4s ease-in-out infinite; }
     .steps { position: relative; display: flex; justify-content: space-between; margin: 6px 0 8px; }
-    .st { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 0; background: none; color: var(--text-3); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .st { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 0; background: none; color: var(--text-3); font-size: 13px; font-weight: 600; cursor: pointer; }
     .n { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); transition: all .4s var(--spring); }
     .st.on { color: var(--text); } .st.on .n { background: var(--btn-dark); color: var(--btn-dark-text); transform: scale(1.12); }
     .st.past .n { background: var(--accent); color: #fff; border-color: transparent; }
@@ -237,41 +247,41 @@ interface Photo { id?: string; url: string; uploading: boolean; }
     .ph img { width: 100%; height: 100%; object-fit: cover; }
     .up { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.25); }
     .cover { position: absolute; bottom: 8px; left: 8px; } .rm { position: absolute; top: 6px; right: 6px; }
-    .add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 2px dashed var(--surface-3); background: var(--surface); cursor: pointer; color: var(--text-2); font-size: 12.5px; font-weight: 600; text-align: center; padding: 6px; }
+    .add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 2px dashed var(--surface-3); background: var(--surface); cursor: pointer; color: var(--text-2); font-size: 13.5px; font-weight: 600; text-align: center; padding: 6px; }
     .add ion-icon { font-size: 28px; color: var(--accent); }
     .hint { margin-top: 10px; display: block; }
     .catgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
-    .cat { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 4px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text-2); cursor: pointer; font-size: 11.5px; font-weight: 600; transition: all .25s var(--ease); }
+    .cat { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 4px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text-2); cursor: pointer; font-size: 13px; font-weight: 600; transition: all .25s var(--ease); }
     .cat ion-icon { font-size: 22px; } .cat.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); transform: translateY(-2px); }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .attr { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; } .attr .input { height: 48px; }
-    .pricebox label { font-size: 13px; font-weight: 600; color: var(--text-2); }
-    .cursel { height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); padding: 0 10px; font-weight: 650; font-size: 14px; }
+    .pricebox label { font-size: 14px; font-weight: 600; color: var(--text-2); }
+    .cursel { height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); padding: 0 10px; font-weight: 650; font-size: 15px; }
     .qrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 2px 14px; flex-wrap: wrap; }
-    .score { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 650; color: var(--text-2); margin-left: auto; }
+    .score { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 650; color: var(--text-2); margin-left: auto; }
     .ring { --p: 0; width: 20px; height: 20px; border-radius: 50%; background: conic-gradient(var(--c, var(--warn)) calc(var(--p) * 1%), var(--surface-3) 0); position: relative; transition: all .4s; }
     .ring::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: var(--bg); }
     .score[data-s="2"] .ring { --c: var(--accent); } .score[data-s="3"] .ring { --c: var(--ok); }
     .tips { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 8px; }
-    .tips li { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--text-2); }
+    .tips li { display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--text-2); }
     .tips ion-icon { color: var(--accent); font-size: 18px; flex: 0 0 auto; }
     .conds { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 8px; }
     .cond { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 16px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; transition: all .2s var(--ease); }
-    .cond b { font-size: 14px; } .cond span { font-size: 11.5px; color: var(--text-2); line-height: 1.35; }
+    .cond b { font-size: 15px; } .cond span { font-size: 13px; color: var(--text-2); line-height: 1.35; }
     .cond.on { border-color: var(--accent); background: var(--accent-soft); }
     .grp h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 16px; } .grp h3 ion-icon { color: var(--accent); }
     .fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; }
     .fgrid .wide { grid-column: 1 / -1; }
-    .fgrid .input { height: 48px; font-size: 15px; padding: 0 14px; border-radius: 14px; }
+    .fgrid .input { height: 48px; font-size: 16px; padding: 0 14px; border-radius: 14px; }
     @media (max-width: 340px) { .fgrid { grid-template-columns: 1fr; } }
     .req { color: var(--accent-2); font-style: normal; margin-left: 2px; }
     .hint.bad { color: var(--accent-2); }
-    .tri { padding: 4px 2px; } .tri > span { font-size: 14px; font-weight: 550; }
+    .tri { padding: 4px 2px; } .tri > span { font-size: 15px; font-weight: 550; }
     .yn { display: flex; padding: 3px; border-radius: 999px; background: var(--surface-2); flex: 0 0 auto; }
-    .yn button { height: 32px; min-width: 52px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: var(--text-2); font-weight: 650; font-size: 13px; cursor: pointer; transition: all .2s; }
+    .yn button { height: 32px; min-width: 52px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: var(--text-2); font-weight: 650; font-size: 14px; cursor: pointer; transition: all .2s; }
     .yn button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-card); }
     .toggles .toggle-row > span { align-items: flex-start; } .toggles .toggle-row > span > span { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
-    .toggles small { font-size: 12px; color: var(--text-2); font-weight: 450; line-height: 1.35; }
+    .toggles small { font-size: 13px; color: var(--text-2); font-weight: 450; line-height: 1.35; }
     .toggles ion-icon { margin-top: 2px; flex: 0 0 auto; }
     .minbox { padding: 12px 14px; margin: 0 0 6px; border-radius: 16px; background: var(--surface-2); display: flex; flex-direction: column; gap: 6px; }
     .switch.sm { width: 42px; height: 26px; } .switch.sm::after { width: 20px; height: 20px; } .switch.sm.on::after { transform: translateX(16px); }
@@ -285,10 +295,17 @@ interface Photo { id?: string; url: string; uploading: boolean; }
     .rv-row div { display: flex; flex-direction: column; gap: 3px; min-width: 0; } .rv-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .rv-row .price { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
     .improve { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 6px; }
-    .improve li { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--accent); font-weight: 550; }
+    .improve li { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--accent); font-weight: 550; }
     .legal { margin-top: 12px; line-height: 1.45; }
+    .aibtn { display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 14px; padding: 16px; text-align: left; cursor: pointer; color: var(--text);
+      background: linear-gradient(135deg, var(--accent-soft), var(--surface)); border: 1.5px solid var(--accent-soft); }
+    .aibtn div { display: flex; flex-direction: column; gap: 3px; } .aibtn b { font-size: 16.5px; } .aibtn span { font-size: 14px; color: var(--text-2); }
+    .aic { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 22px; }
+    .spin.sm2 { width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; }
+    .aitips { margin-top: 12px; } .aitips b { display: flex; align-items: center; gap: 6px; color: var(--accent); }
+    .aitips ul { margin: 8px 0 0; padding-left: 20px; font-size: 14.5px; line-height: 1.5; color: var(--text); }
     .aibox { transition: background .4s; } .aibox[data-v="BELOW"] { background: var(--ok-soft); } .aibox[data-v="FAIR"] { background: var(--accent-soft); } .aibox[data-v="ABOVE"] { background: var(--warn-soft); }
-    .ai { font-size: 11px; font-weight: 800; padding: 3px 7px; border-radius: 8px; background: var(--text); color: var(--surface); }
+    .ai { font-size: 12.5px; font-weight: 800; padding: 3px 7px; border-radius: 8px; background: var(--text); color: var(--surface); }
     .v { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin: 8px 0 2px; }
     .meter { position: relative; height: 8px; border-radius: 99px; margin-top: 14px; background: linear-gradient(90deg, var(--ok), var(--accent) 50%, var(--warn)); }
     .mk { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 3px solid var(--text); transform: translate(-50%, -50%); transition: left .6s var(--spring); }
@@ -437,6 +454,8 @@ export class SellPage implements OnInit {
 
   priceChips(): PriceChip[] {
     const m = this.median();
+    const r = this.aiRange();
+    if (!m && r) return [{ label: this.i18n.t('ai.estimate') + ' · ' + this.i18n.price(r.low * 100, this.f.currency) + '–' + this.i18n.price(r.high * 100, this.f.currency), value: Math.round((r.low + r.high) / 2) }];
     if (!m) return [];
     const fmt = (v: number) => this.i18n.price(Math.round(v) * 100, this.f.currency);
     return [
@@ -531,6 +550,31 @@ export class SellPage implements OnInit {
   }
 
   view() { this.nav.navigateRoot(['/listing', this.published()]); }
+
+  drafting = signal(false);
+  aiTips = signal<string[]>([]);
+  aiRange = signal<{ low: number; high: number } | null>(null);
+  aiOn = () => this.purchases.config()?.veloAi === 'AI';
+
+  /** Velo completează anunțul din poze; utilizatorul verifică și corectează în pașii următori. */
+  async aiDraft() {
+    this.drafting.set(true);
+    this.error.set('');
+    try {
+      const d = await this.api.listingDraft(this.photos().map((p) => p.id!).slice(0, 4), this.i18n.lang(), this.f.currency);
+      this.f.title = d.title || this.f.title;
+      this.setCategory(d.category);
+      this.f.condition = d.condition;
+      this.f.description = d.description || this.f.description;
+      for (const a of d.attributes) this.attrs[a.key] = a.value;
+      this.aiTips.set(d.tips ?? []);
+      this.aiRange.set(d.priceHigh > 0 ? { low: d.priceLow, high: d.priceHigh } : null);
+      if (this.f.price == null && d.priceHigh > 0) this.f.price = Math.round((d.priceLow + d.priceHigh) / 2);
+      this.ui.toast(this.i18n.t('ai.draftDone'));
+      this.step.set(1);
+    } catch (e) { this.error.set(this.ui.errorText(e)); }
+    this.drafting.set(false);
+  }
 
   buying = signal(false);
   async buyExtra() {

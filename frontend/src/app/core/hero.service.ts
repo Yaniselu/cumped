@@ -10,7 +10,8 @@ export class HeroTransition {
   private pending: Pending | null = null;
 
   capture(id: string, img: HTMLImageElement | null) {
-    if (!img || !img.complete || document.documentElement.classList.contains('lite')
+    const html = document.documentElement.classList;
+    if (!img || !img.complete || html.contains('lite') || html.contains('ts-lg') || html.contains('ts-xl')
         || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     this.pending = { id, src: img.currentSrc || img.src, rect: img.getBoundingClientRect(), at: Date.now() };
   }

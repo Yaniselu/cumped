@@ -16,6 +16,7 @@ import { groupsFor } from '../core/listing-schema';
 import { PriceChip, PriceInputComponent } from '../shared/price-input.component';
 import { ReportSheetComponent } from '../shared/report-sheet.component';
 import { Purchases } from '../core/purchases.service';
+import { CheckoutSheetComponent } from '../shared/checkout-sheet.component';
 import { AvatarComponent } from '../shared/avatar.component';
 import { BackButtonComponent } from '../shared/back-button.component';
 import { ListingCardComponent } from '../shared/listing-card.component';
@@ -23,7 +24,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
 @Component({
   selector: 'page-listing',
   imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, IonModal, FormsModule, RouterLink, TPipe, AvatarComponent, BackButtonComponent, ListingCardComponent,
-    PriceInputComponent, ReportSheetComponent],
+    PriceInputComponent, ReportSheetComponent, CheckoutSheetComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page detail">
@@ -84,6 +85,13 @@ import { ListingCardComponent } from '../shared/listing-card.component';
                   @if (x.quantity > 1) { <span class="pill"><ion-icon name="layers-outline"></ion-icon>{{ 'listing.quantity' | t: { n: x.quantity } }}</span> }
                   <span class="pill"><ion-icon [name]="x.seller.accountType === 'BUSINESS' ? 'business-outline' : 'person-outline'"></ion-icon>{{ (x.seller.accountType === 'BUSINESS' ? 'seller.business' : 'seller.private') | t }}</span>
                 </div>
+                @if (!x.owner && x.status === 'ACTIVE') {
+                  <a class="protect" routerLink="/why" fragment="protection"><ion-icon name="shield-checkmark"></ion-icon>
+                    <span><b>{{ 'buy.protectTitle' | t }}</b> {{ 'buy.protectShort' | t }}</span><ion-icon name="chevron-forward" class="faint"></ion-icon></a>
+                  <button class="alertbtn" (click)="openAlert()" [class.on]="!!x.priceAlertCents">
+                    <ion-icon [name]="x.priceAlertCents ? 'notifications' : 'notifications-outline'"></ion-icon>
+                    {{ x.priceAlertCents ? ('alert.active' | t: { price: i18n.price(x.priceAlertCents, x.currency) }) : ('alert.cta' | t) }}</button>
+                }
                 @if (analysis(); as a) {
                   <div class="verdict pop-in" [attr.data-v]="a.verdict">
                     <span class="vi"><ion-icon name="sparkles"></ion-icon></span>
@@ -189,6 +197,13 @@ import { ListingCardComponent } from '../shared/listing-card.component';
                   </div>
                   <div class="trust" [style.--p]="x.seller.trustScore"><span>{{ x.seller.trustScore }}</span></div>
                 </a>
+                @if (x.sellerStats; as st) {
+                  <div class="sstats">
+                    @if (st.responseMinutes !== null) { <span><ion-icon name="time-outline"></ion-icon>{{ 'stats2.replies' | t: { time: replyTime(st.responseMinutes) } }}</span> }
+                    <span><ion-icon name="pulse-outline"></ion-icon>{{ 'stats2.active.' + st.lastActive | t }}</span>
+                    @if (st.completedSales) { <span><ion-icon name="bag-check-outline"></ion-icon>{{ 'stats2.sales' | t: { n: st.completedSales } }}</span> }
+                  </div>
+                }
                 <div class="sbadges">
                   @if (x.seller.idVerified) { <span class="badge ok"><ion-icon name="shield-checkmark"></ion-icon>{{ 'profile.verified' | t }}</span> }
                   @else { <span class="badge warn"><ion-icon name="alert-circle"></ion-icon>{{ 'profile.notVerified' | t }}</span> }
@@ -250,8 +265,9 @@ import { ListingCardComponent } from '../shared/listing-card.component';
           <div class="actionbar glass blockedbar"><ion-icon name="ban-outline"></ion-icon><span>{{ 'block.listingBlocked' | t }}</span></div>
         } @else if (!x.owner && x.status === 'ACTIVE') {
           <div class="actionbar glass">
-            <button class="btn grow" (click)="message()"><ion-icon name="chatbubble-ellipses-outline"></ion-icon>{{ (x.conversationId ? 'listing.openChat' : 'listing.message') | t }}</button>
+            <button class="icon-btn msg" (click)="message()" [attr.aria-label]="(x.conversationId ? 'listing.openChat' : 'listing.message') | t"><ion-icon name="chatbubble-ellipses-outline"></ion-icon></button>
             @if ((x.acceptsOffers && x.negotiable) || x.acceptsSwap) { <button class="btn light" (click)="openOffer()"><ion-icon name="pricetag-outline"></ion-icon><span>{{ 'listing.offerShort' | t }}</span></button> }
+            <button class="btn accent grow" (click)="buy0()"><ion-icon name="shield-checkmark"></ion-icon>{{ 'buy.cta' | t }}</button>
           </div>
         }
       }
@@ -292,6 +308,24 @@ import { ListingCardComponent } from '../shared/listing-card.component';
 
       @if (d(); as x) {
         <cmp-report-sheet [(open)]="reportOpen" target="LISTING" [targetId]="x.id" />
+        <cmp-checkout-sheet [(open)]="buyOpen" [listing]="x" />
+        <ion-modal [isOpen]="alertOpen()" (didDismiss)="alertOpen.set(false)" [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7]">
+          <ng-template>
+            <ion-content>
+              <div class="sheet">
+                <h2>{{ 'alert.title' | t }}</h2>
+                <p class="muted">{{ 'alert.sub' | t: { price: i18n.price(x.priceCents, x.currency) } }}</p>
+                <div class="card pad">
+                  <cmp-price-input [(value)]="alertValue" scale="linear" [min]="Math.ceil(x.priceCents / 100 * 0.3)" [max]="Math.max(1, x.priceCents / 100 - 1)"
+                    [currency]="x.currency" [reference]="x.priceCents / 100" [deltaLabel]="'neg.vsList' | t" [big]="true" [label]="'alert.title' | t"
+                    [chips]="alertChips()" />
+                </div>
+                <button class="btn block" [disabled]="!alertValue() || alertValue()! >= x.priceCents / 100" (click)="saveAlert()"><ion-icon name="notifications"></ion-icon>{{ 'alert.save' | t }}</button>
+                @if (x.priceAlertCents) { <button class="btn ghost block" (click)="clearAlert()">{{ 'alert.remove' | t }}</button> }
+              </div>
+            </ion-content>
+          </ng-template>
+        </ion-modal>
       }
     </ion-content>
 
@@ -316,38 +350,38 @@ import { ListingCardComponent } from '../shared/listing-card.component';
     .track::-webkit-scrollbar { display: none; }
     .slide { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 4 / 3.2; background: var(--image-bg); display: grid; place-items: center; border: 0; padding: 0; cursor: zoom-in; }
     .slide img { width: 100%; height: 100%; object-fit: cover; animation: fadeIn .6s var(--ease); display: block; }
-    .gcount { position: absolute; bottom: 16px; right: 18px; height: 24px; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+    .gcount { position: absolute; bottom: 16px; right: 18px; height: 24px; font-size: 13px; font-variant-numeric: tabular-nums; }
     .thumbs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
     .thumbs::-webkit-scrollbar { display: none; }
     .thumbs button { flex: 0 0 auto; width: 64px; height: 52px; border-radius: 12px; overflow: hidden; border: 2px solid transparent; padding: 0; background: var(--image-bg); cursor: pointer; opacity: .7; transition: all .25s var(--ease); }
     .thumbs button.on { border-color: var(--accent); opacity: 1; }
     .thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
-    .pill { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: var(--surface-2); color: var(--text-2); }
+    .pill { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 999px; font-size: 13.5px; font-weight: 600; background: var(--surface-2); color: var(--text-2); }
     .pill.on { background: var(--ok-soft); color: var(--ok); }
     .facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(140px, 46%), 1fr)); gap: 10px; }
     .fact { padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .fact ion-icon { font-size: 20px; color: var(--accent); margin-bottom: 6px; }
-    .fv { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); }
-    .fl { font-size: 12px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fv { font-weight: 700; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); }
+    .fl { font-size: 13px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .specs { padding: 6px 16px 10px; }
-    .srow { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .srow { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
     .srow:last-child { border-bottom: 0; }
     .srow span { color: var(--text-2); flex: 0 0 auto; max-width: 48%; }
     .srow b { font-weight: 600; text-align: right; overflow-wrap: anywhere; min-width: 0; }
     .srow.wide { flex-direction: column; gap: 4px; } .srow.wide b { text-align: left; font-weight: 500; line-height: 1.45; }
-    .sgh { display: flex; align-items: center; gap: 8px; margin: 14px 0 2px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); }
-    .sgh ion-icon { font-size: 15px; }
+    .sgh { display: flex; align-items: center; gap: 8px; margin: 14px 0 2px; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); }
+    .sgh ion-icon { font-size: 16px; }
     .biz { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin: 0 0 12px; padding: 12px 14px; border-radius: 16px; background: var(--surface-2); }
     .biz div { min-width: 0; } .biz .w { grid-column: 1 / -1; }
-    .biz dt { font-size: 11.5px; color: var(--text-3); } .biz dd { margin: 2px 0 0; font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+    .biz dt { font-size: 13px; color: var(--text-3); } .biz dd { margin: 2px 0 0; font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
     .notice { display: flex; gap: 8px; align-items: flex-start; color: var(--text-2); line-height: 1.45; margin: 0 0 12px; }
     .notice ion-icon { flex: 0 0 auto; font-size: 16px; margin-top: 1px; color: var(--accent); }
     .modbox { display: flex; gap: 10px; margin: 12px 0; padding: 12px 14px; border-radius: 16px; background: var(--accent-2-soft); }
     .modbox > ion-icon { color: var(--accent-2); font-size: 22px; flex: 0 0 auto; }
-    .modbox p { font-size: 13px; margin-top: 4px; color: var(--text-2); }
+    .modbox p { font-size: 14px; margin-top: 4px; color: var(--text-2); }
     .minp { display: flex; align-items: center; gap: 6px; color: var(--text-2); margin-top: 10px; }
-    .blockedbar { align-items: center; gap: 10px; padding: 14px 18px; color: var(--text-2); font-size: 13.5px; font-weight: 600; }
+    .blockedbar { align-items: center; gap: 10px; padding: 14px 18px; color: var(--text-2); font-size: 14.5px; font-weight: 600; }
     .blockedbar ion-icon { color: var(--accent-2); font-size: 20px; }
     .viewer { position: fixed; inset: 0; z-index: 9500; background: rgba(6, 6, 10, .96); display: flex; flex-direction: column; }
     .vtop { display: flex; align-items: center; justify-content: space-between; padding: calc(env(safe-area-inset-top) + 10px) 14px 10px 20px; color: #fff; font-weight: 600; }
@@ -372,7 +406,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
     .head h1 { font-size: 24px; line-height: 1.15; flex: 1; }
     .top { align-items: flex-start; gap: 14px; }
     .prices { text-align: right; } .price { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -0.03em; white-space: nowrap; }
-    .old { color: var(--text-3); text-decoration: line-through; font-size: 14px; }
+    .old { color: var(--text-3); text-decoration: line-through; font-size: 15px; }
     .loc { margin-top: 10px; gap: 6px; }
     .verdict { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border-radius: 18px; background: var(--surface-2); position: relative; overflow: hidden; }
     .verdict::before { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%); transform: translateX(-100%); animation: sweep 2.4s 0.4s var(--ease) 1; }
@@ -381,14 +415,14 @@ import { ListingCardComponent } from '../shared/listing-card.component';
     .verdict[data-v="FAIR"] { background: var(--accent-soft); } .verdict[data-v="FAIR"] .vi { background: var(--accent); }
     .verdict[data-v="ABOVE"] { background: var(--warn-soft); } .verdict[data-v="ABOVE"] .vi { background: var(--warn); }
     .vi { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: var(--text-3); flex: 0 0 auto; }
-    .verdict div { flex: 1; } .verdict p { font-size: 12.5px; color: var(--text-2); margin-top: 2px; } .warnline { color: var(--warn) !important; font-weight: 600; }
-    .ai { font-size: 11px; font-weight: 800; padding: 3px 7px; border-radius: 8px; background: var(--text); color: var(--surface); }
+    .verdict div { flex: 1; } .verdict p { font-size: 13.5px; color: var(--text-2); margin-top: 2px; } .warnline { color: var(--warn) !important; font-weight: 600; }
+    .ai { font-size: 12.5px; font-weight: 800; padding: 3px 7px; border-radius: 8px; background: var(--text); color: var(--surface); }
     .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
     .ostats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0 10px; text-align: center; }
     .ostats div { background: var(--surface-2); border-radius: 16px; padding: 10px 4px; display: flex; flex-direction: column; }
-    .ostats strong { font-family: var(--font-display); font-size: 20px; } .ostats span { font-size: 11.5px; color: var(--text-2); }
+    .ostats strong { font-family: var(--font-display); font-size: 20px; } .ostats span { font-size: 13px; color: var(--text-2); }
     .oacts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; } .chip.danger { color: var(--accent-2); }
-    .desc { white-space: pre-wrap; line-height: 1.6; font-size: 15px; }
+    .desc { white-space: pre-wrap; line-height: 1.6; font-size: 16px; }
     .chart svg { width: 100%; height: 110px; overflow: visible; }
     .draw { stroke-dasharray: 600; stroke-dashoffset: 600; animation: dash 1.4s .2s var(--ease) forwards; } @keyframes dash { to { stroke-dashoffset: 0; } }
     .seller > a { color: inherit; align-items: center; }
@@ -396,17 +430,25 @@ import { ListingCardComponent } from '../shared/listing-card.component';
     .stars { color: var(--warn); }
     .trust { --p: 0; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto;
       background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-3) 0); }
-    .trust span { width: 42px; height: 42px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-weight: 700; font-size: 14px; font-family: var(--font-display); }
+    .trust span { width: 42px; height: 42px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-weight: 700; font-size: 15px; font-family: var(--font-display); }
     .sbadges { display: flex; gap: 6px; margin: 14px 0 12px; flex-wrap: wrap; }
     .realname { display: flex; align-items: center; gap: 10px; padding: 14px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); font-weight: 650; }
     .center { text-align: center; margin-top: 8px; }
     .ship { margin-top: 10px; } .ship .input { width: 110px; flex: 0 0 auto; height: 46px; }
     .est { display: flex; flex-direction: column; }
     .safety h3 { display: flex; align-items: center; gap: 8px; } .safety h3 ion-icon { color: var(--ok); }
-    .safety ul { margin: 10px 0 0; padding-left: 18px; color: var(--text-2); font-size: 14px; line-height: 1.7; }
+    .safety ul { margin: 10px 0 0; padding-left: 18px; color: var(--text-2); font-size: 15px; line-height: 1.7; }
     .actionbar { position: fixed; left: 12px; right: 12px; margin: 0 auto; max-width: 560px; bottom: calc(env(safe-area-inset-bottom) + 14px); z-index: 40;
       display: flex; gap: 10px; padding: 8px; border-radius: 999px; animation: fadeUp .6s .2s var(--ease) both; }
     .actionbar .grow { flex: 1; } .actionbar .btn { height: 52px; }
+    .actionbar .msg { width: 52px; height: 52px; }
+    .protect { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: var(--ok-soft); color: var(--text); font-size: 14.5px; line-height: 1.4; }
+    .protect > ion-icon:first-child { color: var(--ok); font-size: 24px; flex: 0 0 auto; } .protect span { flex: 1; }
+    .alertbtn { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line);
+      background: var(--surface); color: var(--text); font-weight: 600; font-size: 14.5px; cursor: pointer; }
+    .alertbtn.on { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+    .sstats { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; font-size: 14.5px; color: var(--text); }
+    .sstats span { display: inline-flex; align-items: center; gap: 6px; } .sstats ion-icon { color: var(--accent); font-size: 17px; }
     .head h1 { overflow-wrap: anywhere; }
     @media (max-width: 360px) { .head h1 { font-size: 21px; } .price { font-size: 22px; } .top { flex-direction: column; gap: 6px; } .prices { text-align: left; } }
     .sheet { padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 14px; }
@@ -415,11 +457,11 @@ import { ListingCardComponent } from '../shared/listing-card.component';
     .seg button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-card); }
     .input.big { height: 66px; font-size: 28px; font-family: var(--font-display); font-weight: 700; }
     .quick { display: flex; gap: 8px; }
-    .lbl { font-size: 13px; font-weight: 600; color: var(--text-2); }
+    .lbl { font-size: 14px; font-weight: 600; color: var(--text-2); }
     .mine { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .minec { padding: 8px; text-align: left; border: 2px solid transparent; cursor: pointer; display: flex; flex-direction: column; gap: 6px; color: var(--text); }
     .minec.sel { border-color: var(--accent); } .minec img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 14px; background: var(--image-bg); }
-    .minec span { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .minec span { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   `],
 })
 export class ListingPage implements ViewWillEnter {
@@ -457,6 +499,12 @@ export class ListingPage implements ViewWillEnter {
   busy = signal(false);
   reportOpen = signal(false);
   buying = signal<string | null>(null);
+  buyOpen = signal(false);
+  alertOpen = signal(false);
+  alertValue = signal<number | null>(null);
+  Math = Math;
+  /** ?buy=1 (din oferte acceptate): deschide direct plata sigură. */
+  buyParam = input<string>(undefined, { alias: 'buy' });
   viewer = signal<number | null>(null);
   vIndex = signal(0);
   shipTo = 'RO';
@@ -528,6 +576,7 @@ export class ListingPage implements ViewWillEnter {
       this.api.priceAnalysis(this.id()).then((a) => this.analysis.set(a)).catch(() => {});
       this.api.similar(this.id()).then((s) => this.similar.set(s)).catch(() => {});
       if (d.shipsTo.length) this.estimate();
+      if (this.buyParam() && !d.owner && d.status === 'ACTIVE' && this.auth.loggedIn()) setTimeout(() => this.buyOpen.set(true), 400);
     } catch (e) { this.ui.error(e); this.nav.navigateRoot('/home'); }
   }
 
@@ -619,6 +668,43 @@ export class ListingPage implements ViewWillEnter {
   report() {
     if (!this.requireLogin()) return;
     this.reportOpen.set(true);
+  }
+
+  buy0() { if (this.requireLogin()) this.buyOpen.set(true); }
+
+  replyTime(min: number) {
+    if (min < 60) return this.i18n.t('stats2.minutes', { n: Math.max(5, Math.round(min / 5) * 5) });
+    if (min < 60 * 24) return this.i18n.t('stats2.hours', { n: Math.round(min / 60) });
+    return this.i18n.t('stats2.days', { n: Math.round(min / 1440) });
+  }
+
+  openAlert() {
+    if (!this.requireLogin()) return;
+    const d = this.d()!;
+    this.alertValue.set(d.priceAlertCents ? d.priceAlertCents / 100 : Math.round((d.priceCents / 100) * 0.9));
+    this.alertOpen.set(true);
+  }
+
+  alertChips() {
+    const p = (this.d()?.priceCents ?? 0) / 100;
+    return [0.95, 0.9, 0.8].map((k) => ({ label: `−${Math.round((1 - k) * 100)}%`, value: Math.round(p * k) }));
+  }
+
+  async saveAlert() {
+    const d = this.d()!, v = this.alertValue();
+    if (!v) return;
+    try {
+      await this.api.setPriceAlert(d.id, Math.round(v * 100));
+      this.d.set({ ...d, priceAlertCents: Math.round(v * 100), favorite: true });
+      this.favOverride.set(true);
+      this.alertOpen.set(false);
+      this.ui.toast(this.i18n.t('alert.saved', { price: this.i18n.price(Math.round(v * 100), d.currency) }));
+    } catch (e) { this.ui.error(e); }
+  }
+
+  async clearAlert() {
+    const d = this.d()!;
+    try { await this.api.clearPriceAlert(d.id); this.d.set({ ...d, priceAlertCents: null }); this.alertOpen.set(false); } catch (e) { this.ui.error(e); }
   }
 
   async menu() {

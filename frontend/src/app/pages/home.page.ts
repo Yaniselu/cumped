@@ -51,9 +51,9 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
           }
         </div>
 
-        <a routerLink="/support" class="safe card press rv">
+        <a routerLink="/why" fragment="protection" class="safe card press rv">
           <span class="shield"><ion-icon name="shield-checkmark"></ion-icon></span>
-          <div><strong>{{ 'home.safeTitle' | t }}</strong><p class="muted small">{{ 'home.safeSub' | t }}</p></div>
+          <div><strong>{{ 'home.protectTitle' | t }}</strong><p class="muted small">{{ 'home.protectSub' | t }}</p></div>
           <ion-icon name="chevron-forward" class="faint"></ion-icon>
         </a>
 
@@ -97,13 +97,13 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
     .sb-in { animation: fadeUp .8s .35s var(--spring) both; }
     .cat:hover .ic ion-icon, .cat:active .ic ion-icon { animation: pop .6s var(--spring); }
     @media (min-width: 992px) { .hero h1 { font-size: 52px; } .hero { margin: 10px 0 8px; } }
-    .ph { flex: 1; color: var(--text-3); font-size: 15px; }
+    .ph { flex: 1; color: var(--text-3); font-size: 16px; }
     .cats { margin-top: 18px; }
     .cat { width: 84px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text); }
     .ic { width: 66px; height: 66px; border-radius: 24px; display: grid; place-items: center; transition: transform .45s var(--spring); }
     .cat:hover .ic { transform: translateY(-4px) rotate(-4deg); }
     .ic ion-icon { font-size: 26px; color: hsl(calc(250 + var(--h) * 0.3) 70% 58%); }
-    .lb { font-size: 12px; font-weight: 550; text-align: center; color: var(--text-2); line-height: 1.2; }
+    .lb { font-size: 13px; font-weight: 550; text-align: center; color: var(--text-2); line-height: 1.2; }
     .safe { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin-top: 12px; color: inherit; }
     .shield { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: 0 0 auto; animation: pulseSoft 2.8s ease-in-out infinite; }
     .shield ion-icon { font-size: 24px; }
@@ -111,7 +111,7 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
     .dropic { color: var(--accent-2); vertical-align: -3px; }
     .sellcta { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 28px; padding: 22px; min-height: 150px;
       border-radius: var(--r-xl); overflow: hidden; color: #fff; background: linear-gradient(135deg, #5b3df5 0%, #8b6dff 55%, #ff7a6e 130%); box-shadow: 0 24px 50px -24px rgba(91,61,245,.7); }
-    .sellcta div { position: relative; z-index: 2; max-width: 60%; } .sellcta p { opacity: .85; font-size: 14px; margin-top: 6px; }
+    .sellcta div { position: relative; z-index: 2; max-width: 60%; } .sellcta p { opacity: .85; font-size: 15px; margin-top: 6px; }
     .sellcta .btn { position: relative; z-index: 2; background: #fff; color: #111; }
     .ph1, .ph2 { position: absolute; border-radius: 16px; overflow: hidden; border: 3px solid rgba(255,255,255,.9); box-shadow: 0 18px 30px -12px rgba(20,10,60,.55); z-index: 1; }
     .ph1 { width: 118px; height: 96px; right: 18px; top: -10px; transform: rotate(8deg); }

@@ -59,7 +59,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/auth/") && !path.equals("/api/auth/refresh")) return AUTH;
         if (path.startsWith("/api/verification/")) return AUTH;
         if (path.endsWith("/real-name")) return REVEAL;
-        if (path.startsWith("/api/velo/")) return VELO;
+        if (path.startsWith("/api/velo/") || path.startsWith("/api/ai/") || path.endsWith("/translate")) return VELO;
         if (!"GET".equals(method)) return WRITE;
         return READ;
     }

@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonModal } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { I18n, TPipe } from '../core/i18n.service';
-import { AdminTicket } from '../core/models';
+import { Order, AdminTicket } from '../core/models';
 import { Ui } from '../core/ui.service';
 import { BackButtonComponent } from '../shared/back-button.component';
 import { EmptyComponent } from '../shared/empty.component';
@@ -22,6 +22,17 @@ import { EmptyComponent } from '../shared/empty.component';
               <strong>{{ ov()[k] ?? '—' }}</strong><span>{{ 'admin.' + k | t }}</span></div>
           }
         </div>
+        @if (disputes().length) {
+          <div class="section-head"><h2>{{ 'admin.disputes' | t }}</h2></div>
+          @for (o of disputes(); track o.id) {
+            <div class="card pad dsp">
+              <div class="row between"><b>{{ o.code }} · {{ o.listing?.title }}</b><span class="pri" data-p="HIGH">{{ 'orders.reasons.' + o.disputeReason | t }}</span></div>
+              <p class="muted small">{{ i18n.price(o.totalCents, o.currency) }} · {{ 'neg.seller' | t }}: {{ o.counterpart?.displayName }}</p>
+              <div class="row"><button class="btn sm light" (click)="resolve(o.id, 'REFUND')">{{ 'admin.refund' | t }}</button>
+                <button class="btn sm" (click)="resolve(o.id, 'RELEASE')">{{ 'admin.release' | t }}</button></div>
+            </div>
+          }
+        }
         <div class="section-head"><h2>{{ 'admin.tickets' | t }}</h2>
           <div class="row">@for (s of ['OPEN', 'RESOLVED', 'ALL']; track s) { <button class="chip" [class.active]="status() === s" (click)="status.set(s); load()">{{ 'admin.' + s.toLowerCase() | t }}</button> }</div></div>
         @if (!tickets().length) { <cmp-empty icon="checkmark-circle" title="0" /> }
@@ -65,16 +76,16 @@ import { EmptyComponent } from '../shared/empty.component';
   `,
   styles: [`
     .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; } @media (min-width: 900px) { .kpis { grid-template-columns: repeat(7, 1fr); } }
-    .kpi { padding: 14px; display: flex; flex-direction: column; gap: 2px; } .kpi strong { font-family: var(--font-display); font-size: 28px; } .kpi span { font-size: 12px; color: var(--text-2); }
+    .kpi { padding: 14px; display: flex; flex-direction: column; gap: 2px; } .kpi strong { font-family: var(--font-display); font-size: 28px; } .kpi span { font-size: 13px; color: var(--text-2); }
     .kpi.alert { background: var(--accent-2-soft); }
     .tk { display: flex; gap: 14px; width: 100%; padding: 14px; margin-bottom: 10px; text-align: left; color: var(--text); cursor: pointer; align-items: flex-start; }
-    .pri { font-size: 11px; font-weight: 800; padding: 5px 9px; border-radius: 10px; background: var(--surface-2); flex: 0 0 auto; }
+    .pri { font-size: 12.5px; font-weight: 800; padding: 5px 9px; border-radius: 10px; background: var(--surface-2); flex: 0 0 auto; }
     .pri[data-p="URGENT"] { background: var(--accent-2); color: #fff; } .pri[data-p="HIGH"] { background: var(--accent-2-soft); color: var(--accent-2); } .pri[data-p="MEDIUM"] { background: var(--warn-soft); color: var(--warn); }
     .mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; } .mid .row { flex-wrap: wrap; gap: 6px; }
-    .sum { font-size: 14px; line-height: 1.45; }
+    .sum { font-size: 15px; line-height: 1.45; }
     .sheet { padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 12px; }
     .acts { display: flex; flex-wrap: wrap; gap: 8px; }
-    .tr { white-space: pre-wrap; font-size: 13px; line-height: 1.5; background: var(--surface); padding: 14px; border-radius: 16px; border: 1px solid var(--line); font-family: ui-monospace, monospace; }
+    .tr { white-space: pre-wrap; font-size: 14px; line-height: 1.5; background: var(--surface); padding: 14px; border-radius: 16px; border: 1px solid var(--line); font-family: ui-monospace, monospace; }
   `],
 })
 export class AdminPage implements OnInit {
@@ -84,12 +95,20 @@ export class AdminPage implements OnInit {
   keys = ['openTickets', 'pendingAutoActions', 'blockedMessages24h', 'users', 'verifiedUsers', 'activeListings', 'pendingEmails'];
   ov = signal<Record<string, number>>({});
   tickets = signal<AdminTicket[]>([]);
+  disputes = signal<Order[]>([]);
   status = signal('OPEN');
   sel = signal<{ ticket: AdminTicket; transcript: string } | null>(null);
 
   ngOnInit() { this.load(); }
   async load() {
     try { const [o, t] = await Promise.all([this.api.adminOverview(), this.api.adminTickets(this.status())]); this.ov.set(o); this.tickets.set(t); }
+    catch (e) { this.ui.error(e); }
+    this.api.disputedOrders().then((d) => this.disputes.set(d)).catch(() => {});
+  }
+
+  async resolve(id: string, outcome: 'REFUND' | 'RELEASE') {
+    if (!(await this.ui.confirm(this.i18n.t(outcome === 'REFUND' ? 'admin.refundConfirm' : 'admin.releaseConfirm'), this.i18n.t('common.confirm')))) return;
+    try { await this.api.resolveOrder(id, outcome); this.disputes.update((l) => l.filter((o) => o.id !== id)); this.ui.toast(this.i18n.t('admin.done')); }
     catch (e) { this.ui.error(e); }
   }
   async open(t: AdminTicket) { try { this.sel.set(await this.api.adminTicket(t.id)); } catch (e) { this.ui.error(e); } }

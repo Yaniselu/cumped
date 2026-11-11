@@ -41,12 +41,15 @@ public class ListingService {
     private final JsonMapper json;
     private final ContentPolicy policy;
     private final BlockService blocks;
+    private final com.velosyntech.cumped.user.SellerStatsService sellerStats;
     /** Deduplicare vizualizări: aceeași persoană nu crește contorul de mai multe ori pe oră. */
     private final Map<String, Long> recentViews = new ConcurrentHashMap<>();
 
     public ListingService(ListingRepository listings, ListingImageRepository images, UserRepository users,
                           QuotaService quota, NotificationService notifications, ScamDetector scam,
-                          JdbcClient jdbc, JsonMapper json, ContentPolicy policy, BlockService blocks) {
+                          JdbcClient jdbc, JsonMapper json, ContentPolicy policy, BlockService blocks,
+                          com.velosyntech.cumped.user.SellerStatsService sellerStats) {
+        this.sellerStats = sellerStats;
         this.listings = listings;
         this.images = images;
         this.users = users;
@@ -151,6 +154,8 @@ public class ListingService {
                 .filter(max -> max > l.getPriceCents()).orElse(null);
         boolean fav = viewerId != null && jdbc.sql("SELECT count(*) FROM favorites WHERE user_id = ? AND listing_id = ?")
                 .params(viewerId, id).query(Integer.class).single() > 0;
+        Long alert = viewerId == null || owner ? null : jdbc.sql("SELECT target_price_cents FROM favorites WHERE user_id = ? AND listing_id = ?")
+                .params(viewerId, id).query(Long.class).optional().orElse(null);
         UUID conversationId = viewerId == null || owner ? null :
                 jdbc.sql("SELECT id FROM conversations WHERE listing_id = ? AND buyer_id = ?")
                         .params(id, viewerId).query(UUID.class).optional().orElse(null);
@@ -164,7 +169,18 @@ public class ListingService {
                 l.getStatus().name(), l.isPromoted(), l.getCreatedAt(), UserDtos.toPublic(seller), fav, owner,
                 conversationId, history, stats, l.getFavCount(), l.getViewCount(), l.isNegotiable(), l.getQuantity(),
                 owner ? l.getMinPriceCents() : null, owner || admin ? l.getModerationReason() : null,
-                viewerId != null && !owner && blocks.eitherBlocked(viewerId, l.getSellerId()));
+                viewerId != null && !owner && blocks.eitherBlocked(viewerId, l.getSellerId()), alert, sellerStats.of(l.getSellerId()));
+    }
+
+    /** Alertă la preț țintă: anunțul intră la favorite și primești notificare când prețul ajunge la (sau sub) țintă. */
+    @Transactional
+    public Long setPriceAlert(UUID userId, UUID listingId, Long targetCents) {
+        Listing l = listings.findById(listingId).orElseThrow(ApiException::notFound);
+        if (!l.isPubliclyVisible() || l.getSellerId().equals(userId)) throw ApiException.notFound();
+        if (targetCents != null && (targetCents <= 0 || targetCents >= l.getPriceCents())) throw ApiException.badRequest("INVALID_AMOUNT");
+        if (targetCents != null) toggleFavorite(userId, listingId, true);
+        jdbc.sql("UPDATE favorites SET target_price_cents = ? WHERE user_id = ? AND listing_id = ?").params(targetCents, userId, listingId).update();
+        return targetCents;
     }
 
     @Transactional
@@ -250,10 +266,14 @@ public class ListingService {
     }
 
     private void notifyPriceDrop(Listing l, long oldPrice) {
-        List<UUID> fans = jdbc.sql("SELECT user_id FROM favorites WHERE listing_id = ?").param(l.getId()).query(UUID.class).list();
-        for (UUID fan : fans) {
-            notifications.notify(fan, "PRICE_DROP", Map.of("title", l.getTitle(), "old", oldPrice,
+        record Fan(UUID userId, Long target) {}
+        List<Fan> fans = jdbc.sql("SELECT user_id, target_price_cents FROM favorites WHERE listing_id = ?").param(l.getId())
+                .query((rs, i) -> new Fan(rs.getObject(1, UUID.class), (Long) rs.getObject(2))).list();
+        for (Fan fan : fans) {
+            boolean reached = fan.target() != null && l.getPriceCents() <= fan.target() && oldPrice > fan.target();
+            notifications.notify(fan.userId(), reached ? "PRICE_TARGET_REACHED" : "PRICE_DROP", Map.of("title", l.getTitle(), "old", oldPrice,
                     "new", l.getPriceCents(), "currency", l.getCurrency()), "/listing/" + l.getId());
+            if (reached) jdbc.sql("UPDATE favorites SET target_price_cents = NULL WHERE user_id = ? AND listing_id = ?").params(fan.userId(), l.getId()).update();
         }
     }
 

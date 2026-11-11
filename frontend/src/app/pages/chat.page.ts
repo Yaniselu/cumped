@@ -7,7 +7,8 @@ import { Api, errorCode } from '../core/api.service';
 import { Badges } from '../core/badges.service';
 import { I18n, TPipe } from '../core/i18n.service';
 import { ChatMessage, ConversationSummary } from '../core/models';
-import { OfferEvent, offerEventText, parseOfferEvent } from '../core/offer-event';
+import { OfferEvent, OrderEvent, offerEventText, orderEventText, parseOfferEvent, parseOrderEvent } from '../core/offer-event';
+import { Purchases } from '../core/purchases.service';
 import { ReportSheetComponent, ReportTarget } from '../shared/report-sheet.component';
 import { Ui } from '../core/ui.service';
 import { AvatarComponent } from '../shared/avatar.component';
@@ -45,9 +46,17 @@ import { BackButtonComponent } from '../shared/back-button.component';
                 <div><b>{{ evText(e, m.mine) }}</b><span class="small muted">{{ i18n.date(m.createdAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }} · {{ 'neg.view' | t }}</span></div>
                 <ion-icon name="chevron-forward" class="faint"></ion-icon>
               </a>
+            } @else if (orderOf(m); as e) {
+              <a class="oev ord" [class.fresh]="i >= freshFrom" [attr.data-e]="e.event" routerLink="/orders">
+                <span class="oi"><ion-icon [name]="orderIcon(e.event)"></ion-icon></span>
+                <div><b>{{ orderText(e) }}</b><span class="small muted">{{ i18n.date(m.createdAt, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }} · {{ 'orders.view' | t }}</span></div>
+                <ion-icon name="chevron-forward" class="faint"></ion-icon>
+              </a>
             } @else {
             <div class="msg" [class.mine]="m.mine" [class.fresh]="i >= freshFrom">
               <div class="bubble" (click)="!m.mine && sel.set(sel() === m.id ? null : m.id)">{{ m.body }}</div>
+              @if (translated()[m.id]; as tr) { <div class="trans fade"><ion-icon name="language-outline"></ion-icon>{{ tr }}</div> }
+              @if (!m.mine && aiOn() && !translated()[m.id]) { <button class="tbtn" (click)="translate(m.id)" [disabled]="translating() === m.id">{{ (translating() === m.id ? 'ai.translating' : 'ai.translate') | t }}</button> }
               @if (sel() === m.id && !m.mine) { <button class="rmsg fade" (click)="reportMessage(m.id)"><ion-icon name="flag-outline"></ion-icon>{{ 'report.reportMessage' | t }}</button> }
               @if (m.flagged && m.flagReason) {
                 <div class="flag" [class.danger]="m.flagReason === 'PAYMENT_LINK' || m.flagReason === 'OFF_PLATFORM_CHAT' || m.flagReason === 'RISKY_PAYMENT'">
@@ -85,34 +94,38 @@ import { BackButtonComponent } from '../shared/back-button.component';
     .lst { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; color: inherit; }
     .lst img { width: 48px; height: 48px; border-radius: 14px; object-fit: cover; background: var(--image-bg); }
     .lst div { flex: 1; display: flex; flex-direction: column; min-width: 0; } .lst span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .safety { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--text-2); background: var(--ok-soft); padding: 10px 14px; border-radius: 16px; margin: 12px 0 18px; line-height: 1.45; }
+    .safety { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; color: var(--text-2); background: var(--ok-soft); padding: 10px 14px; border-radius: 16px; margin: 12px 0 18px; line-height: 1.45; }
     .safety ion-icon { color: var(--ok); font-size: 18px; flex: 0 0 auto; }
     .msgs { display: flex; flex-direction: column; gap: 10px; }
     .msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 82%; }
     .msg.mine { align-self: flex-end; align-items: flex-end; }
     .msg.fresh { animation: msgIn .45s var(--spring) both; }
     @keyframes msgIn { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
-    .bubble { padding: 11px 15px; border-radius: 22px 22px 22px 8px; background: var(--surface); box-shadow: var(--shadow-card); border: 1px solid var(--line); line-height: 1.45; font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+    .bubble { padding: 11px 15px; border-radius: 22px 22px 22px 8px; background: var(--surface); box-shadow: var(--shadow-card); border: 1px solid var(--line); line-height: 1.45; font-size: 16px; white-space: pre-wrap; word-break: break-word; }
     .mine .bubble { border-radius: 22px 22px 8px 22px; background: var(--btn-dark); color: var(--btn-dark-text); border: 0; }
-    .flag { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--warn); background: var(--warn-soft); padding: 7px 10px; border-radius: 12px; }
+    .flag { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--warn); background: var(--warn-soft); padding: 7px 10px; border-radius: 12px; }
     .flag.danger { color: var(--accent-2); background: var(--accent-2-soft); }
     .flag button { border: 0; background: rgba(0,0,0,.06); color: inherit; font-weight: 700; padding: 4px 8px; border-radius: 8px; cursor: pointer; }
-    .time { font-size: 11px; color: var(--text-3); margin: 4px 6px 0; }
-    .blocked { display: flex; gap: 8px; align-items: center; margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: var(--accent-2-soft); color: var(--accent-2); font-size: 13px; font-weight: 600; }
+    .time { font-size: 12.5px; color: var(--text-3); margin: 4px 6px 0; }
+    .blocked { display: flex; gap: 8px; align-items: center; margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: var(--accent-2-soft); color: var(--accent-2); font-size: 14px; font-weight: 600; }
     ion-footer { background: transparent; }
     .oev { align-self: center; display: flex; align-items: center; gap: 12px; width: min(100%, 420px); padding: 10px 14px 10px 10px; margin: 6px 0;
       border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); color: inherit; }
     .oev.fresh { animation: msgIn .45s var(--spring) both; }
-    .oev div { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; } .oev b { font-size: 14px; font-weight: 650; }
+    .oev div { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; } .oev b { font-size: 15px; font-weight: 650; }
     .oi { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 20px; }
     .oev[data-e="ACCEPTED"] .oi { background: var(--ok-soft); color: var(--ok); }
     .oev[data-e="DECLINED"] .oi, .oev[data-e="AUTO_DECLINED"] .oi, .oev[data-e="WITHDRAWN"] .oi { background: var(--accent-2-soft); color: var(--accent-2); }
-    .rmsg { margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; padding: 6px 12px; background: var(--accent-2-soft); color: var(--accent-2); font-weight: 650; font-size: 12.5px; cursor: pointer; }
+    .rmsg { margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 999px; padding: 6px 12px; background: var(--accent-2-soft); color: var(--accent-2); font-weight: 650; font-size: 13.5px; cursor: pointer; }
     .bubble { cursor: default; }
-    .composer.off { align-items: center; gap: 10px; padding: 8px 8px 8px 16px; color: var(--text-2); font-size: 13.5px; }
+    .oev.ord .oi { background: var(--ok-soft); color: var(--ok); }
+    .trans { margin-top: 6px; max-width: 100%; display: flex; gap: 6px; align-items: flex-start; font-size: 15px; line-height: 1.45; padding: 9px 12px; border-radius: 16px; background: var(--accent-soft); color: var(--text); }
+    .trans ion-icon { color: var(--accent); flex: 0 0 auto; margin-top: 2px; }
+    .tbtn { margin-top: 4px; border: 0; background: none; color: var(--accent); font-weight: 650; font-size: 13.5px; padding: 4px 6px; cursor: pointer; }
+    .composer.off { align-items: center; gap: 10px; padding: 8px 8px 8px 16px; color: var(--text-2); font-size: 14.5px; }
     .composer.off span { flex: 1; } .composer.off ion-icon { font-size: 20px; color: var(--accent-2); }
     .composer { display: flex; align-items: flex-end; gap: 8px; margin: 0 auto calc(env(safe-area-inset-bottom) + 12px); width: min(640px, calc(100% - 24px)); padding: 7px 7px 7px 18px; border-radius: 28px; }
-    textarea { flex: 1; border: 0; outline: none; resize: none; background: transparent; font-family: inherit; font-size: 15.5px; color: var(--text); max-height: 120px; padding: 12px 0; }
+    textarea { flex: 1; border: 0; outline: none; resize: none; background: transparent; font-family: inherit; font-size: 16px; color: var(--text); max-height: 120px; padding: 12px 0; }
     .sendbtn { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--btn-dark); color: var(--btn-dark-text); display: grid; place-items: center; cursor: pointer; transition: transform .3s var(--spring), opacity .2s; }
     .sendbtn:disabled { opacity: .35; } .sendbtn:active { transform: scale(.88) rotate(-12deg); } .sendbtn ion-icon { font-size: 19px; }
   `],
@@ -138,6 +151,11 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
   text = '';
   freshFrom = 0;
   private offerCache = new Map<string, OfferEvent | null>();
+  private orderCache = new Map<string, OrderEvent | null>();
+  private purchases = inject(Purchases);
+  aiOn = () => this.purchases.config()?.veloAi === 'AI';
+  translated = signal<Record<string, string>>({});
+  translating = signal<string | null>(null);
   private poll: any;
 
   async ionViewWillEnter() {
@@ -189,6 +207,21 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
     return this.offerCache.get(m.id)!;
   }
   evText(e: OfferEvent, mine: boolean) { return offerEventText(this.i18n, e, mine); }
+  orderOf(m: ChatMessage) {
+    if (!this.orderCache.has(m.id)) this.orderCache.set(m.id, parseOrderEvent(m.body));
+    return this.orderCache.get(m.id)!;
+  }
+  orderText(e: OrderEvent) { return orderEventText(this.i18n, e); }
+  orderIcon(ev: string) {
+    return ({ PAID: 'shield-checkmark', SHIPPED: 'cube-outline', HANDED_OVER: 'hand-right-outline', COMPLETED: 'checkmark-done', DISPUTED: 'alert-circle', REFUNDED: 'arrow-undo' } as Record<string, string>)[ev] ?? 'shield-checkmark';
+  }
+
+  async translate(id: string) {
+    this.translating.set(id);
+    try { const r = await this.api.translate(id, this.i18n.lang()); this.translated.update((t) => ({ ...t, [id]: r.text })); }
+    catch (e) { this.ui.error(e); }
+    this.translating.set(null);
+  }
   evIcon(ev: string, kind: string) {
     return ({ ACCEPTED: 'checkmark-circle', DECLINED: 'close-circle', AUTO_DECLINED: 'close-circle', WITHDRAWN: 'arrow-undo', COUNTER: 'swap-vertical' } as Record<string, string>)[ev]
       ?? (kind === 'SWAP' ? 'swap-horizontal' : 'pricetag');

@@ -48,6 +48,7 @@ import { AvatarComponent } from '../shared/avatar.component';
             <a routerLink="/offers"><ion-icon name="pricetag-outline"></ion-icon>{{ 'profile.offers' | t }}@if (badges.counts().offers) { <span class="count">{{ badges.counts().offers }}</span> }<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             <a routerLink="/favorites"><ion-icon name="heart-outline"></ion-icon>{{ 'profile.favorites' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             <a routerLink="/notifications"><ion-icon name="notifications-outline"></ion-icon>{{ 'nav.notifications' | t }}@if (badges.counts().notifications) { <span class="count">{{ badges.counts().notifications }}</span> }<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
+            <a routerLink="/orders"><ion-icon name="bag-handle-outline"></ion-icon>{{ 'orders.title' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             <a routerLink="/stats"><ion-icon name="stats-chart-outline"></ion-icon>{{ 'profile.stats' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             <a routerLink="/plans"><ion-icon name="rocket-outline"></ion-icon>{{ 'plans.title' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
           </div>
@@ -55,6 +56,7 @@ import { AvatarComponent } from '../shared/avatar.component';
             <a routerLink="/support" class="velo"><span class="vic">V</span>{{ 'profile.support' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             @if (!u.phoneVerified) { <a routerLink="/verify" [queryParams]="{ phone: 1 }"><ion-icon name="phone-portrait-outline"></ion-icon>{{ 'profile.phone' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a> }
             <a routerLink="/settings"><ion-icon name="settings-outline"></ion-icon>{{ 'profile.settings' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
+            <a routerLink="/why"><ion-icon name="heart-outline"></ion-icon>{{ 'why.title' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             <a routerLink="/legal/terms"><ion-icon name="document-text-outline"></ion-icon>{{ 'legal.title' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a>
             @if (auth.isAdmin()) { <a routerLink="/admin"><ion-icon name="shield-checkmark-outline"></ion-icon>{{ 'profile.admin' | t }}<ion-icon name="chevron-forward" class="chev"></ion-icon></a> }
             <button (click)="logout()" class="out"><ion-icon name="log-out-outline"></ion-icon>{{ 'profile.logout' | t }}</button>
@@ -69,14 +71,14 @@ import { AvatarComponent } from '../shared/avatar.component';
     .glow { position: absolute; top: -120px; left: 50%; width: 360px; height: 260px; transform: translateX(-50%); border-radius: 50%;
       background: radial-gradient(closest-side, hsl(var(--h) 90% 70% / .45), transparent); filter: blur(10px); animation: blob 10s ease-in-out infinite; }
     .hero > *:not(.glow) { position: relative; } .hero h2 { margin-top: 10px; font-size: 24px; }
-    .vbadge { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 12px; border-radius: 999px; font-weight: 650; font-size: 13px; }
+    .vbadge { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 12px; border-radius: 999px; font-weight: 650; font-size: 14px; }
     .vbadge.ok { background: var(--ok-soft); color: var(--ok); }
     .verifycta { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 14px; border-radius: 20px; color: #fff; text-align: left;
       background: linear-gradient(135deg, #5b3df5, #8b6dff); box-shadow: 0 16px 34px -18px rgba(91,61,245,.8); }
-    .verifycta div { flex: 1; display: flex; flex-direction: column; } .verifycta span { font-size: 12.5px; opacity: .85; } .verifycta ion-icon:first-child { font-size: 26px; }
+    .verifycta div { flex: 1; display: flex; flex-direction: column; } .verifycta span { font-size: 13.5px; opacity: .85; } .verifycta ion-icon:first-child { font-size: 26px; }
     .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 16px; }
     .kpis div { background: var(--surface-2); border-radius: 18px; padding: 12px 6px; display: flex; flex-direction: column; }
-    .kpis strong { font-family: var(--font-display); font-size: 19px; } .kpis span { font-size: 11.5px; color: var(--text-2); }
+    .kpis strong { font-family: var(--font-display); font-size: 19px; } .kpis span { font-size: 13px; color: var(--text-2); }
     .invite { margin-top: 14px; } .invite h3 { display: flex; align-items: center; gap: 8px; } .invite h3 ion-icon { color: var(--accent-2); }
     .prog { height: 8px; border-radius: 99px; background: var(--surface-3); margin: 12px 0; overflow: hidden; }
     .prog span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 1s var(--ease); }
@@ -85,12 +87,12 @@ import { AvatarComponent } from '../shared/avatar.component';
     .menu { margin-top: 14px; padding: 6px; }
     .menu a:hover ion-icon:first-child, .menu button:hover ion-icon:first-child { transform: scale(1.15) rotate(-6deg); }
     .menu ion-icon:first-child { transition: transform .4s var(--spring); }
-    .menu a, .menu button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 12px; border-radius: 16px; color: var(--text); font-weight: 550; font-size: 15px; background: none; border: 0; cursor: pointer; transition: background .2s; }
+    .menu a, .menu button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 12px; border-radius: 16px; color: var(--text); font-weight: 550; font-size: 16px; background: none; border: 0; cursor: pointer; transition: background .2s; }
     .menu a:active, .menu button:active { background: var(--surface-2); }
     .menu ion-icon { font-size: 21px; color: var(--text-2); } .chev { margin-left: auto; font-size: 17px !important; color: var(--text-3) !important; }
-    .count { margin-left: auto; min-width: 22px; height: 22px; border-radius: 99px; background: var(--accent-2); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; padding: 0 6px; }
+    .count { margin-left: auto; min-width: 22px; height: 22px; border-radius: 99px; background: var(--accent-2); color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; padding: 0 6px; }
     .count + .chev { margin-left: 6px; }
-    .vic { width: 26px; height: 26px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 14px; background: linear-gradient(135deg, #5b3df5, #ff5a4e); }
+    .vic { width: 26px; height: 26px; border-radius: 9px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 15px; background: linear-gradient(135deg, #5b3df5, #ff5a4e); }
     .out { color: var(--accent-2) !important; } .out ion-icon { color: var(--accent-2) !important; }
   `],
 })

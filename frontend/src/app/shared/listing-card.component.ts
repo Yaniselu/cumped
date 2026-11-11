@@ -69,25 +69,25 @@ import { Ui } from '../core/ui.service';
     .noimg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-3); font-size: 34px; }
     .tl { position: absolute; top: 8px; left: 8px; display: flex; gap: 5px; flex-wrap: wrap; max-width: calc(100% - 56px); z-index: 2; }
     .bl { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; gap: 5px; z-index: 2; flex-wrap: wrap; }
-    .badge { height: 24px; font-size: 11.5px; padding: 0 9px; }
+    .badge { height: 24px; font-size: 13px; padding: 0 9px; }
     .badge.sq { padding: 0 7px; }
     .drop ion-icon { color: var(--accent-2); }
     .fav { position: absolute; top: 6px; right: 6px; z-index: 2; }
     .fav.on ion-icon { color: var(--accent-2); }
     .popped { animation: pop .55s var(--spring); }
     .info { position: relative; padding: 10px 12px 12px; }
-    .t { font-weight: 600; font-size: 14px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; overflow-wrap: anywhere; }
+    .t { font-weight: 600; font-size: 15px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; overflow-wrap: anywhere; }
     .pr { display: flex; align-items: baseline; gap: 6px 8px; margin-top: 5px; flex-wrap: wrap; }
     .price { font-family: var(--font-display); font-weight: 700; font-size: clamp(16px, 4.6vw, 19px); letter-spacing: -0.02em; white-space: nowrap; }
-    .old { font-size: 12.5px; color: var(--text-3); text-decoration: line-through; white-space: nowrap; }
-    .loc { display: flex; align-items: center; gap: 4px; margin-top: 5px; font-size: 12.5px; color: var(--text-2); min-width: 0; }
+    .old { font-size: 13.5px; color: var(--text-3); text-decoration: line-through; white-space: nowrap; }
+    .loc { display: flex; align-items: center; gap: 4px; margin-top: 5px; font-size: 13.5px; color: var(--text-2); min-width: 0; }
     .loc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-    .biz { flex: 0 0 auto; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 6px; }
-    .vf { color: var(--accent); margin-left: auto; font-size: 15px; flex: 0 0 auto; }
+    .biz { flex: 0 0 auto; font-size: 12px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 6px; }
+    .vf { color: var(--accent); margin-left: auto; font-size: 16px; flex: 0 0 auto; }
     .compact .media { aspect-ratio: 1; }
     .compact { width: 168px; }
     @media (max-width: 340px) {
-      .info { padding: 8px 9px 10px; } .t { font-size: 13px; } .biz { display: none; } .bl .badge:not(.sq) { display: none; }
+      .info { padding: 8px 9px 10px; } .t { font-size: 14px; } .biz { display: none; } .bl .badge:not(.sq) { display: none; }
       .compact { width: 148px; }
     }
   `],

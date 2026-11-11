@@ -67,6 +67,12 @@ import { PublicUser } from '../core/models';
           @for (t of themes; track t.v) { <button [class.on]="theme.pref() === t.v" (click)="theme.set(t.v)"><ion-icon [name]="t.icon"></ion-icon>{{ 'settings.' + t.v | t }}</button> }
         </div>
 
+        <h3 class="sh">{{ 'settings.textSize' | t }}</h3>
+        <div class="seg reveal ts">
+          @for (t of textSizes; track t.v) { <button [class.on]="theme.textSize() === t.v" (click)="theme.setTextSize(t.v)" [style.font-size.px]="t.px">{{ 'settings.ts_' + t.v | t }}</button> }
+        </div>
+        <p class="faint small tsprev">{{ 'settings.textPreview' | t }}</p>
+
         <div class="card toggles reveal lite">
           <div class="toggle-row"><span><ion-icon name="flash-outline"></ion-icon><span><b>{{ 'settings.lite' | t }}</b><small>{{ 'settings.liteSub' | t }}</small></span></span>
             <button class="switch" role="switch" [attr.aria-checked]="theme.lite()" [class.on]="theme.lite()" (click)="theme.setLite(theme.lite() ? 'off' : 'on')"></button></div>
@@ -106,7 +112,7 @@ import { PublicUser } from '../core/models';
     </ion-content>
   `,
   styles: [`
-    .sh { margin: 24px 4px 10px; font-size: 15px; color: var(--text-2); }
+    .sh { margin: 24px 4px 10px; font-size: 16px; color: var(--text-2); }
     .opts { display: flex; flex-direction: column; gap: 8px; }
     .opt { display: flex; align-items: center; gap: 10px; padding: 14px; border-radius: 16px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); text-align: left; cursor: pointer; font-weight: 550; }
     .opt.on { border-color: var(--accent); background: var(--accent-soft); } .opt:disabled { opacity: .45; } .opt ion-icon { font-size: 20px; color: var(--accent); }
@@ -116,13 +122,14 @@ import { PublicUser } from '../core/models';
     .seg button.on { background: var(--btn-dark); color: var(--btn-dark-text); }
     .center { text-align: center; margin-top: 24px; }
     .seg.in { box-shadow: none; background: var(--surface-2); }
+    .tsprev { margin: 8px 6px 0; }
     .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px; }
-    .chk { position: relative; display: flex; gap: 12px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
+    .chk { position: relative; display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
     .chk input { position: absolute; opacity: 0; width: 22px; height: 22px; margin: 0; }
     .box { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--surface-3); background: var(--surface); display: grid; place-items: center; color: transparent; }
     .chk input:checked + .box { background: var(--accent); border-color: var(--accent); color: #fff; }
     .toggles { padding: 4px 14px; margin-top: 12px; } .toggles .toggle-row > span { display: flex; gap: 10px; align-items: flex-start; }
-    .toggles .toggle-row > span > span { display: flex; flex-direction: column; gap: 2px; } .toggles small { font-size: 12px; color: var(--text-2); line-height: 1.35; }
+    .toggles .toggle-row > span > span { display: flex; flex-direction: column; gap: 2px; } .toggles small { font-size: 13px; color: var(--text-2); line-height: 1.35; }
     .toggles ion-icon { color: var(--accent); font-size: 20px; margin-top: 1px; }
     .buser { display: flex; align-items: center; gap: 10px; padding: 6px 0; } .buser span { flex: 1; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .menu { padding: 4px 0; } .menu a { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; color: var(--text); font-weight: 550; border-bottom: 1px solid var(--line); }
@@ -148,6 +155,7 @@ export class SettingsPage implements ViewWillEnter {
   biz = { name: '', regNo: '', vat: '', address: '', email: '', phone: '', ...(this.auth.user()?.business ?? {}) } as { name: string; regNo: string; vat: string; address: string; email: string; phone: string };
   declare = this.acct === 'BUSINESS';
   blocked = signal<PublicUser[]>([]);
+  textSizes: { v: 'normal' | 'lg' | 'xl'; px: number }[] = [{ v: 'normal', px: 15 }, { v: 'lg', px: 17 }, { v: 'xl', px: 19 }];
   legalDocs = ['terms', 'privacy', 'rules', 'dsa', 'cookies', 'about'];
 
   ionViewWillEnter() { this.api.blocks().then((b) => this.blocked.set(b)).catch(() => {}); }

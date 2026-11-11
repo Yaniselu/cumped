@@ -41,8 +41,8 @@ import { Ui } from '../core/ui.service';
     .holding { transform: scale(.98); }
     .done .fill { transform: scaleX(1); transition: none; }
     .lbl { position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cap { font-size: 11.5px; color: var(--text-3); text-align: center; }
-    .hint { font-size: 12px; font-weight: 600; color: var(--text-2); text-align: center; animation: fadeIn .2s ease; }
+    .cap { font-size: 13px; color: var(--text-3); text-align: center; }
+    .hint { font-size: 13px; font-weight: 600; color: var(--text-2); text-align: center; animation: fadeIn .2s ease; }
     .spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; animation: spinSlow .7s linear infinite; }
   `],
 })
