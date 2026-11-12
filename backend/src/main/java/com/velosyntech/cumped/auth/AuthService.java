@@ -72,8 +72,10 @@ public class AuthService {
         // Aceeași limită pentru orice email (existent sau nu): răspunsul nu trădează ce conturi există.
         throttle.check(email, ip);
         User u = users.findByEmail(email).orElse(null);
-        boolean ok = u != null && u.getPasswordHash() != null && encoder.matches(r.password(), u.getPasswordHash());
-        if (u == null || u.getPasswordHash() == null) encoder.matches(r.password(), dummyHash);
+        // parolele > 72 de octeți nu pot exista (bcrypt); verificăm totuși un hash, ca timpul de răspuns să fie același
+        boolean fits = !PasswordPolicy.tooLong(r.password());
+        boolean ok = fits && u != null && u.getPasswordHash() != null && encoder.matches(r.password(), u.getPasswordHash());
+        if (!fits || u == null || u.getPasswordHash() == null) encoder.matches(fits ? r.password() : "x", dummyHash);
         if (!ok) {
             long lock = throttle.fail(email, ip);
             if (u != null) {
@@ -121,7 +123,8 @@ public class AuthService {
     @Transactional
     public void changePassword(UUID userId, AuthDtos.ChangePasswordRequest r) {
         User u = users.findById(userId).orElseThrow(ApiException::notFound);
-        if (u.getPasswordHash() != null && (r.currentPassword() == null || !encoder.matches(r.currentPassword(), u.getPasswordHash())))
+        if (u.getPasswordHash() != null && (r.currentPassword() == null || PasswordPolicy.tooLong(r.currentPassword())
+                || !encoder.matches(r.currentPassword(), u.getPasswordHash())))
             throw invalidCredentials();
         PasswordPolicy.check(r.newPassword(), u.getEmail(), u.getUsername());
         u.setPasswordHash(encoder.encode(r.newPassword()));

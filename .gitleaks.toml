@@ -1,0 +1,10 @@
+# Căutare de secrete (gitleaks). Regulile standard + excepții pentru valori de test care nu sunt secrete reale.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valori false folosite doar în teste și în exemplul de configurare"
+paths = [
+  '''backend/src/test/''',
+  '''\.env\.example$''',
+]

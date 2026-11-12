@@ -10,8 +10,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProductionChecks {
     private final AppProperties props;
+    private final org.springframework.core.env.Environment env;
 
-    public ProductionChecks(AppProperties props) { this.props = props; }
+    public ProductionChecks(AppProperties props, org.springframework.core.env.Environment env) {
+        this.props = props;
+        this.env = env;
+    }
 
     @PostConstruct
     void verify() {
@@ -22,6 +26,8 @@ public class ProductionChecks {
         if (props.publicUrl() != null && !props.publicUrl().isBlank() && !props.publicUrl().startsWith("https://"))
             fail("PUBLIC_URL trebuie să înceapă cu https:// în producție.");
         if (props.demoData()) fail("DEMO_DATA nu poate fi activ în producție.");
+        String dbPass = env.getProperty("spring.datasource.password", "");
+        if (dbPass.length() < 12 || dbPass.equals("cumped")) fail("DB_PASSWORD trebuie să fie o parolă puternică (minim 12 caractere) în producție.");
     }
 
     private static void fail(String msg) { throw new IllegalStateException(msg); }

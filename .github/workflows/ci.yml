@@ -1,0 +1,116 @@
+# Rulează la fiecare push și pull request: teste backend (cu PostgreSQL real), build frontend,
+# audit de dependențe, verificarea configurației de producție și căutare de secrete în istoric.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (teste)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cumped_test
+          POSTGRES_USER: cumped
+          POSTGRES_PASSWORD: cumped
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cumped" --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Teste (unitare + integrare + securitate + conformitate legală)
+        run: ./gradlew test --no-daemon
+        env:
+          TEST_DB_URL: jdbc:postgresql://localhost:5432/cumped_test
+          DB_USER: cumped
+          DB_PASSWORD: cumped
+      - name: Raport teste
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: backend/build/reports/tests/test
+
+  frontend:
+    name: Frontend (build + audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Build de producție
+        run: npm run build
+      - name: Audit dependențe (vulnerabilități mari sau critice opresc build-ul)
+        run: npm audit --omit=dev --audit-level=high
+
+  config:
+    name: Configurație producție
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: nginx -t (antete de securitate, redirecționare HTTPS)
+        run: |
+          docker run --rm --add-host backend:127.0.0.1 \
+            -v "$PWD/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.27-alpine nginx -t
+      - name: Caddyfile valid
+        run: |
+          docker run --rm -e DOMAIN=example.com -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: docker compose valid
+        run: |
+          cp .env.example .env
+          DOMAIN=example.com docker compose --profile https config -q
+
+  secrets:
+    name: Secrete în istoricul git
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-graph:
+    name: Dependențe Java → alerte Dependabot
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/dependency-submission@v4
+        with:
+          build-root-directory: backend

@@ -1,0 +1,12 @@
+# HTTPS automat (Let's Encrypt). Caddy redirecționează singur HTTP → HTTPS.
+{$DOMAIN}, www.{$DOMAIN} {
+	encode zstd gzip
+	@www host www.{$DOMAIN}
+	redir @www https://{$DOMAIN}{uri} permanent
+
+	reverse_proxy web:80 {
+		# IP-ul clientului: Caddy îl pune singur (nu ia în seamă X-Forwarded-For trimis de client)
+		header_up X-Forwarded-Proto https
+	}
+	header -Server
+}

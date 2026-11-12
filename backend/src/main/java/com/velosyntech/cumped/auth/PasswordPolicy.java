@@ -6,6 +6,9 @@ import java.util.Locale;
 import java.util.Set;
 
 final class PasswordPolicy {
+    /** bcrypt folosește doar primii 72 de octeți: o parolă mai lungă ar fi trunchiată în tăcere (sau respinsă cu eroare). */
+    static final int MAX_BYTES = 72;
+
     private static final Set<String> COMMON = Set.of(
             "1234567890", "12345678910", "0123456789", "password123", "parola1234", "parolamea123", "qwertyuiop",
             "1q2w3e4r5t", "iloveyou12", "password12", "abcdefghij", "1111111111", "0000000000", "qwerty1234",
@@ -13,9 +16,14 @@ final class PasswordPolicy {
 
     private PasswordPolicy() {}
 
+    static boolean tooLong(String password) {
+        return password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > MAX_BYTES;
+    }
+
     static void check(String password, String email, String username) {
         String p = password.toLowerCase(Locale.ROOT);
-        if (password.length() < 10 || password.length() > 128) throw ApiException.badRequest("WEAK_PASSWORD");
+        if (password.length() < 10) throw ApiException.badRequest("WEAK_PASSWORD");
+        if (tooLong(password)) throw ApiException.badRequest("PASSWORD_TOO_LONG");
         if (COMMON.contains(p)) throw ApiException.badRequest("WEAK_PASSWORD");
         if (p.chars().distinct().count() < 5) throw ApiException.badRequest("WEAK_PASSWORD");
         String local = email == null ? "" : email.split("@")[0].toLowerCase(Locale.ROOT);

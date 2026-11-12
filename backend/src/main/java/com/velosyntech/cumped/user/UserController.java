@@ -226,6 +226,29 @@ public class UserController {
         out.put("favorites", queries.favorites(me));
         out.put("messagesSent", jdbc.sql("SELECT body, created_at FROM messages WHERE sender_id = ? ORDER BY created_at")
                 .param(me).query((rs, i) -> Map.of("body", rs.getString(1), "at", rs.getTimestamp(2).toInstant())).list());
+        out.put("orders", jdbc.sql("""
+                SELECT code, CASE WHEN buyer_id = ? THEN 'BUYER' ELSE 'SELLER' END, status, total_cents, currency, delivery, created_at,
+                       CASE WHEN buyer_id = ? THEN ship_name END, CASE WHEN buyer_id = ? THEN ship_address END,
+                       CASE WHEN buyer_id = ? THEN ship_city END, CASE WHEN buyer_id = ? THEN ship_phone END
+                FROM orders WHERE buyer_id = ? OR seller_id = ? ORDER BY created_at""")
+                .params(me, me, me, me, me, me, me)
+                .query((rs, i) -> {
+                    Map<String, Object> o = new LinkedHashMap<>();
+                    o.put("code", rs.getString(1)); o.put("role", rs.getString(2)); o.put("status", rs.getString(3));
+                    o.put("totalCents", rs.getLong(4)); o.put("currency", rs.getString(5)); o.put("delivery", rs.getString(6));
+                    o.put("createdAt", rs.getTimestamp(7).toInstant());
+                    o.put("shipName", com.velosyntech.cumped.common.FieldCrypto.decrypt(rs.getString(8)));
+                    o.put("shipAddress", com.velosyntech.cumped.common.FieldCrypto.decrypt(rs.getString(9)));
+                    o.put("shipCity", com.velosyntech.cumped.common.FieldCrypto.decrypt(rs.getString(10)));
+                    o.put("shipPhone", com.velosyntech.cumped.common.FieldCrypto.decrypt(rs.getString(11)));
+                    return o;
+                }).list());
+        out.put("reviewsWritten", jdbc.sql("SELECT rating, comment, created_at FROM reviews WHERE reviewer_id = ? ORDER BY created_at")
+                .param(me).query((rs, i) -> {
+                    Map<String, Object> r = new LinkedHashMap<>();
+                    r.put("rating", rs.getInt(1)); r.put("comment", rs.getString(2)); r.put("at", rs.getTimestamp(3).toInstant());
+                    return r;
+                }).list());
         audit.log(me, "DATA_EXPORT", null);
         return out;
     }

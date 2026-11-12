@@ -1,5 +1,5 @@
 # Pornire locală completă: docker compose up --build  →  http://localhost:8100
-# În producție pune un proxy HTTPS (ex. Caddy sau Cloudflare) în fața serviciului "web".
+# Producție (HTTPS automat cu Let's Encrypt, HTTP → HTTPS):  DOMAIN=cumped.com docker compose --profile https up -d --build
 services:
   db:
     image: postgres:16-alpine
@@ -7,6 +7,7 @@ services:
       POSTGRES_DB: cumped
       POSTGRES_USER: cumped
       POSTGRES_PASSWORD: ${DB_PASSWORD:?seteaza DB_PASSWORD in .env}
+    # baza de date nu e expusă în afara rețelei interne (fără "ports")
     volumes: [db:/var/lib/postgresql/data]
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U cumped"], interval: 5s, retries: 10 }
     restart: unless-stopped
@@ -23,10 +24,24 @@ services:
 
   web:
     build: ./frontend
-    ports: ["8100:80"]
+    # doar local (127.0.0.1): din internet se intră numai prin proxy-ul HTTPS de mai jos
+    ports: ["127.0.0.1:8100:80"]
     depends_on: [backend]
+    restart: unless-stopped
+
+  https:
+    image: caddy:2-alpine
+    profiles: [https]
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAIN: ${DOMAIN:?seteaza DOMAIN, ex. cumped.com}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy:/data
+    depends_on: [web]
     restart: unless-stopped
 
 volumes:
   db:
   uploads:
+  caddy:

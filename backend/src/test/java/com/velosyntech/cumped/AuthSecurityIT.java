@@ -34,7 +34,7 @@ class AuthSecurityIT {
 
     @Test
     void wrongPasswordIsGenericAndWeakPasswordIsRejected() {
-        TestClient.Res r = c.post("/api/auth/login", Map.of("email", "nobody@test.dev", "password", "whatever-123"));
+        TestClient.Res r = c.post("/api/auth/login", Map.of("email", "nobody-" + System.nanoTime() + "@test.dev", "password", "whatever-123"));
         assertThat(r.status()).isEqualTo(401);
         assertThat(r.error()).isEqualTo("INVALID_CREDENTIALS");
 

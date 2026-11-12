@@ -42,7 +42,8 @@ public class FieldCrypto {
     }
 
     public static String encrypt(String plain) {
-        if (plain == null || plain.isEmpty() || plain.startsWith(PREFIX)) return plain;
+        // fără excepții pentru text care „arată criptat”: altfel cineva ar putea salva date necriptate
+        if (plain == null || plain.isEmpty()) return plain;
         try {
             byte[] iv = new byte[12];
             RANDOM.nextBytes(iv);
