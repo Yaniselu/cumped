@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, NavController } from '@ionic/angular';
 import { Api } from '../core/api.service';
+import { compressImage } from '../core/image';
 import { AuthService } from '../core/auth.service';
 import { I18n, TPipe } from '../core/i18n.service';
 import { CATEGORY_ICONS } from '../core/icons';
@@ -514,16 +515,7 @@ export class SellPage implements OnInit {
     }
   }
 
-  /** Redimensionare și re-encodare în browser: mai rapid de încărcat, iar metadatele (inclusiv GPS) dispar. */
-  private async compress(file: File): Promise<Blob> {
-    const bmp = await createImageBitmap(file);
-    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(bmp.width * scale);
-    canvas.height = Math.round(bmp.height * scale);
-    canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-    return new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('encode'))), 'image/jpeg', 0.86));
-  }
+  private compress(file: File) { return compressImage(file); }
 
   removePhoto(i: number) { this.photos.update((p) => p.filter((_, j) => j !== i)); }
 

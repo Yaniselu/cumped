@@ -61,7 +61,22 @@ createdb cumped_test
 cd backend && ./gradlew test
 ```
 
-17 teste: autentificare, furt de sesiune (refolosirea refresh token-ului), IDOR, acces admin, token falsificat, cote, linkuri interzise, chat anti-țeapă, oferte și recenzii, Velo + email către suport, detector de fraudă, limitare de cereri.
+75 de teste pe server, pe PostgreSQL real:
+
+- `SecurityChecklistIT`: cele 20 de puncte de securitate (vezi [SECURITY.md](SECURITY.md))
+- `LegalComplianceIT`: GDPR (consimțământ, export, ștergere, minimizare), ePrivacy, DSA (contact, raportare, contestații, transparența comercianților), Omnibus (recenzii verificate), prețul total înainte de plată
+- `ReviewsAndDisputesIT`: recenzii doar după cumpărare, protecția vânzătorului (poze, serie, returnare înainte de rambursare)
+- `AuthSecurityIT`, `MarketplaceIT`, `RateLimitIT`, `FieldCryptoTest`, `ScamDetectorTest`
+
+Teste în browser (Playwright), cu serverul și aplicația pornite (`ng serve`):
+
+```bash
+cd frontend && npm run e2e
+```
+
+Verifică: fără scroll orizontal la 320–1280 px, ținte de atingere de 44 px, etichete și `alt`, tipografie (cifre tabelare, titluri echilibrate), combobox-ul de căutare cu tastatura, chat-ul instant cu retrimitere, dovezile la expediere și reclamația cu poze și serie, recenzia „Cumpărare verificată”.
+
+Toate rulează automat în GitHub Actions la fiecare push (plus gitleaks, CodeQL, `npm audit`, Dependabot).
 
 ## Producție (Docker)
 
@@ -73,7 +88,13 @@ cp .env.example .env   # completează valorile
 docker compose up --build -d
 ```
 
-Site-ul și API-ul rulează pe același domeniu (nginx trimite `/api` către backend). Pune HTTPS în față (Caddy, Cloudflare etc.).
+Site-ul și API-ul rulează pe același domeniu (nginx trimite `/api` către backend). Cu HTTPS automat (Let's Encrypt, HTTP → HTTPS):
+
+```bash
+DOMAIN=cumped.com docker compose --profile https up -d --build
+```
+
+În producție setează obligatoriu `DATA_ENCRYPTION_KEY` (`openssl rand -base64 32`) și o parolă puternică pentru baza de date; altfel serverul refuză să pornească.
 
 ## Aplicațiile de telefon
 
@@ -103,6 +124,10 @@ npx cap open ios       # Xcode (doar pe Mac)
 - Datele de card și codurile nu ajung în transcrieri, la AI sau în emailuri
 - Velo acționează singur doar cu dovezi independente (mesaje semnalate, încercări blocate sau mai mulți reclamanți); orice acțiune automată e temporară și se confirmă sau se anulează din admin
 - GDPR: export de date și ștergerea contului din Setări
+- Numele de pe act, adresa și telefonul de livrare criptate (AES-256-GCM); adresele șterse la 90 de zile după comandă
+- Anti-roboți la înregistrare: câmp-capcană, timp minim de completare, Cloudflare Turnstile opțional
+- JSON strict: câmpurile necunoscute (ex. `role`, `verifiedPurchase`) sunt respinse
+- Lista completă, punct cu punct: [SECURITY.md](SECURITY.md)
 
 ## Ce mai trebuie conectat înainte de lansare
 

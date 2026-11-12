@@ -46,9 +46,11 @@ import { NavController } from '@ionic/angular';
           <div class="grid">@for (c of listings(); track c.id; let i = $index) { <cmp-listing-card class="rv" [style.--i]="i" [item]="c" /> }</div>
           @if (reviews().length) {
             <div class="section-head"><h2>{{ 'profile.reviews' | t }}</h2></div>
+            <p class="rev-note"><ion-icon name="shield-checkmark-outline"></ion-icon>{{ 'reviews.onlyVerified' | t }}</p>
             @for (r of reviews(); track r.id) {
               <div class="rev card pad reveal"><div class="row between"><strong>{{ r.reviewerName }}@if (r.reviewerVerified) { <ion-icon name="shield-checkmark" class="vf"></ion-icon> }</strong>
-                <span class="stars">{{ '★'.repeat(r.rating) }}{{ '☆'.repeat(5 - r.rating) }}</span></div>
+                <span class="stars" role="img" [attr.aria-label]="'reviews.stars' | t: { n: r.rating }">{{ '★'.repeat(r.rating) }}{{ '☆'.repeat(5 - r.rating) }}</span></div>
+                @if (r.verifiedPurchase) { <span class="vp"><ion-icon name="bag-check-outline"></ion-icon>{{ (r.reviewerRole === 'SELLER' ? 'reviews.verifiedSale' : 'reviews.verifiedPurchase') | t }}</span> }
                 @if (r.comment) { <p>{{ r.comment }}</p> }<span class="faint small">{{ r.listingTitle }} · {{ i18n.ago(r.createdAt) }}</span></div>
             }
           }
@@ -64,6 +66,8 @@ import { NavController } from '@ionic/angular';
     .bio { color: var(--text-2); font-size: 15.5px; line-height: 1.5; }
     .realname { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); font-weight: 650; }
     .rev { margin-bottom: 10px; } .rev p { margin: 8px 0 6px; line-height: 1.5; } .stars { color: var(--warn); letter-spacing: 1px; } .vf { color: var(--accent); margin-left: 4px; vertical-align: -2px; }
+    .vp { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--ok-soft); color: var(--ok); }
+    .rev-note { display: flex; align-items: center; gap: 6px; margin: -4px 0 12px; font-size: 14px; color: var(--text-2); text-wrap: pretty; }
   `],
 })
 export class UserPage implements ViewWillEnter {

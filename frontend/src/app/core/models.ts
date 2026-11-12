@@ -42,14 +42,22 @@ export interface SellerStats { responseMinutes: number | null; responseRate: num
 
 export interface ShipAddress { name: string; address: string; city: string; postcode: string; country: string; phone: string; }
 export interface OrderQuote { itemCents: number; shippingCents: number; feeCents: number; totalCents: number; currency: string; offerApplied: boolean; courierAvailable: boolean; minDays: number; maxDays: number; }
-export type OrderStatus = 'PAID' | 'SHIPPED' | 'COMPLETED' | 'DISPUTED' | 'REFUNDED';
+export type OrderStatus = 'PAID' | 'SHIPPED' | 'COMPLETED' | 'DISPUTED' | 'RETURN_REQUESTED' | 'REFUNDED';
+/** Dovezile unei comenzi: ce a înregistrat vânzătorul la expediere și ce au trimis părțile într-o dispută. Pozele sunt linkuri semnate, temporare. */
+export interface OrderEvidence {
+  serialNumber: string | null; parcelWeightGrams: number | null; shipProof: string[]; disputeDetails: string | null; disputeEvidence: string[];
+  disputeSerial: string | null; serialMismatch: boolean; sellerResponse: string | null; sellerEvidence: string[]; disputedAt: string | null;
+  respondBy: string | null; returnBy: string | null; returnCarrier: string | null; returnTracking: string | null; returnShippedAt: string | null; resolution: string | null;
+}
 export interface Order {
   id: string; code: string; role: 'BUYER' | 'SELLER'; listing: Card | null; counterpart: PublicUser | null;
   itemCents: number; shippingCents: number; feeCents: number; totalCents: number; currency: string; delivery: 'PICKUP' | 'COURIER';
   shipTo: ShipAddress | null; carrier: string | null; trackingCode: string | null; status: OrderStatus; disputeReason: string | null; refundReason: string | null;
   createdAt: string; paidAt: string | null; shipBy: string | null; shippedAt: string | null; autoReleaseAt: string | null; completedAt: string | null; refundedAt: string | null;
   canShip: boolean; canConfirm: boolean; canDispute: boolean; canCancel: boolean; conversationId: string | null; simulated: boolean;
+  evidence: OrderEvidence; proofRequired: boolean; canRespond: boolean; canReturnShip: boolean; canReturnConfirm: boolean;
 }
+export interface AdminDispute { order: Order; buyerDisputes90d: number; buyerLost12m: number; sellerLost12m: number; }
 export interface ListingDraft { title: string; category: string; condition: string; description: string; attributes: { key: string; value: string }[];
   priceLow: number; priceHigh: number; confidence: 'LOW' | 'MEDIUM' | 'HIGH'; tips: string[]; }
 
@@ -59,7 +67,9 @@ export interface ConversationSummary {
   id: string; listing: { id: string; title: string; priceCents: number; currency: string; imageUrl: string | null; status: string };
   other: PublicUser; role: 'BUYER' | 'SELLER'; lastMessage: string | null; lastAt: string | null; unread: number; blocked: boolean;
 }
-export interface ChatMessage { id: string; mine: boolean; body: string; flagged: boolean; flagReason: string | null; createdAt: string; read: boolean; }
+export interface ChatMessage { id: string; mine: boolean; body: string; flagged: boolean; flagReason: string | null; createdAt: string; read: boolean;
+  /** Doar local (actualizare optimistă): mesajul e afișat înainte de confirmarea serverului. */
+  key?: string; pending?: boolean; failed?: boolean; }
 export interface Thread { conversation: ConversationSummary; messages: ChatMessage[]; }
 
 export type OfferStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN' | 'COUNTERED' | 'EXPIRED';
@@ -77,7 +87,8 @@ export interface AppNotification { id: string; type: string; params: Record<stri
 export interface Ticket { id: string; code: string; category: string; priority: string; status: string; autoAction: string | null; summary: string; createdAt: string; }
 export interface VeloReply { sessionId: string; reply: string; suggestions: string[]; ticket: Ticket | null; mode: 'AI' | 'RULES'; }
 
-export interface Review { id: string; rating: number; comment: string | null; reviewerName: string; reviewerVerified: boolean; listingTitle: string; createdAt: string; }
+export interface Review { id: string; rating: number; comment: string | null; reviewerName: string; reviewerVerified: boolean; listingTitle: string; createdAt: string;
+  verifiedPurchase: boolean; reviewerRole: 'BUYER' | 'SELLER' | null; }
 
 export interface Stats {
   totalViews: number; totalFavorites: number; totalMessages: number; totalOffers: number; soldCount: number;
@@ -86,7 +97,8 @@ export interface Stats {
 }
 
 export interface Company { name: string; address: string; regNo: string; vat: string; email: string; dpoEmail: string; }
-export interface ServerConfig { company: Company; termsVersion: string; inAppPurchases: boolean; googleLogin: boolean; appleLogin: boolean; veloAi: 'AI' | 'RULES'; devMode: boolean; freeActiveListings: number; referralBonusListings: number; referralsNeeded: number; }
+export interface ServerConfig { company: Company; termsVersion: string; inAppPurchases: boolean; googleLogin: boolean; appleLogin: boolean; veloAi: 'AI' | 'RULES'; devMode: boolean; freeActiveListings: number; referralBonusListings: number; referralsNeeded: number;
+  captchaSiteKey: string | null; }
 
 export interface ShippingEstimate { available: boolean; zone: string | null; minCents: number; maxCents: number; currency: string; minDays: number; maxDays: number; }
 

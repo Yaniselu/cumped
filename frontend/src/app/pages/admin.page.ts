@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonModal } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { I18n, TPipe } from '../core/i18n.service';
-import { Order, AdminTicket } from '../core/models';
+import { AdminDispute, AdminTicket } from '../core/models';
 import { Ui } from '../core/ui.service';
 import { BackButtonComponent } from '../shared/back-button.component';
 import { EmptyComponent } from '../shared/empty.component';
@@ -24,12 +24,38 @@ import { EmptyComponent } from '../shared/empty.component';
         </div>
         @if (disputes().length) {
           <div class="section-head"><h2>{{ 'admin.disputes' | t }}</h2></div>
-          @for (o of disputes(); track o.id) {
+          @for (d of disputes(); track d.order.id) {
+            @let o = d.order;
             <div class="card pad dsp">
               <div class="row between"><b>{{ o.code }} · {{ o.listing?.title }}</b><span class="pri" data-p="HIGH">{{ 'orders.reasons.' + o.disputeReason | t }}</span></div>
-              <p class="muted small">{{ i18n.price(o.totalCents, o.currency) }} · {{ 'neg.seller' | t }}: {{ o.counterpart?.displayName }}</p>
-              <div class="row"><button class="btn sm light" (click)="resolve(o.id, 'REFUND')">{{ 'admin.refund' | t }}</button>
-                <button class="btn sm" (click)="resolve(o.id, 'RELEASE')">{{ 'admin.release' | t }}</button></div>
+              <p class="muted small tnum">{{ i18n.price(o.totalCents, o.currency) }} · {{ 'neg.seller' | t }}: {{ o.counterpart?.displayName }} · {{ 'orders.status.' + o.status | t }}</p>
+              <div class="flags">
+                @if (d.buyerDisputes90d >= 3) { <span class="fl bad">{{ 'admin.f.manyClaims' | t: { n: d.buyerDisputes90d } }}</span> }
+                @if (d.buyerLost12m > 0) { <span class="fl bad">{{ 'admin.f.buyerLost' | t: { n: d.buyerLost12m } }}</span> }
+                @if (d.sellerLost12m > 0) { <span class="fl warn">{{ 'admin.f.sellerLost' | t: { n: d.sellerLost12m } }}</span> }
+                @if (o.evidence.serialMismatch) { <span class="fl bad">{{ 'protect.mismatch' | t }}</span> }
+                @else if (o.evidence.disputeSerial) { <span class="fl ok">{{ 'protect.match' | t }}</span> }
+                @if (o.evidence.shipProof.length) { <span class="fl ok">{{ 'admin.f.shipProof' | t: { n: o.evidence.shipProof.length } }}</span> }
+                @if (o.evidence.sellerResponse) { <span class="fl">{{ 'admin.f.sellerAnswered' | t }}</span> }
+              </div>
+              @if (o.evidence.disputeDetails) { <p class="q"><b>{{ 'neg.buyer' | t }}:</b> {{ o.evidence.disputeDetails }}</p> }
+              @if (o.evidence.sellerResponse) { <p class="q"><b>{{ 'neg.seller' | t }}:</b> {{ o.evidence.sellerResponse }}</p> }
+              @for (g of [['protect.shipEvidence', o.evidence.shipProof], ['protect.claim', o.evidence.disputeEvidence], ['protect.sellerAnswer', o.evidence.sellerEvidence]]; track $index) {
+                @if ($any(g[1]).length) {
+                  <span class="faint small">{{ $any(g[0]) | t }}</span>
+                  <div class="pics">@for (u of $any(g[1]); track u) { <a [href]="api.url(u)" target="_blank" rel="noopener"><img [src]="api.url(u)" alt="" loading="lazy" /></a> }</div>
+                }
+              }
+              @if (o.evidence.serialNumber) { <p class="small tnum">{{ 'protect.serialShort' | t }}: <b>{{ o.evidence.serialNumber }}</b>
+                @if (o.evidence.disputeSerial) { · {{ 'protect.reportedSerial' | t }}: <b>{{ o.evidence.disputeSerial }}</b> }</p> }
+              @if (o.status === 'DISPUTED') {
+                <div class="row wrap">
+                  <button class="btn sm" (click)="resolve(o.id, 'RETURN')">{{ 'admin.return' | t }}</button>
+                  <button class="btn sm light" (click)="resolve(o.id, 'REFUND')">{{ 'admin.refund' | t }}</button>
+                  <button class="btn sm light" (click)="resolve(o.id, 'RELEASE')">{{ 'admin.release' | t }}</button>
+                </div>
+                <p class="faint small">{{ 'admin.returnHint' | t }}</p>
+              } @else { <p class="faint small">{{ 'admin.waitingReturn' | t }}</p> }
             </div>
           }
         }
@@ -49,7 +75,7 @@ import { EmptyComponent } from '../shared/empty.component';
         }
       </div>
 
-      <ion-modal [isOpen]="!!sel()" (didDismiss)="sel.set(null)" [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9]">
+      <ion-modal [isOpen]="!!sel()" (didDismiss)="sel.set(null)" [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9, 1]">
         <ng-template>
           <ion-content>
             @if (sel(); as s) {
@@ -83,19 +109,27 @@ import { EmptyComponent } from '../shared/empty.component';
     .pri[data-p="URGENT"] { background: var(--accent-2); color: #fff; } .pri[data-p="HIGH"] { background: var(--accent-2-soft); color: var(--accent-2); } .pri[data-p="MEDIUM"] { background: var(--warn-soft); color: var(--warn); }
     .mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; } .mid .row { flex-wrap: wrap; gap: 6px; }
     .sum { font-size: 15px; line-height: 1.45; }
-    .sheet { padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 12px; }
+    .sheet { padding: 22px max(20px, env(safe-area-inset-right) + 12px) calc(env(safe-area-inset-bottom) + 40px) max(20px, env(safe-area-inset-left) + 12px); display: flex; flex-direction: column; gap: 12px; }
     .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .dsp { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .flags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fl { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); }
+    .fl.bad { background: var(--accent-2-soft); color: var(--accent-2); } .fl.warn { background: var(--warn-soft); color: var(--warn); } .fl.ok { background: var(--ok-soft); color: var(--ok); }
+    .q { margin: 0; font-size: 15px; line-height: 1.5; max-width: 68ch; }
+    .pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+    .pics a { display: block; aspect-ratio: 1; border-radius: 10px; overflow: hidden; } .pics img { width: 100%; height: 100%; object-fit: cover; }
+    .row.wrap { flex-wrap: wrap; gap: 8px; }
     .tr { white-space: pre-wrap; font-size: 14px; line-height: 1.5; background: var(--surface); padding: 14px; border-radius: 16px; border: 1px solid var(--line); font-family: ui-monospace, monospace; }
   `],
 })
 export class AdminPage implements OnInit {
-  private api = inject(Api);
+  api = inject(Api);
   i18n = inject(I18n);
   private ui = inject(Ui);
   keys = ['openTickets', 'pendingAutoActions', 'blockedMessages24h', 'users', 'verifiedUsers', 'activeListings', 'pendingEmails'];
   ov = signal<Record<string, number>>({});
   tickets = signal<AdminTicket[]>([]);
-  disputes = signal<Order[]>([]);
+  disputes = signal<AdminDispute[]>([]);
   status = signal('OPEN');
   sel = signal<{ ticket: AdminTicket; transcript: string } | null>(null);
 
@@ -106,9 +140,10 @@ export class AdminPage implements OnInit {
     this.api.disputedOrders().then((d) => this.disputes.set(d)).catch(() => {});
   }
 
-  async resolve(id: string, outcome: 'REFUND' | 'RELEASE') {
-    if (!(await this.ui.confirm(this.i18n.t(outcome === 'REFUND' ? 'admin.refundConfirm' : 'admin.releaseConfirm'), this.i18n.t('common.confirm')))) return;
-    try { await this.api.resolveOrder(id, outcome); this.disputes.update((l) => l.filter((o) => o.id !== id)); this.ui.toast(this.i18n.t('admin.done')); }
+  async resolve(id: string, outcome: 'RETURN' | 'REFUND' | 'RELEASE') {
+    const msg = { RETURN: 'admin.returnConfirm', REFUND: 'admin.refundConfirm', RELEASE: 'admin.releaseConfirm' }[outcome];
+    if (!(await this.ui.confirm(this.i18n.t(msg), this.i18n.t('common.confirm')))) return;
+    try { await this.api.resolveOrder(id, outcome); this.ui.toast(this.i18n.t('admin.done')); this.api.disputedOrders().then((d) => this.disputes.set(d)).catch(() => {}); }
     catch (e) { this.ui.error(e); }
   }
   async open(t: AdminTicket) { try { this.sel.set(await this.api.adminTicket(t.id)); } catch (e) { this.ui.error(e); } }

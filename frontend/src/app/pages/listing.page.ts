@@ -272,7 +272,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
         }
       }
 
-      <ion-modal [isOpen]="offerOpen()" (didDismiss)="offerOpen.set(false)" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85]">
+      <ion-modal [isOpen]="offerOpen()" (didDismiss)="offerOpen.set(false)" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85, 1]">
         <ng-template>
           <ion-content>
             <div class="sheet">
@@ -309,7 +309,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
       @if (d(); as x) {
         <cmp-report-sheet [(open)]="reportOpen" target="LISTING" [targetId]="x.id" />
         <cmp-checkout-sheet [(open)]="buyOpen" [listing]="x" />
-        <ion-modal [isOpen]="alertOpen()" (didDismiss)="alertOpen.set(false)" [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7]">
+        <ion-modal [isOpen]="alertOpen()" (didDismiss)="alertOpen.set(false)" [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 1]">
           <ng-template>
             <ion-content>
               <div class="sheet">
@@ -451,7 +451,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
     .sstats span { display: inline-flex; align-items: center; gap: 6px; } .sstats ion-icon { color: var(--accent); font-size: 17px; }
     .head h1 { overflow-wrap: anywhere; }
     @media (max-width: 360px) { .head h1 { font-size: 21px; } .price { font-size: 22px; } .top { flex-direction: column; gap: 6px; } .prices { text-align: left; } }
-    .sheet { padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 14px; }
+    .sheet { padding: 22px max(20px, env(safe-area-inset-right) + 12px) calc(env(safe-area-inset-bottom) + 40px) max(20px, env(safe-area-inset-left) + 12px); display: flex; flex-direction: column; gap: 14px; }
     .seg { display: flex; padding: 5px; border-radius: 999px; background: var(--surface-2); }
     .seg button { flex: 1; height: 44px; border: 0; border-radius: 999px; background: transparent; font-weight: 600; color: var(--text-2); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all .3s var(--ease); }
     .seg button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-card); }

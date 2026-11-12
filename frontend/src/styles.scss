@@ -7,8 +7,8 @@
 @use '@fontsource-variable/inter' as *;
 
 :root {
-  --font-display: 'Familjen Grotesk Variable', 'Inter Variable', system-ui, sans-serif;
-  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Familjen Grotesk Variable', 'Inter Variable', 'Inter Fallback', system-ui, sans-serif;
+  --font-body: 'Inter Variable', 'Inter Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --bg: #ececef;
   --bg-grad: radial-gradient(1200px 600px at 10% -10%, #f6f4ff 0%, transparent 60%), radial-gradient(900px 500px at 110% 10%, #fff3f1 0%, transparent 55%), #ececef;
@@ -422,3 +422,126 @@ em, i:not([class]), .msg { font-style: normal !important; }
 /* doar paginile și ferestrele se măresc; bara de jos rămâne la mărimea ei ca să încapă pe orice telefon */
 html.ts-lg .ion-page { zoom: 1.12; }
 html.ts-xl .ion-page { zoom: 1.25; }
+
+
+/* ==========================================================================
+   Detalii de design (tipografie, culoare, interacțiune)
+   ========================================================================== */
+
+/* Layout shift: fontul de rezervă are aceleași proporții ca Inter, ca textul să nu „sară” când se încarcă fontul. */
+@font-face {
+  font-family: 'Inter Fallback'; src: local('Arial'), local('Helvetica'), local('Roboto');
+  size-adjust: 107%; ascent-override: 90%; descent-override: 22.5%; line-gap-override: 0%;
+}
+
+/* OKLCH: aceleași culori, definite perceptual (luminozitate egală între nuanțe, variante „soft” calculate corect).
+   Browserele vechi folosesc valorile hex de mai sus. */
+@supports (color: oklch(0% 0 0)) {
+  :root {
+    --bg: oklch(94.4% 0.004 286.3); --surface: oklch(100% 0 0); --surface-2: oklch(96.8% 0.003 286.4); --surface-3: oklch(93.5% 0.005 286.3);
+    --text: oklch(17.9% 0.004 286); --text-2: oklch(39.3% 0.013 285.8); --text-3: oklch(51% 0.015 285.9);
+    --accent: oklch(52.2% 0.255 280.3); --accent-2: oklch(62% 0.21 27.8); --ok: oklch(55% 0.14 159.7); --warn: oklch(60% 0.15 63);
+    --accent-soft: oklch(52.2% 0.255 280.3 / 0.1); --accent-2-soft: oklch(62% 0.21 27.8 / 0.12);
+    --ok-soft: oklch(55% 0.14 159.7 / 0.12); --warn-soft: oklch(60% 0.15 63 / 0.13);
+    --line: oklch(17.9% 0.004 286 / 0.08); --line-strong: oklch(17.9% 0.004 286 / 0.16);
+    --focus: oklch(52.2% 0.255 280.3);
+  }
+  :root.dark {
+    --bg: oklch(14.6% 0.004 285.9); --surface: oklch(20.2% 0.006 285.9); --surface-2: oklch(23.7% 0.008 285.8); --surface-3: oklch(28.7% 0.011 285.7);
+    --text: oklch(96.8% 0.003 286.4); --text-2: oklch(83.9% 0.012 286.1); --text-3: oklch(72% 0.016 286);
+    --accent: oklch(66% 0.2 285.9); --accent-soft: oklch(66% 0.2 285.9 / 0.18);
+    --accent-2: oklch(72% 0.18 27.8); --accent-2-soft: oklch(72% 0.18 27.8 / 0.16);
+    --ok: oklch(74% 0.15 159.7); --ok-soft: oklch(74% 0.15 159.7 / 0.16); --warn: oklch(78% 0.15 63); --warn-soft: oklch(78% 0.15 63 / 0.16);
+    --line: oklch(100% 0 0 / 0.09); --line-strong: oklch(100% 0 0 / 0.18); --focus: oklch(72% 0.17 285.9);
+  }
+}
+:root { --line-strong: rgba(17, 17, 19, 0.16); --focus: #5b3df5; }
+:root.dark { --line-strong: rgba(255, 255, 255, 0.18); --focus: #9a83ff; }
+
+/* Kerning + ligaturi + x-height: perechi de litere spațiate corect, înălțimea literelor mici păstrată și pe fontul de rezervă. */
+html, body {
+  font-kerning: normal; font-optical-sizing: auto; font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  font-size-adjust: from-font; text-rendering: optimizeLegibility; text-size-adjust: 100%; -webkit-text-size-adjust: 100%;
+}
+input, textarea, select, button { font-kerning: normal; font-feature-settings: inherit; }
+
+/* Leading (interlinie): mai strâns la titluri mari, mai aerisit la text lung. */
+h1 { line-height: 1.08; } h2 { line-height: 1.18; } h3 { line-height: 1.28; }
+.small, .hint { line-height: 1.45; }
+.prose, .prose p, .desc, .legal-body p { line-height: 1.65; }
+
+/* Tracking (spațiere între litere): negativ la titluri, neutru la text, pozitiv la etichete mici și MAJUSCULE. */
+h1 { letter-spacing: -0.028em; } h2 { letter-spacing: -0.02em; } h3 { letter-spacing: -0.012em; }
+.small, .hint, .badge, .chip { letter-spacing: 0.003em; }
+.caps, .eyebrow { text-transform: uppercase; letter-spacing: 0.06em; font-size: 12.5px; font-weight: 700; }
+
+/* Cifre tabelare: prețurile, sumele, orele și contoarele nu „dansează” când se schimbă. */
+.tnum, .price, .amt, .kpi strong, .time, time, [cmpCount], .r b, .sum b, .stars, input[type='number'], input[inputmode='numeric'] {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Văduve și orfani: titlurile se împart echilibrat, paragrafele nu lasă un cuvânt singur pe ultimul rând. */
+h1, h2, h3, .title, .hero h2 { text-wrap: balance; }
+p, li, .hint, .sub, .muted, .error-text { text-wrap: pretty; }
+
+/* Lungimea rândului: textul lung nu depășește ~68 de caractere pe rând (citire confortabilă pe tabletă/desktop). */
+p, .prose, .desc, .legal-body, .hero p, .error-text, .quote { max-width: 68ch; }
+:where(.center, .hero, .empty, .head, .done, .ok-box) p, p.center { margin-left: auto; margin-right: auto; }
+
+/* Centru optic: textul din butoane e centrat pe înălțimea literelor, nu pe cutia fontului; iconițele „săgeată” sunt mutate spre centrul vizual. */
+@supports (text-box: trim-both cap alphabetic) {
+  .btn, .chip, .badge, .st, .pri, .fl { text-box: trim-both cap alphabetic; }
+}
+.icon-btn ion-icon[name='chevron-forward'], .icon-btn ion-icon[name='arrow-forward'] { transform: translateX(1px); }
+.icon-btn ion-icon[name='chevron-back'], .icon-btn ion-icon[name='arrow-back'] { transform: translateX(-1px); }
+.sendbtn ion-icon[name='send'], ion-icon[name='paper-plane-outline'] { transform: translate(1px, -0.5px); }
+ion-icon[name='play'], ion-icon[name='play-outline'] { transform: translateX(1.5px); }
+
+/* Ținte de atingere: minimum 44×44 px. Butoanele mici păstrează aspectul, dar zona de atingere e extinsă invizibil. */
+.icon-btn.sm::after, .chip::after, .clr::after, .retry::after, .linkbtn::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+}
+.chip, .linkbtn, .clr, .retry { position: relative; }
+.chip { overflow: visible; }
+.stars button { min-width: 44px; min-height: 44px; }
+.section-head a, .section-head button { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; margin: -12px -8px; }
+a.small, .foot a { display: inline-block; padding-block: 10px; margin-block: -10px; }
+
+/* Affordance: ce se poate apăsa arată că se poate apăsa. Linkurile din text sunt subliniate; focusul de la tastatură e mereu vizibil. */
+p a, .hint a, .consent a, .legal-body a, .foot a, li a {
+  text-decoration: underline; text-decoration-thickness: from-font; text-underline-offset: 0.18em; text-decoration-color: color-mix(in oklab, currentColor 45%, transparent);
+}
+p a:hover, .consent a:hover, .legal-body a:hover { text-decoration-color: currentColor; }
+:where(a, button, [role='button'], [role='option'], input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus); outline-offset: 3px; border-radius: inherit;
+}
+.input:focus-visible { outline: none; }
+button:not(:disabled), [role='button'], [role='option'], label.chk, summary, select { cursor: pointer; }
+.btn:disabled, button:disabled { cursor: not-allowed; }
+@media (hover: hover) and (pointer: fine) {
+  .btn:not(:disabled):hover { filter: brightness(1.06); }
+  .btn.light:not(:disabled):hover, .chip:hover { border-color: var(--line-strong); }
+  .card.press:hover, a.card:hover { box-shadow: var(--shadow-card), 0 0 0 1px var(--line-strong); }
+  .icon-btn:hover { transform: translateY(-1px); }
+}
+
+/* Stagger: elementele apar pe rând, dar cu întârziere plafonată (o listă lungă nu așteaptă secunde). */
+.reveal { animation-delay: calc(min(var(--i, 0), 8) * 50ms); }
+.rv { transition-delay: calc(min(var(--i, 0), 6) * 40ms); }
+
+/* Animații cu origine: dialogurile cresc din punctul unde ai atins (setat din cod), meniurile din butonul care le-a deschis. */
+ion-alert .alert-wrapper { transform-origin: var(--cmp-origin, 50% 50%); }
+
+/* Zone sigure (notch, colțuri rotunjite, landscape): conținutul nu intră sub ele, nici în stânga/dreapta. */
+.page {
+  padding-left: max(18px, env(safe-area-inset-left) + 12px);
+  padding-right: max(18px, env(safe-area-inset-right) + 12px);
+}
+@media (max-width: 359px) {
+  .page { padding-left: max(12px, env(safe-area-inset-left) + 8px); padding-right: max(12px, env(safe-area-inset-right) + 8px); }
+}
+ion-toast { --start: env(safe-area-inset-left); --end: env(safe-area-inset-right); }
+
+/* Layout shift: bara de derulare nu mută conținutul pe desktop; imaginile din conținut au raport fix. */
+@media (min-width: 992px) { html { scrollbar-gutter: stable; } }
+img { max-width: 100%; }

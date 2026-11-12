@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -40,9 +41,11 @@ public class MediaService {
 
     private final ListingImageRepository images;
     private final Path root;
+    private final org.springframework.jdbc.core.simple.JdbcClient jdbc;
 
-    public MediaService(ListingImageRepository images, AppProperties props) throws IOException {
+    public MediaService(ListingImageRepository images, AppProperties props, org.springframework.jdbc.core.simple.JdbcClient jdbc) throws IOException {
         this.images = images;
+        this.jdbc = jdbc;
         this.root = Path.of(props.uploadsDir()).toAbsolutePath().normalize();
         Files.createDirectories(root);
     }
@@ -115,6 +118,12 @@ public class MediaService {
         for (ListingImage img : images.findByListingIdIsNullAndPurposeAndCreatedAtBefore("LISTING", Instant.now().minus(Duration.ofHours(24)))) {
             delete(img);
         }
+        // Pozele-dovadă: păstrate 6 luni după încheierea comenzii (pentru contestații), apoi șterse (GDPR, minimizare).
+        List<UUID> old = jdbc.sql("""
+                SELECT i.id FROM listing_images i JOIN orders o ON o.id = i.order_id
+                WHERE i.purpose = 'EVIDENCE' AND o.status IN ('COMPLETED', 'REFUNDED')
+                  AND coalesce(o.completed_at, o.refunded_at) < now() - interval '180 days'""").query(UUID.class).list();
+        images.findAllById(old).forEach(this::delete);
     }
 
     @Transactional

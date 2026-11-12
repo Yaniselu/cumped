@@ -20,7 +20,7 @@ import {
   serverOutline, settings, settingsOutline, shareSocialOutline, shield, shieldCheckmark, shieldCheckmarkOutline,
   shirtOutline, sparkles, sparklesOutline, speedometerOutline, star, starOutline, statsChartOutline, sunnyOutline,
   swapHorizontal, swapVertical, swapVerticalOutline, text, ticket, ticketOutline, time, timeOutline, trashOutline,
-  trendingDown, tv, warning,
+  trendingDown, tv, warning, shieldHalfOutline, warningOutline, checkmarkCircleOutline, chatboxEllipsesOutline,
 } from 'ionicons/icons';
 
 export function registerIcons() {
@@ -44,7 +44,7 @@ export function registerIcons() {
     serverOutline, settings, settingsOutline, shareSocialOutline, shield, shieldCheckmark, shieldCheckmarkOutline,
     shirtOutline, sparkles, sparklesOutline, speedometerOutline, star, starOutline, statsChartOutline, sunnyOutline,
     swapHorizontal, swapVertical, swapVerticalOutline, text, ticket, ticketOutline, time, timeOutline, trashOutline,
-    trendingDown, tv, warning,
+    trendingDown, tv, warning, shieldHalfOutline, warningOutline, checkmarkCircleOutline, chatboxEllipsesOutline,
   });
 }
 

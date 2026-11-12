@@ -170,6 +170,12 @@ class SecurityChecklistIT {
             assertThat(r.raw().body()).doesNotContain("$2a$").doesNotContain("bcrypt");
         }
         assertThat(anon.get("/api/listings?sort=" + java.net.URLEncoder.encode("price; DROP TABLE listings", java.nio.charset.StandardCharsets.UTF_8)).status()).isIn(200, 400);
+        // sugestiile de căutare: caracterele speciale din LIKE nu întorc „tot”
+        for (String q : List.of("%%", "__", "\\", "' OR 1=1 --")) {
+            TestClient.Res s = anon.get("/api/listings/suggest?q=" + java.net.URLEncoder.encode(q, java.nio.charset.StandardCharsets.UTF_8));
+            assertThat(s.status()).as(q).isEqualTo(200);
+            assertThat(s.body().size()).as(q).isZero();
+        }
         TestClient u = user();
         String title = "Robert'); DROP TABLE listings;--";
         TestClient.Res created = u.post("/api/listings", listing(title));

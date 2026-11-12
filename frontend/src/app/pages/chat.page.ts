@@ -39,7 +39,7 @@ import { BackButtonComponent } from '../shared/back-button.component';
         }
         <div class="safety"><ion-icon name="shield-checkmark"></ion-icon>{{ 'chat.safety' | t }}</div>
         <div class="msgs">
-          @for (m of messages(); track m.id; let i = $index) {
+          @for (m of messages(); track m.key ?? m.id; let i = $index) {
             @if (offerOf(m); as e) {
               <a class="oev" [class.fresh]="i >= freshFrom" [attr.data-e]="e.event" routerLink="/offers">
                 <span class="oi"><ion-icon [name]="evIcon(e.event, e.kind)"></ion-icon></span>
@@ -53,7 +53,7 @@ import { BackButtonComponent } from '../shared/back-button.component';
                 <ion-icon name="chevron-forward" class="faint"></ion-icon>
               </a>
             } @else {
-            <div class="msg" [class.mine]="m.mine" [class.fresh]="i >= freshFrom">
+            <div class="msg" [class.mine]="m.mine" [class.fresh]="i >= freshFrom" [class.pending]="m.pending" [class.failed]="m.failed">
               <div class="bubble" (click)="!m.mine && sel.set(sel() === m.id ? null : m.id)">{{ m.body }}</div>
               @if (translated()[m.id]; as tr) { <div class="trans fade"><ion-icon name="language-outline"></ion-icon>{{ tr }}</div> }
               @if (!m.mine && aiOn() && !translated()[m.id]) { <button class="tbtn" (click)="translate(m.id)" [disabled]="translating() === m.id">{{ (translating() === m.id ? 'ai.translating' : 'ai.translate') | t }}</button> }
@@ -64,7 +64,11 @@ import { BackButtonComponent } from '../shared/back-button.component';
                   @if (!m.mine) { <button (click)="report()">{{ 'chat.reportUser' | t }}</button> }
                 </div>
               }
-              <span class="time">{{ i18n.date(m.createdAt, { hour: '2-digit', minute: '2-digit' }) }}@if (m.mine && m.read) { · ✓✓ }</span>
+              @if (m.failed) {
+                <span class="time fail" role="status"><ion-icon name="alert-circle"></ion-icon>{{ 'chat.failed' | t }} ·
+                  <button class="retry" (click)="retry(m)">{{ 'chat.retry' | t }}</button></span>
+              } @else if (m.pending) { <span class="time" role="status">{{ 'chat.sending' | t }}</span> }
+              @else { <span class="time tnum">{{ i18n.date(m.createdAt, { hour: '2-digit', minute: '2-digit' }) }}@if (m.mine && m.read) { · ✓✓ }</span> }
             </div>
             }
           }
@@ -80,7 +84,7 @@ import { BackButtonComponent } from '../shared/back-button.component';
       } @else {
       <form class="composer glass" (ngSubmit)="send()">
         <textarea [(ngModel)]="text" name="text" rows="1" maxlength="2000" [placeholder]="'chat.placeholder' | t" (keydown.enter)="enter($event)" [attr.aria-label]="'chat.placeholder' | t"></textarea>
-        <button class="sendbtn" [disabled]="!text.trim() || sending()" [attr.aria-label]="'common.send' | t"><ion-icon name="send"></ion-icon></button>
+        <button class="sendbtn" [disabled]="!text.trim()" [attr.aria-label]="'common.send' | t"><ion-icon name="send"></ion-icon></button>
       </form>
       }
     </ion-footer>
@@ -99,6 +103,10 @@ import { BackButtonComponent } from '../shared/back-button.component';
     .msgs { display: flex; flex-direction: column; gap: 10px; }
     .msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 82%; }
     .msg.mine { align-self: flex-end; align-items: flex-end; }
+    .msg.pending .bubble { opacity: .7; }
+    .msg.failed .bubble { opacity: .55; outline: 2px solid var(--accent-2); outline-offset: 2px; }
+    .time.fail { display: inline-flex; align-items: center; gap: 4px; color: var(--accent-2); font-weight: 600; }
+    .retry { border: 0; background: none; padding: 6px 4px; min-height: 32px; color: var(--accent-2); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: .18em; cursor: pointer; }
     .msg.fresh { animation: msgIn .45s var(--spring) both; }
     @keyframes msgIn { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
     .bubble { padding: 11px 15px; border-radius: 22px 22px 22px 8px; background: var(--surface); box-shadow: var(--shadow-card); border: 1px solid var(--line); line-height: 1.45; font-size: 16px; white-space: pre-wrap; word-break: break-word; }
@@ -172,8 +180,10 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
       if (first && t.conversation.blocked) this.api.blocks().then((b) => this.iBlocked.set(b.some((u) => u.id === t.conversation.other.id))).catch(() => {});
       const before = this.messages().length;
       if (first) this.freshFrom = t.messages.length;
-      if (t.messages.length !== before || first) {
-        this.messages.set(t.messages);
+      const local = this.messages().filter((m) => m.pending || m.failed);
+      if (t.messages.length + local.length !== before || first) {
+        // mesajele deja confirmate își păstrează cheia locală (fără re-animare); cele în curs rămân la final
+        this.messages.set([...t.messages.map((m) => (this.confirmed.has(m.id) ? { ...m, key: this.confirmed.get(m.id) } : m)), ...local]);
         setTimeout(() => this.content?.scrollToBottom(first ? 0 : 300), 30);
       }
       if (first) this.badges.refresh();
@@ -185,19 +195,42 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
     if (!k.shiftKey && window.innerWidth > 768) { k.preventDefault(); this.send(); }
   }
 
+  /** Actualizare optimistă: mesajul apare imediat; dacă serverul îl refuză, îl marcăm și poate fi retrimis. */
   async send() {
     const body = this.text.trim();
     if (!body) return;
-    this.sending.set(true);
+    const key = 'tmp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    const tmp: ChatMessage = { id: key, key, mine: true, body, flagged: false, flagReason: null, createdAt: new Date().toISOString(), read: false, pending: true };
+    this.text = '';
     this.blocked.set(false);
+    this.messages.update((m) => [...m, tmp]);
+    this.ui.tap();
+    setTimeout(() => this.content?.scrollToBottom(300), 30);
+    await this.deliver(tmp);
+  }
+
+  retry(m: ChatMessage) {
+    this.messages.update((l) => l.map((x) => (x.key === m.key ? { ...x, failed: false, pending: true } : x)));
+    this.deliver(m);
+  }
+
+  private confirmed = new Map<string, string>();
+
+  private async deliver(m: ChatMessage) {
+    this.sending.set(true);
     try {
-      const r = await this.api.sendMessage(this.id(), body);
-      this.text = '';
-      this.messages.update((m) => [...m, r.message]);
-      this.ui.tap();
-      setTimeout(() => this.content?.scrollToBottom(300), 30);
+      const r = await this.api.sendMessage(this.id(), m.body);
+      this.confirmed.set(r.message.id, m.key!);
+      this.messages.update((l) => l.map((x) => (x.key === m.key ? { ...r.message, key: m.key } : x)));
     } catch (e) {
-      if (errorCode(e) === 'MESSAGE_BLOCKED') this.blocked.set(true); else this.ui.error(e);
+      if (errorCode(e) === 'MESSAGE_BLOCKED') {
+        // mesajul nu e permis (ex. date de card): îl scoatem și îl punem înapoi în câmp, ca să poată fi corectat
+        this.messages.update((l) => l.filter((x) => x.key !== m.key));
+        this.text = m.body;
+        this.blocked.set(true);
+      } else {
+        this.messages.update((l) => l.map((x) => (x.key === m.key ? { ...x, pending: false, failed: true } : x)));
+      }
     }
     this.sending.set(false);
   }

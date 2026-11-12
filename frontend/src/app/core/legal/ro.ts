@@ -6,7 +6,7 @@ import { LegalDocs } from './types';
 
 const docs: LegalDocs = {
   terms: {
-    title: 'Termeni și condiții', updated: '2026-11-09',
+    title: 'Termeni și condiții', updated: '2026-11-12',
     sections: [
       { h: '1. Cine suntem', p: [
         'Cumped este o platformă online prin care persoane fizice și firme publică anunțuri, negociază și cumpără produse și servicii. Platforma este operată de {company}, cu sediul în {address}, înregistrată sub nr. {regNo}, CUI {vat}, email {email} („noi”).',
@@ -30,38 +30,49 @@ const docs: LegalDocs = {
         'Plata sigură costă 2,5% din valoarea produsului (minimum 0,50 €, maximum 20 €) și este plătită de cumpărător. Prețurile includ TVA acolo unde se aplică. Abonamentele se reînnoiesc lunar și pot fi anulate oricând, cu efect la sfârșitul perioadei plătite.',
         'În aplicațiile pentru iOS și Android, serviciile digitale (abonamente, promovări) se cumpără prin sistemul de plată al Apple sau Google, conform regulilor acestora, inclusiv pentru rambursări.',
       ] },
-      { h: '6. Vânzători profesioniști (firme)', p: [
+      { h: '6. Plata sigură, reclamații și protecția vânzătorului', p: [
+        'La plata sigură, banii stau la Cumped până când cumpărătorul confirmă primirea. Dacă nu confirmă și nu face reclamație, banii ajung automat la vânzător după perioada de verificare afișată în comandă. Dacă vânzătorul nu trimite la timp, cumpărătorul primește automat banii înapoi.',
+        'O reclamație trebuie făcută din aplicație, înainte de finalizarea comenzii, cu o descriere și, pentru orice motiv în afară de „nu am primit”, cu cel puțin 2 poze cu produsul primit. Dacă vânzătorul a înregistrat seria / IMEI-ul la expediere, cumpărătorul trebuie să scrie seria produsului primit.',
+        'Pentru produsele de peste 300 € trimise prin curier, vânzătorul trebuie să fotografieze produsul și coletul la expediere. Vânzătorul are 72 de ore să răspundă la o reclamație cu propriile dovezi. Decizia o ia un om din echipa noastră, pe baza pozelor, a seriei, a datelor de la curier și a istoricului ambelor părți.',
+        'Când reclamația privește starea produsului, regula este returnarea: cumpărătorul trimite produsul înapoi în 7 zile, cu AWB, iar banii se returnează abia după ce vânzătorul confirmă primirea lui în aceeași stare (sau automat, dacă vânzătorul nu reacționează în 14 zile de la expedierea returului). Dacă produsul nu este trimis înapoi la timp, reclamația se închide și vânzătorul primește banii. Dacă vânzătorul primește înapoi alt produs, cazul revine la echipă.',
+        'Reclamațiile false sau abuzive (de exemplu returnarea altui produs) duc la pierderea disputei, la suspendarea contului și pot fi semnalate autorităților. Pozele-dovadă sunt private: le văd doar părțile comenzii și echipa Cumped.',
+      ] },
+      { h: '7. Recenzii', p: [
+        'Recenziile pot fi lăsate doar după o comandă finalizată prin plata sigură, de cumpărător și de vânzător, câte una pentru fiecare comandă, în cel mult 30 de zile. Fiecare recenzie este marcată „Cumpărare verificată” sau „Vânzare verificată”, iar ratingul unui profil se calculează doar din acestea (art. 7 alin. (6) din Directiva 2005/29/CE, modificată prin Directiva (UE) 2019/2161).',
+        'Nu publicăm recenzii cumpărate, schimbate pe favoruri sau scrise de persoane fără o tranzacție reală și nu ascundem recenziile negative. Recenziile cu linkuri, date de contact sau limbaj jignitor sunt respinse automat.',
+      ] },
+      { h: '8. Vânzători profesioniști (firme)', p: [
         'Dacă vinzi în cadrul unei activități comerciale, trebuie să activezi contul de firmă și să furnizezi datele de identificare cerute de art. 30 DSA. Datele firmei sunt afișate pe anunțuri.',
         'Comercianții respectă legislația de protecție a consumatorilor: informarea precontractuală, dreptul de retragere de 14 zile la vânzarea la distanță, garanția legală de conformitate și regulile privind prețurile și reducerile.',
         'Vânzările între persoane fizice nu beneficiază de protecția din legislația consumatorilor; afișăm clar dacă vânzătorul este persoană fizică sau firmă.',
       ] },
-      { h: '7. Moderare, decizii și contestații', p: [
+      { h: '9. Moderare, decizii și contestații', p: [
         'Anunțurile, mesajele și raportările sunt analizate automat (inclusiv de Velo AI) și de echipa noastră. Când un risc pare ridicat, putem ascunde temporar un anunț sau suspenda temporar un cont până la verificarea umană.',
         'Putem elimina conținut ilegal sau care încalcă acești termeni și putem restricționa sau închide conturi. Îți comunicăm decizia și motivele ei, conform art. 17 DSA.',
         'Poți contesta gratuit orice decizie, în termen de 6 luni, direct din aplicație (art. 20 DSA). Contestațiile sunt analizate de oameni. Poți apela și la un organism de soluționare extrajudiciară certificat (art. 21 DSA) sau la instanță.',
       ] },
-      { h: '8. Cum ordonăm rezultatele', p: [
+      { h: '10. Cum ordonăm rezultatele', p: [
         'Rezultatele căutării sunt ordonate implicit după relevanța față de textul căutat și după cât de recent a fost publicat anunțul. Anunțurile promovate contra cost apar mai sus și sunt marcate „Promovat”. Poți schimba oricând ordinea după dată sau preț. Detalii în pagina Transparență (DSA).',
       ] },
-      { h: '9. Răspundere', p: [
+      { h: '11. Răspundere', p: [
         'Nu verificăm fiecare produs și nu garantăm calitatea, siguranța sau legalitatea produselor vândute de utilizatori. Răspundem pentru serviciile pe care le prestăm noi, în limitele legii. Nimic din acești termeni nu limitează răspunderea pentru dol sau culpă gravă ori drepturile tale imperative de consumator.',
       ] },
-      { h: '10. Conținutul tău', p: [
+      { h: '12. Conținutul tău', p: [
         'Textele și pozele publicate rămân ale tale. Ne acorzi o licență neexclusivă, gratuită, valabilă cât timp conținutul este pe platformă, pentru a-l găzdui, afișa și adapta tehnic (de exemplu miniaturi). Marca și designul Cumped ne aparțin.',
       ] },
-      { h: '11. Încetarea', p: [
+      { h: '13. Încetarea', p: [
         'Poți șterge contul oricând din Setări → Confidențialitate. Putem închide contul în caz de încălcări grave sau repetate, cu notificare și motivare, cu excepția cazurilor în care legea ne interzice să te informăm.',
       ] },
-      { h: '12. Modificări', p: [
+      { h: '14. Modificări', p: [
         'Te anunțăm despre modificările importante cu cel puțin 15 zile înainte, în aplicație și pe email. Dacă nu ești de acord, poți închide contul înainte de intrarea lor în vigoare.',
       ] },
-      { h: '13. Legea aplicabilă și litigii', p: [
+      { h: '15. Legea aplicabilă și litigii', p: [
         'Se aplică legea română, fără a te priva de protecția legii din țara ta de reședință, dacă ești consumator. Pentru reclamații ne poți scrie la {email}. În România, poți apela și la procedurile de soluționare alternativă a litigiilor (SAL) ale ANPC.',
       ] },
     ],
   },
   privacy: {
-    title: 'Politica de confidențialitate', updated: '2026-11-09',
+    title: 'Politica de confidențialitate', updated: '2026-11-12',
     sections: [
       { h: '1. Operatorul', p: [
         'Operatorul datelor tale este {company}, {address}, email {email}. Pentru orice întrebare despre datele personale ne poți scrie la {dpo}.',
@@ -82,13 +93,13 @@ const docs: LegalDocs = {
         'Când datele ajung în afara Spațiului Economic European, folosim garanțiile prevăzute de GDPR (decizii de adecvare, inclusiv EU-US Data Privacy Framework, sau clauze contractuale standard).',
       ] },
       { h: '6. Cât timp păstrăm datele', p: [
-        'Cât timp ai cont. După ștergerea contului, ștergem sau anonimizăm datele în cel mult 30 de zile, cu excepția: documentelor contabile (10 ani, conform legii), deciziilor de moderare și raportărilor (până la 6 luni după închiderea cazului, pentru contestații) și jurnalelor de securitate (90 de zile).',
+        'Cât timp ai cont. După ștergerea contului, ștergem sau anonimizăm datele în cel mult 30 de zile, cu excepția: documentelor contabile (10 ani, conform legii), deciziilor de moderare și raportărilor (până la 6 luni după închiderea cazului, pentru contestații) și jurnalelor de securitate (90 de zile). Adresa și telefonul de livrare sunt șterse la 90 de zile după încheierea comenzii. Pozele-dovadă dintr-o dispută se păstrează până la 6 luni după închiderea cazului.',
       ] },
       { h: '7. Drepturile tale', p: [
         'Ai dreptul de acces, rectificare, ștergere, restricționare, portabilitate și opoziție, precum și dreptul de a-ți retrage consimțământul. Poți descărca datele din Setări → Confidențialitate → Descarcă datele mele și poți șterge contul din același loc. Ai dreptul să depui plângere la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (www.dataprotection.ro) sau la autoritatea din țara ta.',
       ] },
       { h: '8. Securitate', p: [
-        'Folosim conexiuni criptate (HTTPS), parole stocate doar ca hash, sesiuni de scurtă durată cu reîmprospătare securizată, limitarea încercărilor de autentificare, verificarea automată a mesajelor pentru tentative de fraudă și acces restrâns la date în echipă.',
+        'Folosim conexiuni criptate (HTTPS), parole stocate doar ca hash, sesiuni de scurtă durată cu reîmprospătare securizată, limitarea încercărilor de autentificare, verificarea automată a mesajelor pentru tentative de fraudă și acces restrâns la date în echipă. Numele de pe act, adresa și telefonul de livrare sunt criptate în baza de date (AES-256-GCM), iar pozele-dovadă din dispute sunt accesibile doar prin linkuri semnate, valabile 2 ore.',
       ] },
       { h: '9. Minori, urmărire și cookie-uri', p: [
         'Serviciul este destinat persoanelor de cel puțin 18 ani. Nu urmărim utilizatorii în alte aplicații sau site-uri, nu folosim identificatorul de publicitate al dispozitivului și nu folosim cookie-uri de publicitate sau de analiză de la terți. Detalii în pagina Cookie-uri.',

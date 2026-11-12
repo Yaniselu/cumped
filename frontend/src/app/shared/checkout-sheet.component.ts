@@ -19,7 +19,7 @@ const ADDR_KEY = 'cmp_ship_addr';
   selector: 'cmp-checkout-sheet',
   imports: [IonModal, IonContent, IonIcon, FormsModule, TPipe, HoldButtonComponent],
   template: `
-    <ion-modal [isOpen]="open()" (didDismiss)="open.set(false)" [initialBreakpoint]="0.95" [breakpoints]="[0, 0.95]">
+    <ion-modal [isOpen]="open()" (didDismiss)="open.set(false)" [initialBreakpoint]="0.95" [breakpoints]="[0, 0.95, 1]">
       <ng-template>
         <ion-content>
           @if (listing(); as l) {

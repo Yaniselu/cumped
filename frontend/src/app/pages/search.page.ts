@@ -1,5 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonModal } from '@ionic/angular';
 import { Api, SearchQuery } from '../core/api.service';
@@ -17,6 +17,11 @@ import { FX_APPROX, PRICE_RANGE_EUR, niceCeil } from '../core/listing-schema';
 interface Filters { category: string; min: number | null; max: number | null; conditions: string[]; country: string; city: string; swap: boolean; verified: boolean; shipsTo: string; }
 const EMPTY: Filters = { category: '', min: null, max: null, conditions: [], country: '', city: '', swap: false, verified: false, shipsTo: '' };
 
+interface ComboOption { key: string; kind: 'recent' | 'suggest' | 'category'; text: string; category: string | null; }
+const RECENT_KEY = 'cmp_recent_searches';
+const CATEGORY_KEYS = ['PHONES', 'ELECTRONICS', 'COMPUTERS', 'VEHICLES', 'AUTO_PARTS', 'REAL_ESTATE', 'HOME_GARDEN', 'FASHION', 'KIDS',
+  'SPORTS', 'HOBBY', 'BOOKS_MUSIC', 'PETS', 'SERVICES', 'JOBS', 'OTHER'];
+
 @Component({
   selector: 'page-search',
   imports: [MOTION, IonContent, IonIcon, IonModal, IonInfiniteScroll, IonInfiniteScrollContent, FormsModule, TPipe, RangeInputComponent,
@@ -26,11 +31,34 @@ const EMPTY: Filters = { category: '', min: null, max: null, conditions: [], cou
       <div class="page">
         <div class="topbar app-only"><cmp-back /><div class="title">{{ 'search.title' | t }}</div><div class="spacer"></div></div>
 
-        <div class="searchbar reveal">
-          <ion-icon name="search"></ion-icon>
-          <input [(ngModel)]="q" (ngModelChange)="typed()" [placeholder]="'search.placeholder' | t" (keyup.enter)="run()" enterkeyhint="search" />
-          @if (q) { <button class="icon-btn sm clear" (click)="q = ''; run()"><ion-icon name="close"></ion-icon></button> }
-          <button class="icon-btn" (click)="filtersOpen.set(true)"><ion-icon name="options-outline"></ion-icon>@if (activeFilters()) { <span class="dot"></span> }</button>
+        <div class="combo reveal">
+          <div class="searchbar" [class.open]="comboOpen()">
+            <ion-icon name="search" aria-hidden="true"></ion-icon>
+            <!-- combobox ARIA 1.2: tastele ↑ ↓ aleg o sugestie, Enter caută, Esc închide -->
+            <input #box [(ngModel)]="q" (ngModelChange)="typed()" [placeholder]="'search.placeholder' | t" enterkeyhint="search" type="search"
+              role="combobox" aria-autocomplete="list" [attr.aria-expanded]="comboOpen()" aria-controls="search-listbox"
+              [attr.aria-activedescendant]="active() >= 0 ? 'sopt-' + active() : null" [attr.aria-label]="'common.search' | t"
+              autocomplete="off" autocapitalize="off" spellcheck="false"
+              (focus)="openCombo()" (blur)="closeCombo()" (keydown)="comboKey($event)" />
+            @if (q) { <button class="icon-btn sm clear" (click)="q = ''; run(); box.focus()" [attr.aria-label]="'common.reset' | t"><ion-icon name="close"></ion-icon></button> }
+            <button class="icon-btn" (click)="filtersOpen.set(true)" [attr.aria-label]="'common.filters' | t"><ion-icon name="options-outline"></ion-icon>@if (activeFilters()) { <span class="dot"></span> }</button>
+          </div>
+          @if (comboOpen()) {
+            <div class="lb card" id="search-listbox" role="listbox" [attr.aria-label]="'search.suggestions' | t">
+              @for (o of options(); track o.key; let i = $index) {
+                @if (i === 0 || options()[i - 1].kind !== o.kind) {
+                  <div class="grp" role="presentation">{{ (o.kind === 'recent' ? 'search.recent' : 'search.suggestions') | t }}
+                    @if (o.kind === 'recent') { <button type="button" class="clr" (pointerdown)="$event.preventDefault()" (click)="clearRecent()">{{ 'search.clearRecent' | t }}</button> }</div>
+                }
+                <div class="opt" role="option" [id]="'sopt-' + i" [attr.aria-selected]="i === active()" [class.on]="i === active()"
+                  (pointerdown)="$event.preventDefault()" (click)="pick(o)" (pointermove)="active.set(i)">
+                  <ion-icon [name]="o.kind === 'recent' ? 'time-outline' : o.kind === 'category' ? 'grid-outline' : 'search'" aria-hidden="true"></ion-icon>
+                  <span class="t">{{ o.text }}</span>
+                  @if (o.category && o.kind !== 'category') { <span class="c">{{ 'search.inCategory' | t: { category: ('categories.' + o.category | t) } }}</span> }
+                </div>
+              }
+            </div>
+          }
         </div>
 
         <div class="hscroll sorts reveal" style="--i:1">
@@ -53,7 +81,7 @@ const EMPTY: Filters = { category: '', min: null, max: null, conditions: [], cou
         <ion-infinite-scroll (ionInfinite)="more($event)" [disabled]="!hasMore()"><ion-infinite-scroll-content></ion-infinite-scroll-content></ion-infinite-scroll>
       </div>
 
-      <ion-modal [isOpen]="filtersOpen()" (didDismiss)="filtersOpen.set(false)" [initialBreakpoint]="0.92" [breakpoints]="[0, 0.92]" handleBehavior="cycle">
+      <ion-modal [isOpen]="filtersOpen()" (didDismiss)="filtersOpen.set(false)" [initialBreakpoint]="0.92" [breakpoints]="[0, 0.92, 1]" handleBehavior="cycle">
         <ng-template>
           <ion-content>
             <div class="sheet">
@@ -84,10 +112,23 @@ const EMPTY: Filters = { category: '', min: null, max: null, conditions: [], cou
   `,
   styles: [`
     .searchbar { margin-top: 4px; } .clear { background: transparent !important; }
+    .combo { position: relative; z-index: 20; }
+    .searchbar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+    .searchbar input::-webkit-search-cancel-button { display: none; }
+    .lb { position: absolute; left: 0; right: 0; top: calc(100% + 8px); padding: 6px; background: var(--surface); box-shadow: var(--shadow-pop); max-height: min(60vh, 420px); overflow: auto; overscroll-behavior: contain;
+      transform-origin: top center; animation: lbIn .22s var(--ease) both; }
+    @keyframes lbIn { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
+    .grp { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 4px; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+    .clr { border: 0; background: none; color: var(--accent); font: inherit; letter-spacing: 0; text-transform: none; font-size: 13.5px; font-weight: 600; cursor: pointer; min-height: 32px; }
+    .opt { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px; border-radius: 14px; cursor: pointer; font-size: 16px; }
+    .opt ion-icon { color: var(--text-3); font-size: 18px; flex: 0 0 auto; }
+    .opt .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .opt .c { font-size: 13.5px; color: var(--text-3); white-space: nowrap; }
+    .opt.on { background: var(--accent-soft); } .opt.on ion-icon { color: var(--accent); }
     .sorts { margin-top: 12px; }
     .meta { margin: 8px 2px 12px; }
     .linkbtn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--accent); font-weight: 600; font-size: 14.5px; cursor: pointer; }
-    .sheet { padding: 22px 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+    .sheet { padding: 22px max(20px, env(safe-area-inset-right) + 12px) calc(env(safe-area-inset-bottom) + 40px) max(20px, env(safe-area-inset-left) + 12px); display: flex; flex-direction: column; gap: 16px; }
     .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .toggles { padding: 4px 14px; } .toggles span { display: flex; align-items: center; gap: 8px; font-weight: 550; }
@@ -118,6 +159,25 @@ export class SearchPage implements OnInit {
   private debounce: any;
   private seq = 0;
 
+  // ---- combobox cu sugestii ----
+  comboOpen = signal(false);
+  active = signal(-1);
+  private recent = signal<string[]>(this.loadRecent());
+  private suggestions = signal<{ text: string; category: string | null }[]>([]);
+  private suggestSeq = 0;
+  private suggestTimer: any;
+  options = computed<ComboOption[]>(() => {
+    const q = this.qSig().trim().toLowerCase();
+    const recent = this.recent().filter((r) => !q || r.toLowerCase().includes(q)).slice(0, q ? 3 : 6)
+      .map((text) => ({ key: 'r:' + text, kind: 'recent' as const, text, category: null }));
+    const cats = q.length >= 2 ? CATEGORY_KEYS.filter((c) => this.i18n.t('categories.' + c).toLowerCase().includes(q)).slice(0, 2)
+      .map((c) => ({ key: 'c:' + c, kind: 'category' as const, text: this.i18n.t('categories.' + c), category: c })) : [];
+    const sugg = this.suggestions().filter((s) => !recent.some((r) => r.text.toLowerCase() === s.text))
+      .map((s) => ({ key: 's:' + s.text, kind: 'suggest' as const, text: s.text, category: s.category }));
+    return [...recent, ...cats, ...sugg].slice(0, 9);
+  });
+  private qSig = signal('');
+
   ngOnInit() {
     this.q = this.qParam() ?? '';
     if (this.category()) this.f.set({ ...EMPTY, category: this.category()! });
@@ -133,7 +193,70 @@ export class SearchPage implements OnInit {
   activeFilters() { const f = this.f(); return !!(f.min || f.max || f.conditions.length || f.country || f.city || f.shipsTo); }
   flag(c: string) { return String.fromCodePoint(...[...c].map((ch) => 127397 + ch.charCodeAt(0))); }
 
-  typed() { clearTimeout(this.debounce); this.debounce = setTimeout(() => this.run(), 350); }
+  typed() {
+    this.qSig.set(this.q);
+    this.active.set(-1);
+    this.comboOpen.set(true);
+    clearTimeout(this.debounce);
+    this.debounce = setTimeout(() => this.run(), 350);
+    clearTimeout(this.suggestTimer);
+    const q = this.q.trim();
+    if (q.length < 2) { this.suggestions.set([]); return; }
+    this.suggestTimer = setTimeout(async () => {
+      const my = ++this.suggestSeq;
+      try { const r = await this.api.suggest(q); if (my === this.suggestSeq) this.suggestions.set(r); } catch { /* sugestiile sunt opționale */ }
+    }, 150);
+  }
+
+  openCombo() { this.qSig.set(this.q); this.comboOpen.set(true); }
+  /** La pierderea focusului: lăsăm click-ul pe opțiune să se termine întâi. */
+  closeCombo() { setTimeout(() => { this.comboOpen.set(false); this.active.set(-1); }, 120); }
+
+  comboKey(e: KeyboardEvent) {
+    const n = this.options().length;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!this.comboOpen()) { this.comboOpen.set(true); return; }
+      if (!n) return;
+      const d = e.key === 'ArrowDown' ? 1 : -1;
+      this.active.set(((this.active() + d) % n + n) % n);
+      document.getElementById('sopt-' + this.active())?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const o = this.active() >= 0 ? this.options()[this.active()] : null;
+      if (o) this.pick(o); else this.submit();
+    } else if (e.key === 'Escape') {
+      if (this.comboOpen()) { e.preventDefault(); this.comboOpen.set(false); this.active.set(-1); }
+    } else if (e.key === 'Tab') { this.comboOpen.set(false); }
+  }
+
+  pick(o: ComboOption) {
+    if (o.kind === 'category') { this.q = ''; this.f.update((f) => ({ ...f, category: o.category! })); }
+    else this.q = o.text;
+    this.qSig.set(this.q);
+    this.submit();
+  }
+
+  /** Căutare confirmată (Enter / sugestie): o ținem minte în „căutări recente”, doar pe acest dispozitiv. */
+  submit() {
+    const q = this.q.trim();
+    if (q) {
+      const list = [q, ...this.recent().filter((r) => r.toLowerCase() !== q.toLowerCase())].slice(0, 8);
+      this.recent.set(list);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+    }
+    this.comboOpen.set(false);
+    this.active.set(-1);
+    clearTimeout(this.debounce);
+    this.run();
+  }
+
+  clearRecent() { this.recent.set([]); localStorage.removeItem(RECENT_KEY); }
+
+  private loadRecent(): string[] {
+    try { const v = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 8) : []; }
+    catch { return []; }
+  }
   setSort(s: string) { this.sort.set(s); this.run(); }
   clearCategory() { this.f.update((f) => ({ ...f, category: '' })); this.run(); }
   toggle(k: 'swap' | 'verified') { this.f.update((f) => ({ ...f, [k]: !f[k] })); this.run(); }

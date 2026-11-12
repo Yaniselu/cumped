@@ -29,6 +29,9 @@ public class ListingController {
     @GetMapping("/categories")
     List<String> categories() { return Arrays.stream(Category.values()).map(Enum::name).toList(); }
 
+    @GetMapping("/listings/suggest")
+    List<ListingQueries.Suggestion> suggest(@RequestParam(required = false) String q) { return queries.suggest(q); }
+
     @GetMapping("/listings")
     ListingDtos.Page<ListingDtos.Card> search(
             @RequestParam(required = false) String q,

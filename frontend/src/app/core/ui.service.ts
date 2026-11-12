@@ -3,6 +3,7 @@ import { ActionSheetController, AlertController, ToastController } from '@ionic/
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { errorCode } from './api.service';
 import { I18n } from './i18n.service';
+import { originEnter, originLeave } from './origin-animation';
 
 @Injectable({ providedIn: 'root' })
 export class Ui {
@@ -32,7 +33,7 @@ export class Ui {
   async confirm(message: string, okText?: string): Promise<boolean> {
     return new Promise(async (resolve) => {
       const a = await this.alerts.create({
-        message,
+        message, enterAnimation: originEnter, leaveAnimation: originLeave,
         buttons: [
           { text: this.i18n.t('common.cancel'), role: 'cancel', handler: () => resolve(false) },
           { text: okText ?? this.i18n.t('common.confirm'), role: 'destructive', handler: () => resolve(true) },
@@ -46,7 +47,7 @@ export class Ui {
   async prompt(header: string, message: string, placeholder = '', okText?: string, minLength = 1): Promise<string | null> {
     return new Promise(async (resolve) => {
       const a = await this.alerts.create({
-        header, message, cssClass: 'cmp-alert',
+        header, message, cssClass: 'cmp-alert', enterAnimation: originEnter, leaveAnimation: originLeave,
         inputs: [{ name: 'v', type: 'textarea', placeholder, attributes: { maxlength: 2000, rows: 4 } }],
         buttons: [
           { text: this.i18n.t('common.cancel'), role: 'cancel', handler: () => resolve(null) },

@@ -123,7 +123,7 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
         }
       </div>
 
-      <ion-modal [isOpen]="!!counterFor()" (didDismiss)="counterFor.set(null)" [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9]" class="sheet">
+      <ion-modal [isOpen]="!!counterFor()" (didDismiss)="counterFor.set(null)" [initialBreakpoint]="0.9" [breakpoints]="[0, 0.9, 1]" class="sheet">
         <ng-template>
           <ion-content>
             @if (counterFor(); as n) {

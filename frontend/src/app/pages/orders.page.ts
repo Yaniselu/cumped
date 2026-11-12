@@ -12,6 +12,7 @@ import { BackButtonComponent } from '../shared/back-button.component';
 import { EmptyComponent } from '../shared/empty.component';
 import { HoldButtonComponent } from '../shared/hold-button.component';
 import { SkeletonLinesComponent } from '../shared/skeleton.component';
+import { EvidencePhotosComponent } from '../shared/evidence-photos.component';
 
 const CARRIERS = ['FAN_COURIER', 'SAMEDAY', 'CARGUS', 'DPD', 'GLS', 'POSTA_ROMANA', 'DHL', 'UPS', 'FEDEX', 'OTHER'];
 const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 'OTHER'];
@@ -20,7 +21,7 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
 @Component({
   selector: 'page-orders',
   imports: [MOTION, IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent, FormsModule, RouterLink, TPipe,
-    AvatarComponent, BackButtonComponent, EmptyComponent, HoldButtonComponent, SkeletonLinesComponent],
+    AvatarComponent, BackButtonComponent, EmptyComponent, HoldButtonComponent, SkeletonLinesComponent, EvidencePhotosComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
@@ -53,13 +54,29 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
             <section class="card pad act">
               @if (o.delivery === 'COURIER') {
                 <h3>{{ 'orders.shipTo' | t }}</h3>
-                <div class="addr">@if (o.shipTo; as a) { <b>{{ a.name }}</b><span>{{ a.address }}</span><span>{{ a.postcode }} {{ a.city }}, {{ a.country }}</span><span>{{ a.phone }}</span> }</div>
+                <div class="addr">@if (o.shipTo; as a) { <b>{{ a.name }}</b><span>{{ a.address }}</span><span>{{ a.postcode }} {{ a.city }}, {{ a.country }}</span><span class="tnum">{{ a.phone }}</span> }</div>
                 <div class="two">
-                  <div class="field"><label>{{ 'orders.carrier' | t }}</label>
-                    <select class="input" [(ngModel)]="carrier">@for (c of carriers; track c) { <option [value]="c">{{ 'orders.carriers.' + c | t }}</option> }</select></div>
-                  <div class="field"><label>{{ 'orders.tracking' | t }}</label><input class="input" [(ngModel)]="tracking" maxlength="40" autocapitalize="characters" /></div>
+                  <div class="field"><label for="carrier">{{ 'orders.carrier' | t }}</label>
+                    <select id="carrier" class="input" [(ngModel)]="carrier">@for (c of carriers; track c) { <option [value]="c">{{ 'orders.carriers.' + c | t }}</option> }</select></div>
+                  <div class="field"><label for="awb">{{ 'orders.tracking' | t }}</label><input id="awb" class="input tnum" [(ngModel)]="tracking" maxlength="40" autocapitalize="characters" autocomplete="off" /></div>
                 </div>
-                <button class="btn block" [disabled]="busy() || tracking.trim().length < 5" (click)="ship(o)"><ion-icon name="paper-plane-outline"></ion-icon>{{ 'orders.markShipped' | t }}</button>
+              }
+              <div class="shield"><ion-icon name="shield-half-outline"></ion-icon><div><b>{{ 'protect.sellerTitle' | t }}</b><span>{{ 'protect.sellerSub' | t }}</span></div></div>
+              <cmp-evidence-photos [(ids)]="proofIds" [min]="o.proofRequired ? 2 : 0" [max]="6"
+                [label]="(o.proofRequired ? 'protect.photosRequired' : 'protect.photosOptional') | t" [hint]="'protect.photosHint' | t" />
+              <div class="two">
+                <div class="field"><label for="serial">{{ 'protect.serial' | t }}</label>
+                  <input id="serial" class="input tnum" [(ngModel)]="serial" maxlength="60" autocapitalize="characters" autocomplete="off" [placeholder]="'protect.serialPh' | t" /></div>
+                @if (o.delivery === 'COURIER') {
+                  <div class="field"><label for="weight">{{ 'protect.weight' | t }}</label>
+                    <input id="weight" class="input tnum" type="number" inputmode="numeric" min="1" max="100000" [(ngModel)]="weight" placeholder="1200" /></div>
+                }
+              </div>
+              <p class="hint">{{ 'protect.serialHint' | t }}</p>
+              @if (error()) { <div class="error-text" role="alert">{{ error() }}</div> }
+              @if (o.delivery === 'COURIER') {
+                <button class="btn block" [disabled]="busy() || tracking.trim().length < 5 || (o.proofRequired && proofIds.length < 2)" (click)="ship(o)">
+                  <ion-icon name="paper-plane-outline"></ion-icon>{{ 'orders.markShipped' | t }}</button>
               } @else {
                 <button class="btn block" [disabled]="busy()" (click)="ship(o)"><ion-icon name="hand-right-outline"></ion-icon>{{ 'orders.markHanded' | t }}</button>
               }
@@ -78,6 +95,75 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
             <div class="card pad track"><ion-icon name="cube-outline"></ion-icon><div><span class="faint small">{{ 'orders.carrier' | t }}</span>
               <b>{{ 'orders.carriers.' + o.carrier | t }} · {{ o.trackingCode }}</b></div>
               <button class="icon-btn sm" (click)="copy(o.trackingCode!)" [attr.aria-label]="'common.copied' | t"><ion-icon name="copy-outline"></ion-icon></button></div>
+          }
+
+          @if (o.evidence.serialNumber || o.evidence.shipProof.length) {
+            <section class="card pad evd">
+              <h3><ion-icon name="shield-checkmark-outline"></ion-icon>{{ 'protect.shipEvidence' | t }}</h3>
+              @if (o.evidence.serialNumber) { <div class="kv"><span>{{ 'protect.serialShort' | t }}</span><b class="tnum">{{ o.evidence.serialNumber }}</b></div> }
+              @if (o.evidence.parcelWeightGrams) { <div class="kv"><span>{{ 'protect.weightShort' | t }}</span><b class="tnum">{{ o.evidence.parcelWeightGrams }} g</b></div> }
+              @if (o.evidence.shipProof.length) { <div class="pics">@for (u of o.evidence.shipProof; track u) { <a [href]="api.url(u)" target="_blank" rel="noopener"><img [src]="api.url(u)" alt="" loading="lazy" /></a> }</div> }
+            </section>
+          }
+
+          @if (o.evidence.disputeDetails) {
+            <section class="card pad evd">
+              <h3><ion-icon name="alert-circle-outline"></ion-icon>{{ 'protect.claim' | t }} · {{ 'orders.reasons.' + o.disputeReason | t }}</h3>
+              <p class="quote">{{ o.evidence.disputeDetails }}</p>
+              @if (o.evidence.disputeSerial) {
+                <div class="kv"><span>{{ 'protect.reportedSerial' | t }}</span><b class="tnum">{{ o.evidence.disputeSerial }}</b></div>
+                @if (o.evidence.serialMismatch) { <p class="flag"><ion-icon name="warning-outline"></ion-icon>{{ 'protect.mismatch' | t }}</p> }
+                @else { <p class="flag ok"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'protect.match' | t }}</p> }
+              }
+              @if (o.evidence.disputeEvidence.length) { <div class="pics">@for (u of o.evidence.disputeEvidence; track u) { <a [href]="api.url(u)" target="_blank" rel="noopener"><img [src]="api.url(u)" alt="" loading="lazy" /></a> }</div> }
+              @if (o.evidence.sellerResponse) {
+                <h3 class="mt"><ion-icon name="chatbox-ellipses-outline"></ion-icon>{{ 'protect.sellerAnswer' | t }}</h3>
+                <p class="quote">{{ o.evidence.sellerResponse }}</p>
+                @if (o.evidence.sellerEvidence.length) { <div class="pics">@for (u of o.evidence.sellerEvidence; track u) { <a [href]="api.url(u)" target="_blank" rel="noopener"><img [src]="api.url(u)" alt="" loading="lazy" /></a> }</div> }
+              }
+            </section>
+          }
+
+          @if (o.canRespond) {
+            <section class="card pad act">
+              <h3>{{ 'protect.respondTitle' | t }}</h3>
+              <p class="hint">{{ 'protect.respondSub' | t: { date: when(o.evidence.respondBy) } }}</p>
+              <textarea class="input" rows="4" maxlength="2000" [(ngModel)]="statement" [placeholder]="'protect.respondPh' | t" [attr.aria-label]="'protect.respondTitle' | t"></textarea>
+              <cmp-evidence-photos [(ids)]="responseIds" [max]="8" [label]="'protect.respondPhotos' | t" />
+              @if (error()) { <div class="error-text" role="alert">{{ error() }}</div> }
+              <button class="btn block" [disabled]="busy() || statement.trim().length < 10" (click)="respond(o)">{{ 'protect.respondSend' | t }}</button>
+            </section>
+          }
+
+          @if (o.canReturnShip) {
+            <section class="card pad act">
+              <h3>{{ 'protect.returnTitle' | t }}</h3>
+              <p class="hint">{{ 'protect.returnSub' | t: { date: when(o.evidence.returnBy) } }}</p>
+              <div class="two">
+                <div class="field"><label for="rcarrier">{{ 'orders.carrier' | t }}</label>
+                  <select id="rcarrier" class="input" [(ngModel)]="carrier">@for (c of carriers; track c) { <option [value]="c">{{ 'orders.carriers.' + c | t }}</option> }</select></div>
+                <div class="field"><label for="rawb">{{ 'orders.tracking' | t }}</label><input id="rawb" class="input tnum" [(ngModel)]="tracking" maxlength="40" autocapitalize="characters" autocomplete="off" /></div>
+              </div>
+              @if (error()) { <div class="error-text" role="alert">{{ error() }}</div> }
+              <button class="btn block" [disabled]="busy() || tracking.trim().length < 5" (click)="returnShip(o)"><ion-icon name="arrow-undo-outline"></ion-icon>{{ 'protect.returnSend' | t }}</button>
+            </section>
+          }
+
+          @if (o.status === 'RETURN_REQUESTED' && o.evidence.returnTracking) {
+            <div class="card pad track"><ion-icon name="arrow-undo-outline"></ion-icon><div><span class="faint small">{{ 'protect.returnParcel' | t }}</span>
+              <b class="tnum">{{ 'orders.carriers.' + o.evidence.returnCarrier | t }} · {{ o.evidence.returnTracking }}</b></div>
+              <button class="icon-btn sm" (click)="copy(o.evidence.returnTracking!)" [attr.aria-label]="'common.copied' | t"><ion-icon name="copy-outline"></ion-icon></button></div>
+          }
+
+          @if (o.canReturnConfirm) {
+            <section class="card pad act">
+              <h3>{{ 'protect.gotBackTitle' | t }}</h3>
+              <p class="hint">{{ 'protect.gotBackSub' | t }}</p>
+              <cmp-hold-button tone="accent" [block]="true" [caption]="true" icon="checkmark-done" [busy]="busy()" [duration]="1100"
+                [label]="'protect.gotBackOk' | t" [confirmText]="'protect.gotBackOkText' | t: { total: i18n.price(o.totalCents, o.currency) }" (confirmed)="returnReceived(o, true)" />
+              <textarea class="input" rows="3" maxlength="2000" [(ngModel)]="returnNote" [placeholder]="'protect.gotBackBadPh' | t" [attr.aria-label]="'protect.gotBackBad' | t"></textarea>
+              <button class="btn light block" [disabled]="busy() || returnNote.trim().length < 10" (click)="returnReceived(o, false)"><ion-icon name="warning-outline"></ion-icon>{{ 'protect.gotBackBad' | t }}</button>
+            </section>
           }
 
           <section class="card pad">
@@ -100,6 +186,11 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
                 <i>{{ o.shippedAt ? when(o.shippedAt) : ('orders.until' | t: { date: when(o.shipBy) }) }}</i></div></li>
               @if (o.status === 'REFUNDED') { <li class="on bad"><span></span><div><b>{{ 'orders.t.refunded' | t }}</b><i>{{ when(o.refundedAt) }}</i></div></li> }
               @else if (o.status === 'DISPUTED') { <li class="on warn"><span></span><div><b>{{ 'orders.t.disputed' | t }}</b><i>{{ 'orders.reasons.' + o.disputeReason | t }}</i></div></li> }
+              @else if (o.status === 'RETURN_REQUESTED') {
+                <li class="on warn"><span></span><div><b>{{ 'orders.t.disputed' | t }}</b><i>{{ 'orders.reasons.' + o.disputeReason | t }}</i></div></li>
+                <li [class.on]="!!o.evidence.returnShippedAt"><span></span><div><b>{{ 'protect.t.returned' | t }}</b>
+                  <i>{{ o.evidence.returnShippedAt ? when(o.evidence.returnShippedAt) : ('orders.until' | t: { date: when(o.evidence.returnBy) }) }}</i></div></li>
+              }
               @else { <li [class.on]="!!o.completedAt"><span></span><div><b>{{ 'orders.t.completed' | t }}</b>
                 <i>{{ o.completedAt ? when(o.completedAt) : o.autoReleaseAt ? ('orders.auto' | t: { date: when(o.autoReleaseAt) }) : '' }}</i></div></li> }
             </ol>
@@ -113,11 +204,12 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
             </section>
           }
 
-          @if (o.status === 'COMPLETED' && o.role === 'BUYER' && !reviewed()) {
+          @if (o.status === 'COMPLETED' && reviewed() === false) {
             <section class="card pad review">
               <h3>{{ 'orders.reviewTitle' | t: { name: o.counterpart?.displayName ?? '' } }}</h3>
+              <p class="hint"><ion-icon name="bag-check-outline"></ion-icon> {{ 'reviews.whyVerified' | t }}</p>
               <div class="stars" role="radiogroup">@for (s of [1, 2, 3, 4, 5]; track s) {
-                <button role="radio" [attr.aria-checked]="rating() === s" [attr.aria-label]="s + '★'" (click)="rating.set(s)" [class.on]="s <= rating()">★</button> }</div>
+                <button role="radio" [attr.aria-checked]="rating() === s" [attr.aria-label]="'reviews.stars' | t: { n: s }" (click)="rating.set(s)" [class.on]="s <= rating()">★</button> }</div>
               <textarea class="input" rows="3" maxlength="600" [(ngModel)]="comment" [placeholder]="'orders.reviewPh' | t"></textarea>
               <button class="btn block" [disabled]="!rating() || busy()" (click)="review(o)">{{ 'orders.reviewSend' | t }}</button>
             </section>
@@ -129,7 +221,7 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
             @if (o.simulated) { <p class="faint small center">{{ 'orders.simulated' | t }}</p> }
           </div>
 
-          <ion-modal [isOpen]="disputeOpen()" (didDismiss)="disputeOpen.set(false)" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85]">
+          <ion-modal [isOpen]="disputeOpen()" (didDismiss)="disputeOpen.set(false)" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85, 1]">
             <ng-template>
               <ion-content>
                 <div class="sb">
@@ -138,9 +230,18 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
                   @for (r of disputes; track r) {
                     <button class="opt" [class.on]="reason() === r" (click)="reason.set(r)"><span class="rd"></span>{{ 'orders.reasons.' + r | t }}</button>
                   }
-                  <textarea class="input" rows="4" maxlength="2000" [(ngModel)]="details" [placeholder]="'orders.problemPh' | t"></textarea>
-                  @if (error()) { <div class="error-text">{{ error() }}</div> }
-                  <button class="btn block" [disabled]="!reason() || details.trim().length < 10 || busy()" (click)="dispute(o)">{{ 'orders.problemSend' | t }}</button>
+                  <textarea class="input" rows="4" maxlength="2000" [(ngModel)]="details" [placeholder]="'orders.problemPh' | t" [attr.aria-label]="'orders.problemPh' | t"></textarea>
+                  @if (reason() && reason() !== 'NOT_RECEIVED') {
+                    <cmp-evidence-photos [(ids)]="disputeIds" [min]="2" [max]="8" [label]="'protect.claimPhotos' | t" [hint]="'protect.claimPhotosHint' | t" />
+                  }
+                  @if (needsSerial(o)) {
+                    <div class="field"><label for="dserial">{{ 'protect.claimSerial' | t }}</label>
+                      <input id="dserial" class="input tnum" [(ngModel)]="disputeSerial" maxlength="60" autocapitalize="characters" autocomplete="off" /></div>
+                    <p class="hint">{{ 'protect.claimSerialHint' | t }}</p>
+                  }
+                  <p class="warnbox"><ion-icon name="information-circle-outline"></ion-icon>{{ 'protect.fairWarning' | t }}</p>
+                  @if (error()) { <div class="error-text" role="alert">{{ error() }}</div> }
+                  <button class="btn block" [disabled]="!canSendDispute(o)" (click)="dispute(o)">{{ 'orders.problemSend' | t }}</button>
                 </div>
               </ion-content>
             </ng-template>
@@ -159,13 +260,13 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
     .st { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); }
     .st[data-s="PAID"], .st[data-s="SHIPPED"] { background: var(--accent-soft); color: var(--accent); }
     .st[data-s="COMPLETED"] { background: var(--ok-soft); color: var(--ok); }
-    .st[data-s="DISPUTED"] { background: var(--warn-soft); color: var(--warn); } .st[data-s="REFUNDED"] { background: var(--accent-2-soft); color: var(--accent-2); }
+    .st[data-s="DISPUTED"], .st[data-s="RETURN_REQUESTED"] { background: var(--warn-soft); color: var(--warn); } .st[data-s="REFUNDED"] { background: var(--accent-2-soft); color: var(--accent-2); }
     .todo { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--accent-2); }
     .amt { font-family: var(--font-display); font-size: 17px; white-space: nowrap; }
     .hero { padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 12px; }
     .hi { width: 64px; height: 64px; border-radius: 22px; display: grid; place-items: center; font-size: 32px; background: var(--accent-soft); color: var(--accent); }
     .hero[data-s="COMPLETED"] .hi { background: var(--ok-soft); color: var(--ok); }
-    .hero[data-s="DISPUTED"] .hi { background: var(--warn-soft); color: var(--warn); }
+    .hero[data-s="DISPUTED"] .hi, .hero[data-s="RETURN_REQUESTED"] .hi { background: var(--warn-soft); color: var(--warn); }
     .hero[data-s="REFUNDED"] .hi { background: var(--accent-2-soft); color: var(--accent-2); }
     .hero h2 { font-size: 22px; } .hero p { font-size: 15.5px; color: var(--text); max-width: 440px; }
     .card + .card, .act, .more { margin-top: 12px; }
@@ -192,7 +293,20 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
     .stars button.on { color: #f5a524; }
     .more { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
     .center { text-align: center; }
-    .sb { padding: 22px 18px calc(env(safe-area-inset-bottom) + 30px); display: flex; flex-direction: column; gap: 10px; max-width: 560px; margin: 0 auto; }
+    .hint { margin: 0; font-size: 14.5px; color: var(--text-2); text-wrap: pretty; }
+    .shield { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--ok-soft); }
+    .shield ion-icon { font-size: 24px; color: var(--ok); flex: 0 0 auto; margin-top: 1px; }
+    .shield div { display: flex; flex-direction: column; gap: 2px; } .shield span { font-size: 14.5px; color: var(--text); text-wrap: pretty; }
+    .evd { display: flex; flex-direction: column; gap: 10px; }
+    .evd h3 { display: flex; align-items: center; gap: 8px; font-size: 16px; } .evd h3 ion-icon { font-size: 20px; color: var(--accent); } .evd h3.mt { margin-top: 6px; }
+    .kv { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; } .kv span { color: var(--text-2); }
+    .pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+    .pics a { display: block; aspect-ratio: 1; border-radius: 12px; overflow: hidden; } .pics img { width: 100%; height: 100%; object-fit: cover; background: var(--image-bg); }
+    .quote { margin: 0; padding: 10px 14px; border-left: 3px solid var(--line-strong, var(--line)); background: var(--surface-2); border-radius: 0 12px 12px 0; font-size: 15px; line-height: 1.5; max-width: 68ch; white-space: pre-line; }
+    .flag { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14.5px; font-weight: 700; color: var(--warn); } .flag.ok { color: var(--ok); }
+    .warnbox { display: flex; gap: 8px; margin: 4px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); font-size: 14.5px; line-height: 1.45; text-wrap: pretty; }
+    .warnbox ion-icon { flex: 0 0 auto; font-size: 20px; color: var(--accent); }
+    .sb { padding: 22px max(18px, env(safe-area-inset-right) + 12px) calc(env(safe-area-inset-bottom) + 30px) max(18px, env(safe-area-inset-left) + 12px); display: flex; flex-direction: column; gap: 10px; max-width: 560px; margin: 0 auto; }
     .opt { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface); color: var(--text); font-size: 15.5px; font-weight: 600; text-align: left; cursor: pointer; }
     .opt.on { border-color: var(--accent); background: var(--accent-soft); }
     .rd { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--surface-3); flex: 0 0 auto; } .opt.on .rd { border: 6px solid var(--accent); }
@@ -216,7 +330,16 @@ export class OrdersPage implements ViewWillEnter {
   disputeOpen = signal(false);
   reason = signal('');
   rating = signal(0);
-  reviewed = signal(false);
+  /** null = încă nu știm (nu arătăm formularul până nu verificăm la server). */
+  reviewed = signal<boolean | null>(null);
+  proofIds: string[] = [];
+  disputeIds: string[] = [];
+  responseIds: string[] = [];
+  serial = '';
+  weight: number | null = null;
+  disputeSerial = '';
+  statement = '';
+  returnNote = '';
   details = '';
   comment = '';
   carrier = 'SAMEDAY';
@@ -227,7 +350,11 @@ export class OrdersPage implements ViewWillEnter {
 
   async load() {
     try {
-      if (this.id()) this.o.set(await this.api.order(this.id()!));
+      if (this.id()) {
+        const o = await this.api.order(this.id()!);
+        this.o.set(o);
+        if (o.status === 'COMPLETED') this.api.reviewStatus(o.id).then((r) => this.reviewed.set(r.reviewed)).catch(() => this.reviewed.set(true));
+      }
       else {
         const l = await this.api.orders();
         this.list.set(l);
@@ -239,11 +366,22 @@ export class OrdersPage implements ViewWillEnter {
 
   async refresh(ev: any) { await this.load(); ev.target.complete(); }
 
-  needsMe(o: Order) { return (o.role === 'SELLER' && o.canShip) || (o.role === 'BUYER' && o.status === 'SHIPPED'); }
+  needsMe(o: Order) {
+    return (o.role === 'SELLER' && (o.canShip || o.canRespond || o.canReturnConfirm)) || (o.role === 'BUYER' && (o.status === 'SHIPPED' || o.canReturnShip));
+  }
+
+  /** Dacă vânzătorul a înregistrat seria, cumpărătorul trebuie să scrie seria produsului primit (pentru „nu e ce am comandat” / „fals”). */
+  needsSerial(o: Order) { return !!o.evidence.serialNumber && (this.reason() === 'NOT_AS_DESCRIBED' || this.reason() === 'COUNTERFEIT'); }
+
+  canSendDispute(o: Order) {
+    if (!this.reason() || this.details.trim().length < 10 || this.busy()) return false;
+    if (this.reason() !== 'NOT_RECEIVED' && this.disputeIds.length < 2) return false;
+    return !this.needsSerial(o) || this.disputeSerial.trim().length >= 4;
+  }
 
   icon(o: Order) {
     return ({ PAID: o.role === 'SELLER' ? 'cash-outline' : 'shield-checkmark', SHIPPED: 'cube-outline', COMPLETED: 'checkmark-done',
-      DISPUTED: 'alert-circle', REFUNDED: 'arrow-undo' } as Record<string, string>)[o.status];
+      DISPUTED: 'alert-circle', RETURN_REQUESTED: 'arrow-undo-outline', REFUNDED: 'arrow-undo' } as Record<string, string>)[o.status];
   }
 
   headline(o: Order) { return `orders.h.${o.role}.${o.status}`; }
@@ -254,7 +392,7 @@ export class OrdersPage implements ViewWillEnter {
   }
 
   params(o: Order) {
-    return { date: this.when(o.shipBy), auto: this.when(o.autoReleaseAt), amount: this.i18n.price(o.itemCents + o.shippingCents, o.currency),
+    return { date: this.when(o.status === 'RETURN_REQUESTED' ? o.evidence.returnBy : o.shipBy), auto: this.when(o.autoReleaseAt), amount: this.i18n.price(o.itemCents + o.shippingCents, o.currency),
       total: this.i18n.price(o.totalCents, o.currency), name: o.counterpart?.displayName ?? '' };
   }
 
@@ -268,7 +406,22 @@ export class OrdersPage implements ViewWillEnter {
     finally { this.busy.set(false); }
   }
 
-  ship(o: Order) { this.run(() => this.api.shipOrder(o.id, o.delivery === 'COURIER' ? this.carrier : undefined, o.delivery === 'COURIER' ? this.tracking.trim() : undefined)); }
+  ship(o: Order) {
+    const courier = o.delivery === 'COURIER';
+    this.run(() => this.api.shipOrder(o.id, {
+      carrier: courier ? this.carrier : undefined, trackingCode: courier ? this.tracking.trim() : undefined,
+      serialNumber: this.serial.trim() || undefined, parcelWeightGrams: courier && this.weight ? Math.round(this.weight) : undefined,
+      proofImageIds: this.proofIds,
+    }));
+  }
+
+  respond(o: Order) { this.run(() => this.api.respondToDispute(o.id, this.statement.trim(), this.responseIds)); }
+
+  async returnShip(o: Order) {
+    if (await this.run(() => this.api.returnShip(o.id, this.carrier, this.tracking.trim()))) this.tracking = '';
+  }
+
+  returnReceived(o: Order, same: boolean) { this.run(() => this.api.returnReceived(o.id, same, same ? undefined : this.returnNote.trim())); }
   confirm(o: Order) { this.run(() => this.api.confirmOrder(o.id)); }
 
   async cancel(o: Order) {
@@ -277,13 +430,15 @@ export class OrdersPage implements ViewWillEnter {
   }
 
   async dispute(o: Order) {
-    if (await this.run(() => this.api.disputeOrder(o.id, this.reason(), this.details.trim()))) this.disputeOpen.set(false);
+    const body = { reason: this.reason(), details: this.details.trim(), evidenceImageIds: this.reason() === 'NOT_RECEIVED' ? [] : this.disputeIds,
+      serialNumber: this.needsSerial(o) ? this.disputeSerial.trim() : undefined };
+    if (await this.run(() => this.api.disputeOrder(o.id, body))) this.disputeOpen.set(false);
   }
 
   async review(o: Order) {
     this.busy.set(true);
     try {
-      await this.api.review({ listingId: o.listing!.id, rating: this.rating(), comment: this.comment.trim() || undefined });
+      await this.api.review({ orderId: o.id, rating: this.rating(), comment: this.comment.trim() || undefined });
       this.reviewed.set(true);
       this.ui.toast(this.i18n.t('orders.reviewDone'));
     } catch (e) { this.ui.error(e); }

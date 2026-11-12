@@ -1,5 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
-import { Component, Directive, OnDestroy, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Component, Directive, ElementRef, OnDestroy, OnInit, computed, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, NavController } from '@ionic/angular';
@@ -73,10 +73,10 @@ const STYLES = `
         <cmp-back fallback="/welcome" />
         <div class="head reveal"><cmp-logo [size]="56" [animate]="true" /><h1>{{ 'auth.loginTitle' | t }}</h1><p class="muted">{{ 'auth.loginSub' | t }}</p></div>
         <form (ngSubmit)="submit()" class="reveal" style="--i:2">
-          <div class="field"><label>{{ 'auth.email' | t }}</label><input class="input" type="email" name="email" [(ngModel)]="email" autocomplete="email" required /></div>
-          <div class="field"><label>{{ 'auth.password' | t }}</label>
-            <div class="pw"><input class="input" [type]="show() ? 'text' : 'password'" name="password" [(ngModel)]="password" autocomplete="current-password" required />
-              <button type="button" class="icon-btn sm" (click)="show.set(!show())"><ion-icon name="eye-outline"></ion-icon></button></div></div>
+          <div class="field"><label for="l-email">{{ 'auth.email' | t }}</label><input id="l-email" class="input" type="email" name="email" [(ngModel)]="email" autocomplete="email" inputmode="email" required /></div>
+          <div class="field"><label for="l-pass">{{ 'auth.password' | t }}</label>
+            <div class="pw"><input id="l-pass" class="input" [type]="show() ? 'text' : 'password'" name="password" [(ngModel)]="password" autocomplete="current-password" required />
+              <button type="button" class="icon-btn sm" (click)="show.set(!show())" [attr.aria-label]="'auth.showPassword' | t" [attr.aria-pressed]="show()"><ion-icon name="eye-outline"></ion-icon></button></div></div>
           @if (error()) { <div class="error-text fade">{{ error() }}</div> }
           <button class="btn block" [disabled]="busy() || !email || !password || wait() > 0">
             @if (wait() > 0) { <ion-icon name="time-outline"></ion-icon>{{ 'auth2.retryIn' | t: { time: mmss(wait()) } }} } @else { {{ 'auth.loginCta' | t }} }</button>
@@ -132,16 +132,19 @@ export class LoginPage extends AuthBase implements OnDestroy {
         <cmp-back fallback="/welcome" />
         <div class="head reveal"><cmp-logo [size]="56" [animate]="true" /><h1>{{ 'auth.registerTitle' | t }}</h1><p class="muted">{{ 'auth.registerSub' | t }}</p></div>
         <form (ngSubmit)="submit()" class="reveal" style="--i:2">
-          <div class="field"><label>{{ 'auth.email' | t }}</label><input class="input" type="email" name="email" [(ngModel)]="email" autocomplete="email" required /></div>
-          <div class="field"><label>{{ 'auth.username' | t }}</label><input class="input" name="username" [(ngModel)]="username" autocomplete="username" maxlength="20" required />
-            <span class="hint">{{ 'auth.usernameHint' | t }}</span></div>
-          <div class="field"><label>{{ 'auth.password' | t }}</label>
-            <div class="pw"><input class="input" [type]="show() ? 'text' : 'password'" name="password" [(ngModel)]="password" autocomplete="new-password" required />
-              <button type="button" class="icon-btn sm" (click)="show.set(!show())"><ion-icon name="eye-outline"></ion-icon></button></div>
+          <div class="field"><label for="r-email">{{ 'auth.email' | t }}</label><input id="r-email" class="input" type="email" name="email" [(ngModel)]="email" autocomplete="email" inputmode="email" required /></div>
+          <div class="field"><label for="r-user">{{ 'auth.username' | t }}</label><input id="r-user" class="input" name="username" [(ngModel)]="username" autocomplete="username" maxlength="20" required aria-describedby="r-user-hint" />
+            <span class="hint" id="r-user-hint">{{ 'auth.usernameHint' | t }}</span></div>
+          <div class="field"><label for="r-pass">{{ 'auth.password' | t }}</label>
+            <div class="pw"><input id="r-pass" class="input" [type]="show() ? 'text' : 'password'" name="password" [(ngModel)]="password" autocomplete="new-password" required aria-describedby="r-pass-hint" />
+              <button type="button" class="icon-btn sm" (click)="show.set(!show())" [attr.aria-label]="'auth.showPassword' | t" [attr.aria-pressed]="show()"><ion-icon name="eye-outline"></ion-icon></button></div>
             <div class="meter"><span [style.width.%]="strength() * 25" [attr.data-s]="strength()"></span></div>
-            <span class="hint">{{ 'auth.passwordHint' | t }}</span></div>
-          <div class="field"><label>{{ 'auth.referral' | t }} <span class="faint">({{ 'common.optional' | t }})</span></label>
-            <input class="input" name="ref" [(ngModel)]="referral" maxlength="12" style="text-transform: uppercase" /></div>
+            <span class="hint" id="r-pass-hint">{{ 'auth.passwordHint' | t }}</span></div>
+          <div class="field"><label for="r-ref">{{ 'auth.referral' | t }} <span class="faint">({{ 'common.optional' | t }})</span></label>
+            <input id="r-ref" class="input" name="ref" [(ngModel)]="referral" maxlength="12" style="text-transform: uppercase" autocomplete="off" /></div>
+          <!-- câmp-capcană pentru roboți: oamenii nu-l văd și nu-l completează -->
+          <div class="hp" aria-hidden="true"><label for="r-web">Website</label><input id="r-web" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="website" /></div>
+          @if (config()?.captchaSiteKey) { <div #captcha class="captcha"></div> }
           <div class="consent">
             <label class="chk"><input type="checkbox" name="terms" [(ngModel)]="acceptTerms" />
               <span class="box"><ion-icon name="checkmark"></ion-icon></span>
@@ -167,9 +170,16 @@ export class LoginPage extends AuthBase implements OnDestroy {
     .box { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--surface-3); background: var(--surface); display: grid; place-items: center; color: transparent; transition: all .2s; }
     .chk input:checked + .box { background: var(--accent); border-color: var(--accent); color: #fff; }
     .chk input:focus-visible + .box { box-shadow: 0 0 0 4px var(--accent-soft); }
+    .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+    .captcha { min-height: 65px; display: flex; justify-content: center; }
   `],
 })
 export class RegisterPage extends AuthBase {
+  /** Momentul în care s-a deschis formularul: un robot îl trimite instant, un om nu. */
+  private openedAt = performance.now();
+  private captchaEl = viewChild<ElementRef<HTMLElement>>('captcha');
+  private captchaToken = '';
+  website = '';
   email = '';
   username = '';
   password = '';
@@ -179,6 +189,27 @@ export class RegisterPage extends AuthBase {
   adult = false;
 
   protected override canSocial() { return this.acceptTerms && this.adult; }
+
+  override async ngOnInit() {
+    await super.ngOnInit();
+    const key = this.config()?.captchaSiteKey;
+    if (key) setTimeout(() => this.renderCaptcha(key));
+  }
+
+  /** Cloudflare Turnstile: verificare anti-roboți fără puzzle (doar dacă e configurată pe server). */
+  private renderCaptcha(siteKey: string) {
+    const el = this.captchaEl()?.nativeElement;
+    if (!el) return;
+    const w = window as any;
+    const draw = () => w.turnstile?.render(el, { sitekey: siteKey, language: this.i18n.lang(), callback: (t: string) => (this.captchaToken = t),
+      'expired-callback': () => (this.captchaToken = '') });
+    if (w.turnstile) { draw(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    s.async = true;
+    s.onload = draw;
+    document.head.appendChild(s);
+  }
 
   strength() {
     const p = this.password;
@@ -199,6 +230,7 @@ export class RegisterPage extends AuthBase {
         referralCode: this.referral.trim().toUpperCase() || undefined, locale: this.i18n.lang(),
         country: (navigator.language.split('-')[1] || 'RO').toUpperCase().slice(0, 2),
         acceptTerms: this.acceptTerms, adultConfirmed: this.adult,
+        website: this.website, elapsedMs: Math.round(performance.now() - this.openedAt), captchaToken: this.captchaToken || undefined,
       });
       this.done();
     } catch (e) { this.error.set(this.ui.errorText(e)); }

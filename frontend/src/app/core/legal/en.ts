@@ -6,7 +6,7 @@ import { LegalDocs } from './types';
 
 const docs: LegalDocs = {
   terms: {
-    title: 'Terms & conditions', updated: '2026-11-09',
+    title: 'Terms & conditions', updated: '2026-11-12',
     sections: [
       { h: '1. Who we are', p: [
         'Cumped is an online platform where individuals and businesses publish listings, negotiate and buy goods and services. It is operated by {company}, registered office {address}, registration no. {regNo}, VAT {vat}, email {email} (“we”).',
@@ -30,38 +30,49 @@ const docs: LegalDocs = {
         'Safe payment costs 2.5% of the item value (minimum €0.50, maximum €20) and is paid by the buyer. Prices include VAT where applicable. Plans renew monthly and can be cancelled at any time, effective at the end of the paid period.',
         'In the iOS and Android apps, digital services (plans, promotions) are purchased through Apple’s or Google’s payment system under their rules, including refunds.',
       ] },
-      { h: '6. Professional sellers (businesses)', p: [
+      { h: '6. Safe payment, claims and seller protection', p: [
+        'With safe payment, the money stays with Cumped until the buyer confirms receipt. If the buyer neither confirms nor files a claim, the money is released to the seller automatically after the inspection period shown in the order. If the seller doesn’t ship in time, the buyer is refunded automatically.',
+        'A claim must be filed in the app before the order is completed, with a description and, for any reason other than “not received”, at least 2 photos of the item received. If the seller registered the serial / IMEI at shipping, the buyer must enter the serial of the item received.',
+        'For courier items over €300, the seller must photograph the item and the parcel at shipping. The seller has 72 hours to answer a claim with their own evidence. A person on our team decides, based on the photos, the serial, courier data and both parties’ history.',
+        'When a claim concerns the condition of the item, the rule is a return: the buyer sends the item back within 7 days with tracking, and the refund is made only after the seller confirms receiving it in the same condition (or automatically if the seller doesn’t react within 14 days of the return being shipped). If the item isn’t sent back in time, the claim is closed and the seller is paid. If the seller receives a different item, the case goes back to the team.',
+        'False or abusive claims (for example returning a different item) lose the dispute, lead to account suspension and may be reported to the authorities. Evidence photos are private: only the parties to the order and the Cumped team can see them.',
+      ] },
+      { h: '7. Reviews', p: [
+        'Reviews can only be left after an order completed with safe payment, by the buyer and the seller, one per order, within 30 days. Each review is labelled “Verified purchase” or “Verified sale”, and a profile’s rating is calculated only from these (Art. 7(6) of Directive 2005/29/EC, as amended by Directive (EU) 2019/2161).',
+        'We don’t publish reviews that were bought, exchanged for favours or written by people without a real transaction, and we don’t hide negative reviews. Reviews with links, contact details or offensive language are rejected automatically.',
+      ] },
+      { h: '8. Professional sellers (businesses)', p: [
         'If you sell as part of a business, you must enable the business account and provide the identification details required by Article 30 DSA. Business details are shown on your listings.',
         'Traders must comply with consumer law: pre-contractual information, the 14-day right of withdrawal for distance sales, the legal guarantee of conformity and the rules on prices and discounts.',
         'Sales between private individuals are not covered by consumer protection law; we clearly show whether a seller is a private individual or a business.',
       ] },
-      { h: '7. Moderation, decisions and appeals', p: [
+      { h: '9. Moderation, decisions and appeals', p: [
         'Listings, messages and reports are analysed automatically (including by Velo AI) and by our team. When risk seems high, we may temporarily hide a listing or temporarily suspend an account pending human review.',
         'We may remove illegal content or content that breaches these terms and restrict or close accounts. We tell you the decision and the reasons for it, as required by Article 17 DSA.',
         'You can appeal any decision free of charge within 6 months, directly in the app (Article 20 DSA). Appeals are reviewed by people. You may also use a certified out-of-court dispute settlement body (Article 21 DSA) or go to court.',
       ] },
-      { h: '8. How we rank results', p: [
+      { h: '10. How we rank results', p: [
         'By default, search results are ranked by relevance to your search and by how recently the listing was published. Paid promotions appear higher and are labelled “Promoted”. You can always sort by date or price instead. See the Transparency (DSA) page.',
       ] },
-      { h: '9. Liability', p: [
+      { h: '11. Liability', p: [
         'We do not inspect every item and do not guarantee the quality, safety or legality of items sold by users. We are liable for the services we provide, within the limits of the law. Nothing in these terms limits liability for fraud or gross negligence or your mandatory consumer rights.',
       ] },
-      { h: '10. Your content', p: [
+      { h: '12. Your content', p: [
         'Your texts and photos remain yours. You grant us a non-exclusive, royalty-free licence, for as long as the content is on the platform, to host, display and technically adapt it (e.g. thumbnails). The Cumped brand and design belong to us.',
       ] },
-      { h: '11. Termination', p: [
+      { h: '13. Termination', p: [
         'You can delete your account at any time in Settings → Privacy. We may close accounts for serious or repeated breaches, with notice and reasons, unless the law prohibits informing you.',
       ] },
-      { h: '12. Changes', p: [
+      { h: '14. Changes', p: [
         'We notify you of significant changes at least 15 days in advance, in the app and by email. If you disagree, you can close your account before they take effect.',
       ] },
-      { h: '13. Governing law and disputes', p: [
+      { h: '15. Governing law and disputes', p: [
         'Romanian law applies, without depriving you of the protection of the law of your country of residence if you are a consumer. You can send complaints to {email}. In Romania you may also use the ANPC alternative dispute resolution (ADR) procedures.',
       ] },
     ],
   },
   privacy: {
-    title: 'Privacy policy', updated: '2026-11-09',
+    title: 'Privacy policy', updated: '2026-11-12',
     sections: [
       { h: '1. Controller', p: ['The controller of your data is {company}, {address}, email {email}. For any data protection question, write to {dpo}.'] },
       { h: '2. What we process', p: [
@@ -80,13 +91,13 @@ const docs: LegalDocs = {
         'Where data leaves the European Economic Area we rely on GDPR safeguards (adequacy decisions, including the EU-US Data Privacy Framework, or standard contractual clauses).',
       ] },
       { h: '6. How long we keep data', p: [
-        'For as long as you have an account. After deletion we erase or anonymise data within 30 days, except: accounting records (10 years, as required by law), moderation decisions and reports (up to 6 months after the case is closed, for appeals) and security logs (90 days).',
+        'For as long as you have an account. After deletion we erase or anonymise data within 30 days, except: accounting records (10 years, as required by law), moderation decisions and reports (up to 6 months after the case is closed, for appeals) and security logs (90 days). Delivery address and phone are deleted 90 days after the order ends. Evidence photos from a dispute are kept for up to 6 months after the case is closed.',
       ] },
       { h: '7. Your rights', p: [
         'You have the right of access, rectification, erasure, restriction, portability and objection, and to withdraw consent. You can download your data in Settings → Privacy → Download my data and delete your account there too. You can lodge a complaint with the Romanian supervisory authority ANSPDCP (www.dataprotection.ro) or the authority in your country.',
       ] },
       { h: '8. Security', p: [
-        'Encrypted connections (HTTPS), passwords stored only as hashes, short-lived sessions with secure refresh, sign-in attempt limits, automatic scanning of messages for fraud attempts and restricted internal access to data.',
+        'Encrypted connections (HTTPS), passwords stored only as hashes, short-lived sessions with secure refresh, sign-in attempt limits, automatic scanning of messages for fraud attempts and restricted internal access to data. ID names, delivery addresses and phone numbers are encrypted in the database (AES-256-GCM), and dispute evidence photos are only reachable through signed links valid for 2 hours.',
       ] },
       { h: '9. Minors, tracking and cookies', p: [
         'The service is intended for people aged 18 or older. We do not track you across other companies’ apps or websites, do not use the device advertising identifier and do not use third-party advertising or analytics cookies. See the Cookies page.',
@@ -168,7 +179,7 @@ const docs: LegalDocs = {
       { h: 'Without the app', p: ['Email {email} from the address linked to your account with the subject “Delete account”. We confirm your identity and delete the account within 30 days.'] },
       { h: 'What we delete and what we keep', p: [
         'Immediately: your profile is anonymised (email, name, phone, business details), your listings are withdrawn and their photos deleted, and your favourites, saved searches, notifications and Velo conversations are deleted. Messages you sent stay visible only to the other person in that conversation, without your name, and reviews you left stay anonymous.',
-        'We keep only what the law requires: accounting records (10 years), moderation decisions and reports (up to 6 months after the case is closed) and security logs (90 days).',
+        'We keep only what the law requires: accounting records (10 years), moderation decisions and reports (up to 6 months after the case is closed) and security logs (90 days). Delivery address and phone are deleted 90 days after the order ends. Evidence photos from a dispute are kept for up to 6 months after the case is closed.',
       ] },
     ],
   },

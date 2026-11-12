@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
-  AdminTicket, AppNotification, Card, ConversationSummary, Detail, ListingDraft, Me, Negotiation, Order, OrderQuote, Page, SellerStats, ShipAddress, PriceAnalysis, PublicUser,
+  AdminDispute, AdminTicket, AppNotification, Card, ConversationSummary, Detail, ListingDraft, Me, Negotiation, Order, OrderQuote, Page, SellerStats, ShipAddress, PriceAnalysis, PublicUser,
   Review, ServerConfig, ShippingEstimate, Stats, Thread, Ticket, VeloReply,
 } from './models';
 
@@ -40,6 +40,7 @@ export class Api {
 
   config() { return this.get<ServerConfig>('/config'); }
   search(q: SearchQuery) { return this.get<Page<Card>>('/listings', q); }
+  suggest(q: string) { return this.get<{ text: string; category: string | null; count: number }[]>('/listings/suggest', { q }); }
   listing(id: string) { return this.get<Detail>(`/listings/${id}`); }
   similar(id: string) { return this.get<Card[]>(`/listings/${id}/similar`); }
   priceAnalysis(id: string) { return this.get<PriceAnalysis>(`/listings/${id}/price-analysis`); }
@@ -89,19 +90,26 @@ export class Api {
   createOrder(listingId: string, body: { delivery: 'PICKUP' | 'COURIER'; address?: ShipAddress }) { return this.post<Order>(`/listings/${listingId}/orders`, body); }
   orders() { return this.get<Order[]>('/me/orders'); }
   order(id: string) { return this.get<Order>(`/orders/${id}`); }
-  shipOrder(id: string, carrier?: string, trackingCode?: string) { return this.post<Order>(`/orders/${id}/ship`, { carrier, trackingCode }); }
+  shipOrder(id: string, body: { carrier?: string; trackingCode?: string; serialNumber?: string; parcelWeightGrams?: number; proofImageIds?: string[] }) {
+    return this.post<Order>(`/orders/${id}/ship`, body);
+  }
   confirmOrder(id: string) { return this.post<Order>(`/orders/${id}/confirm`); }
-  disputeOrder(id: string, reason: string, details: string) { return this.post<Order>(`/orders/${id}/dispute`, { reason, details }); }
+  disputeOrder(id: string, body: { reason: string; details: string; evidenceImageIds: string[]; serialNumber?: string }) { return this.post<Order>(`/orders/${id}/dispute`, body); }
+  respondToDispute(id: string, statement: string, evidenceImageIds: string[]) { return this.post<Order>(`/orders/${id}/respond`, { statement, evidenceImageIds }); }
+  returnShip(id: string, carrier: string, trackingCode: string) { return this.post<Order>(`/orders/${id}/return-ship`, { carrier, trackingCode }); }
+  returnReceived(id: string, sameCondition: boolean, note?: string) { return this.post<Order>(`/orders/${id}/return-received`, { sameCondition, note }); }
+  reviewStatus(orderId: string) { return this.get<{ reviewed: boolean }>(`/orders/${orderId}/review-status`); }
   cancelOrder(id: string) { return this.post<Order>(`/orders/${id}/cancel`); }
-  disputedOrders() { return this.get<Order[]>('/admin/orders/disputed'); }
-  resolveOrder(id: string, outcome: 'REFUND' | 'RELEASE') { return this.post(`/admin/orders/${id}/resolve`, { outcome }); }
+  disputedOrders() { return this.get<AdminDispute[]>('/admin/orders/disputed'); }
+  resolveOrder(id: string, outcome: 'RETURN' | 'REFUND' | 'RELEASE') { return this.post(`/admin/orders/${id}/resolve`, { outcome }); }
   // alertă preț, statistici vânzător, AI
   setPriceAlert(listingId: string, targetPriceCents: number) { return this.put<{ targetPriceCents: number }>(`/listings/${listingId}/price-alert`, { targetPriceCents }); }
   clearPriceAlert(listingId: string) { return this.del(`/listings/${listingId}/price-alert`); }
   sellerStats(userId: string) { return this.get<SellerStats>(`/users/${userId}/stats`); }
   listingDraft(imageIds: string[], lang: string, currency: string) { return this.post<ListingDraft>('/ai/listing-draft', { imageIds, lang, currency }); }
   translate(messageId: string, lang: string) { return this.post<{ text: string }>(`/messages/${messageId}/translate`, { lang }); }
-  review(body: { listingId: string; revieweeId?: string; rating: number; comment?: string }) { return this.post('/reviews', body); }
+  /** Recenzie doar pentru o comandă finalizată (cumpărare verificată). */
+  review(body: { orderId: string; rating: number; comment?: string }) { return this.post('/reviews', body); }
 
   notifications() { return this.get<AppNotification[]>('/me/notifications'); }
   readAllNotifications() { return this.post('/me/notifications/read-all'); }

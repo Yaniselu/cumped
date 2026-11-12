@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 public class AuthService {
     /** Versiunea curentă a Termenilor și a Politicii de confidențialitate (o schimbare cere re-acceptare). */
-    public static final String TERMS_VERSION = "2026-11";
+    public static final String TERMS_VERSION = "2026-11-12";
     private static final Set<String> RESERVED = Set.of("admin", "administrator", "root", "support", "suport", "velo",
             "veloai", "cumped", "moderator", "staff", "official", "oficial", "help", "ajutor", "system", "security");
     private static final Set<String> LOCALES = Set.of("ro", "en", "de", "fr", "es", "it", "hu", "pl", "uk", "tr",

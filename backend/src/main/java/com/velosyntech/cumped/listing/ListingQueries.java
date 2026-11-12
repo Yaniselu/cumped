@@ -36,6 +36,48 @@ public class ListingQueries {
 
     public ListingQueries(JdbcClient jdbc) { this.jdbc = jdbc; }
 
+    public record Suggestion(String text, String category, int count) {}
+
+    /**
+     * Sugestii pentru căutare (combobox): expresii scurte din titlurile anunțurilor active care conțin textul scris.
+     * Interogare parametrizată; caracterele speciale din LIKE (% _ \) sunt neutralizate.
+     */
+    public List<Suggestion> suggest(String raw) {
+        String q = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+        if (q.length() < 2 || q.length() > 60) return List.of();
+        String like = "%" + escapeLike(q) + "%";
+        record Row(String title, String category) {}
+        List<Row> rows = jdbc.sql("""
+                SELECT title, category FROM listings WHERE status = 'ACTIVE' AND title ILIKE ? ESCAPE '\\'
+                ORDER BY view_count DESC, created_at DESC LIMIT 60""")
+                .param(like).query((rs, i) -> new Row(rs.getString(1), rs.getString(2))).list();
+        Map<String, int[]> counts = new LinkedHashMap<>();
+        Map<String, String> cats = new HashMap<>();
+        for (Row r : rows) {
+            String phrase = phrase(r.title().toLowerCase(Locale.ROOT), q);
+            if (phrase == null) continue;
+            counts.computeIfAbsent(phrase, k -> new int[1])[0]++;
+            cats.putIfAbsent(phrase, r.category());
+        }
+        return counts.entrySet().stream().sorted((a, b) -> b.getValue()[0] - a.getValue()[0]).limit(6)
+                .map(e -> new Suggestion(e.getKey(), cats.get(e.getKey()), e.getValue()[0])).toList();
+    }
+
+    /** Din „iphone 13 pro max 256gb albastru” și „iph” → „iphone 13 pro”: cuvântul potrivit plus maximum două după el. */
+    private static String phrase(String title, String q) {
+        String[] words = title.replaceAll("[^\\p{L}\\p{N} ]", " ").trim().split("\\s+");
+        String first = q.split("\\s+")[0];
+        for (int i = 0; i < words.length; i++) {
+            if (words[i].contains(first)) {
+                StringBuilder sb = new StringBuilder();
+                for (int j = i; j < Math.min(words.length, i + 3); j++) { if (sb.length() > 0) sb.append(' '); sb.append(words[j]); }
+                String p = sb.toString();
+                return !q.contains(" ") || p.contains(q) ? p : null;
+            }
+        }
+        return null;
+    }
+
     public ListingDtos.Page<ListingDtos.Card> search(ListingDtos.SearchParams p, UUID viewer) {
         StringBuilder where = new StringBuilder(" WHERE l.status = 'ACTIVE' AND u.suspended = false");
         Map<String, Object> params = new HashMap<>();

@@ -21,7 +21,7 @@ const REASONS: Record<ReportTarget, string[]> = {
   selector: 'cmp-report-sheet',
   imports: [IonModal, IonContent, IonIcon, FormsModule, TPipe],
   template: `
-    <ion-modal [isOpen]="open()" (didDismiss)="open.set(false)" [initialBreakpoint]="0.92" [breakpoints]="[0, 0.92]">
+    <ion-modal [isOpen]="open()" (didDismiss)="open.set(false)" [initialBreakpoint]="0.92" [breakpoints]="[0, 0.92, 1]">
       <ng-template>
         <ion-content>
           <div class="sb">
