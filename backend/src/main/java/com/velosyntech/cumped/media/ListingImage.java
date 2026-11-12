@@ -15,6 +15,9 @@ public class ListingImage {
     private String storageKey;
     private String contentType;
     private Instant createdAt = Instant.now();
+    /** LISTING = poză de anunț (publică); EVIDENCE = dovadă într-o dispută (privată, doar prin link semnat). */
+    private String purpose = "LISTING";
+    private UUID orderId;
 
     protected ListingImage() {}
 
@@ -33,6 +36,9 @@ public class ListingImage {
     public String getStorageKey() { return storageKey; }
     public String getContentType() { return contentType; }
     public Instant getCreatedAt() { return createdAt; }
+    public String getPurpose() { return purpose; }
+    public UUID getOrderId() { return orderId; }
+    public boolean isEvidence() { return "EVIDENCE".equals(purpose); }
 
     /** Pozele demo sunt servite de frontend; restul trec prin API. */
     public String url() { return url(id, storageKey); }

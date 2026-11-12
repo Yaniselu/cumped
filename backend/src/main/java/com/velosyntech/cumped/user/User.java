@@ -18,7 +18,10 @@ public class User {
     private String passwordHash;
     @Column(nullable = false, unique = true) private String username;
     @Enumerated(EnumType.STRING) private DisplayMode displayMode = DisplayMode.USERNAME;
+    /** Numele de pe act: criptate în baza de date (AES-256-GCM). */
+    @jakarta.persistence.Convert(converter = com.velosyntech.cumped.common.EncryptedString.class)
     private String legalFirstName;
+    @jakarta.persistence.Convert(converter = com.velosyntech.cumped.common.EncryptedString.class)
     private String legalLastName;
     private boolean idVerified;
     private Instant idVerifiedAt;

@@ -31,12 +31,16 @@ public record AppProperties(
         String companyRegNo,
         String companyVat,
         String companyEmail,
-        String dpoEmail
+        String dpoEmail,
+        String dataEncryptionKey,
+        String turnstileSiteKey,
+        String turnstileSecret
 ) {
     public boolean rateLimitEnabled() { return rateLimit == null || rateLimit; }
     public List<String> corsOriginList() { return split(corsOrigins); }
     public List<String> googleClientIdList() { return split(googleClientIds); }
     public List<String> appleClientIdList() { return split(appleClientIds); }
+    public boolean captchaEnabled() { return turnstileSecret != null && !turnstileSecret.isBlank(); }
     public boolean aiEnabled() { return anthropicApiKey != null && !anthropicApiKey.isBlank(); }
 
     private static List<String> split(String v) {

@@ -236,6 +236,10 @@ public class UserController {
     void deleteAccount() {
         UUID me = CurrentUser.id();
         User u = users.findById(me).orElseThrow(ApiException::notFound);
+        // Nu poți șterge contul cu comenzi în curs (banii sunt blocați, cealaltă parte trebuie protejată).
+        int open = jdbc.sql("SELECT count(*) FROM orders WHERE (buyer_id = ? OR seller_id = ?) AND status IN ('PAID','SHIPPED','DISPUTED','RETURN_REQUESTED')")
+                .params(me, me).query(Integer.class).single();
+        if (open > 0) throw ApiException.conflict("OPEN_ORDERS");
         // Anunțurile rămân doar ca rânduri goale (pentru ofertele/conversațiile celorlalți), fără text și fără poze.
         jdbc.sql("UPDATE listings SET status = 'DELETED', description = '', attributes = '', min_price_cents = NULL WHERE seller_id = ?").param(me).update();
         images.findByOwnerId(me).forEach(media::delete);

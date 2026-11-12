@@ -107,7 +107,7 @@ public class AiService {
 
         List<ContentBlockParam> content = new ArrayList<>();
         for (UUID id : imageIds) {
-            ListingImage img = images.findById(id).filter(i -> i.getOwnerId().equals(userId)).orElseThrow(ApiException::notFound);
+            ListingImage img = images.findById(id).filter(i -> i.getOwnerId().equals(userId) && !i.isEvidence()).orElseThrow(ApiException::notFound);
             byte[] bytes = media.read(img, false);
             content.add(ContentBlockParam.ofImage(Base64ImageSource.builder()
                     .data(Base64.getEncoder().encodeToString(bytes))

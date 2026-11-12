@@ -124,11 +124,8 @@ class MarketplaceIT {
         // Utilizatorii nu pot falsifica mesajele de sistem.
         assertThat(buyer.post("/api/conversations/" + conv + "/messages", Map.of("body", "[[offer:ACCEPTED:1:RON:PRICE]]")).status()).isEqualTo(400);
 
-        // După tranzacție, cumpărătorul poate lăsa recenzie; un străin nu.
-        assertThat(buyer.post("/api/reviews", Map.of("listingId", listingId, "rating", 5, "comment", "Totul perfect")).status()).isEqualTo(200);
-        TestClient stranger = new TestClient(port, json);
-        stranger.register();
-        assertThat(stranger.post("/api/reviews", Map.of("listingId", listingId, "rating", 1)).error()).isEqualTo("NO_TRANSACTION");
+        // O ofertă acceptată nu e o cumpărare: recenzia cere o comandă finalizată (vezi ReviewsAndDisputesIT).
+        assertThat(buyer.post("/api/reviews", Map.of("orderId", java.util.UUID.randomUUID(), "rating", 5)).status()).isEqualTo(404);
     }
 
     @Test
@@ -276,7 +273,10 @@ class MarketplaceIT {
         assertThat(seller.post("/api/orders/" + orderId + "/confirm", Map.of()).status()).isEqualTo(404);
         assertThat(buyer.post("/api/orders/" + orderId + "/confirm", Map.of()).body().get("status").asText()).isEqualTo("COMPLETED");
         // comanda finalizată permite recenzia
-        assertThat(buyer.post("/api/reviews", Map.of("listingId", listingId, "rating", 5, "comment", "Totul perfect")).status()).isBetween(200, 201);
+        assertThat(buyer.post("/api/reviews", Map.of("orderId", orderId, "rating", 5, "comment", "Totul perfect")).status()).isBetween(200, 201);
+        // adresa e criptată în baza de date (nu apare în clar)
+        String stored = jdbc.sql("SELECT ship_address || ship_phone FROM orders WHERE id = CAST(? AS uuid)").param(orderId).query(String.class).single();
+        assertThat(stored).startsWith("enc:v1:").doesNotContain("Lalelelor").doesNotContain("712");
     }
 
     @Test
@@ -294,8 +294,12 @@ class MarketplaceIT {
 
         String o2 = buyer.post("/api/listings/" + l1 + "/orders", Map.of("delivery", "PICKUP")).body().get("id").asText();
         assertThat(buyer.post("/api/orders/" + o2 + "/dispute", Map.of("reason", "NOT_AS_DESCRIBED", "details", "scurt")).error()).isEqualTo("DETAILS_REQUIRED");
+        // „nu e ca în descriere” fără poze nu e acceptat
+        assertThat(buyer.post("/api/orders/" + o2 + "/dispute", Map.of("reason", "NOT_AS_DESCRIBED",
+                "details", "Bateria nu ține deloc, în anunț scria că ține 30 km.")).error()).isEqualTo("EVIDENCE_REQUIRED");
         JsonNode d = buyer.post("/api/orders/" + o2 + "/dispute", Map.of("reason", "NOT_AS_DESCRIBED",
-                "details", "Bateria nu ține deloc, în anunț scria că ține 30 km.")).body();
+                "details", "Bateria nu ține deloc, în anunț scria că ține 30 km.",
+                "evidenceImageIds", java.util.List.of(buyer.uploadPhoto(), buyer.uploadPhoto()))).body();
         assertThat(d.get("status").asText()).isEqualTo("DISPUTED");
         int tickets = jdbc.sql("SELECT count(*) FROM support_tickets WHERE target_id = CAST(? AS uuid) AND target_type = 'ORDER'").param(o2).query(Integer.class).single();
         assertThat(tickets).isEqualTo(1);

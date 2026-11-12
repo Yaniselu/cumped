@@ -13,6 +13,13 @@ spring:
       hibernate.jdbc.time_zone: UTC
   flyway:
     enabled: true
+    # migrările pot rula cu un utilizator separat (proprietarul schemei); aplicația folosește unul doar cu drepturi DML
+    user: ${FLYWAY_USER:${DB_USER:cumped}}
+    password: ${FLYWAY_PASSWORD:${DB_PASSWORD:cumped}}
+  jackson:
+    deserialization:
+      # câmp necunoscut în JSON = cerere respinsă (nimeni nu poate „strecura” role, status, sellerId etc.)
+      fail-on-unknown-properties: true
   servlet:
     multipart:
       max-file-size: 8MB
@@ -85,4 +92,7 @@ cumped:
   company-reg-no: ${COMPANY_REG_NO:}
   company-vat: ${COMPANY_VAT:}
   company-email: ${COMPANY_EMAIL:contact@velosyntech.com}
+  data-encryption-key: ${DATA_ENCRYPTION_KEY:}
+  turnstile-site-key: ${TURNSTILE_SITE_KEY:}
+  turnstile-secret: ${TURNSTILE_SECRET:}
   dpo-email: ${DPO_EMAIL:contact@velosyntech.com}

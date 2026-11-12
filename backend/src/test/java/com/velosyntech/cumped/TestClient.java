@@ -64,14 +64,75 @@ public class TestClient {
         }
     }
 
+    /** Încarcă o poză JPEG generată (culoare diferită la fiecare apel) și întoarce id-ul ei. */
+    public String uploadPhoto() {
+        try {
+            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(320, 240, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g = img.createGraphics();
+            g.setColor(new java.awt.Color(java.util.concurrent.ThreadLocalRandom.current().nextInt(0xFFFFFF)));
+            g.fillRect(0, 0, 320, 240);
+            g.dispose();
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(img, "jpg", out);
+            return upload("photo.jpg", "image/jpeg", out.toByteArray()).body().get("id").asText();
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Trimite un fișier ca multipart/form-data (câmpul „file”). */
+    public Res upload(String filename, String contentType, byte[] bytes) {
+        try {
+            String boundary = "----cumped" + UUID.randomUUID();
+            java.io.ByteArrayOutputStream body = new java.io.ByteArrayOutputStream();
+            body.write(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + filename
+                    + "\"\r\nContent-Type: " + contentType + "\r\n\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            body.write(bytes);
+            body.write(("\r\n--" + boundary + "--\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(base + "/api/media"))
+                    .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray()));
+            if (token != null) b.header("Authorization", "Bearer " + token);
+            if (ip != null) b.header("X-Forwarded-For", ip);
+            HttpResponse<String> r = http.send(b.build(), HttpResponse.BodyHandlers.ofString());
+            JsonNode node = r.body() == null || r.body().isBlank() ? null : json.readTree(r.body());
+            return new Res(r.statusCode(), node, r);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Descarcă un URL relativ (ex. /api/media/...) și întoarce doar codul de stare. */
+    public int fetchStatus(String path) {
+        try {
+            HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(base + path)).GET();
+            if (ip != null) b.header("X-Forwarded-For", ip);
+            return http.send(b.build(), HttpResponse.BodyHandlers.discarding()).statusCode();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /** Creează un cont nou și păstrează token-ul. */
+    public String email;
+    public String userId;
+
+    /** Autentificare din nou (ex. după ce testul i-a schimbat rolul în baza de date). */
+    public void relogin() {
+        Res r = post("/api/auth/login", java.util.Map.of("email", email, "password", "Sigur-Parola-2026!"));
+        if (r.status() != 200) throw new IllegalStateException("login failed " + r.status() + " " + r.raw().body());
+        token = r.body().get("accessToken").asText();
+    }
+
     public JsonNode register() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        Res r = post("/api/auth/register", java.util.Map.of("email", "u" + suffix + "@test.dev",
+        email = "u" + suffix + "@test.dev";
+        Res r = post("/api/auth/register", java.util.Map.of("email", email,
                 "password", "Sigur-Parola-2026!", "username", "u_" + suffix, "country", "RO", "locale", "ro",
-                "acceptTerms", true, "adultConfirmed", true));
+                "acceptTerms", true, "adultConfirmed", true, "website", "", "elapsedMs", 6000));
         if (r.status() != 201) throw new IllegalStateException("register failed " + r.status() + " " + r.raw().body());
         token = r.body().get("accessToken").asText();
+        userId = r.body().get("user").get("id").asText();
         return r.body().get("user");
     }
 }

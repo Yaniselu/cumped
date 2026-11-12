@@ -253,6 +253,7 @@ public class ListingService {
         for (UUID imgId : wanted) {
             ListingImage img = images.findById(imgId).orElseThrow(() -> ApiException.badRequest("INVALID_IMAGE"));
             if (!img.getOwnerId().equals(ownerId)) throw ApiException.forbidden();
+            if (img.isEvidence()) throw ApiException.badRequest("INVALID_IMAGE");
             if (img.getListingId() != null && !img.getListingId().equals(l.getId())) throw ApiException.badRequest("INVALID_IMAGE");
             img.setListingId(l.getId());
             img.setPosition(pos++);

@@ -50,7 +50,7 @@ public class MediaService {
     @Transactional
     public ListingImage upload(UUID ownerId, MultipartFile file) {
         if (file == null || file.isEmpty()) throw ApiException.badRequest("EMPTY_FILE");
-        if (images.countByOwnerIdAndListingIdIsNull(ownerId) >= MAX_PENDING_PER_USER) throw ApiException.badRequest("TOO_MANY_PENDING_IMAGES");
+        if (images.countByOwnerIdAndListingIdIsNullAndPurpose(ownerId, "LISTING") >= MAX_PENDING_PER_USER) throw ApiException.badRequest("TOO_MANY_PENDING_IMAGES");
         byte[] bytes;
         try (InputStream in = file.getInputStream()) {
             bytes = in.readNBytes(8 * 1024 * 1024 + 1);
@@ -108,11 +108,11 @@ public class MediaService {
         }
     }
 
-    /** Șterge imaginile încărcate dar neatașate niciunui anunț după 24h. */
+    /** Șterge imaginile încărcate dar neatașate niciunui anunț după 24h (dovezile din dispute rămân). */
     @Scheduled(fixedDelay = 3_600_000)
     @Transactional
     public void cleanupOrphans() {
-        for (ListingImage img : images.findByListingIdIsNullAndCreatedAtBefore(Instant.now().minus(Duration.ofHours(24)))) {
+        for (ListingImage img : images.findByListingIdIsNullAndPurposeAndCreatedAtBefore("LISTING", Instant.now().minus(Duration.ofHours(24)))) {
             delete(img);
         }
     }

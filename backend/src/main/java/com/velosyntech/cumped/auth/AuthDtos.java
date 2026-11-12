@@ -18,7 +18,13 @@ public final class AuthDtos {
             @Size(max = 80) String city,
             @Pattern(regexp = "^[a-z]{2}$") String locale,
             Boolean acceptTerms,
-            Boolean adultConfirmed) {}
+            Boolean adultConfirmed,
+            /** Câmp-capcană invizibil pentru oameni: dacă e completat, e un robot. */
+            @Size(max = 200) String website,
+            /** Cât a durat completarea formularului (ms). Roboții completează instant. */
+            Long elapsedMs,
+            /** Token Cloudflare Turnstile, când protecția e activată. */
+            @Size(max = 4096) String captchaToken) {}
 
     public record LoginRequest(@NotBlank @Size(max = 254) String email, @NotBlank @Size(max = 128) String password) {}
 

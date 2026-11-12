@@ -26,9 +26,11 @@ public class AuthController {
     private final UserRepository users;
     private final QuotaService quota;
     private final AppProperties props;
+    private final BotGuard bots;
 
     public AuthController(AuthService auth, TokenService tokens, SocialTokenVerifier social, UserRepository users,
-                          QuotaService quota, AppProperties props) {
+                          QuotaService quota, AppProperties props, BotGuard bots) {
+        this.bots = bots;
         this.auth = auth;
         this.tokens = tokens;
         this.social = social;
@@ -38,7 +40,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    ResponseEntity<AuthDtos.AuthResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest r) {
+    ResponseEntity<AuthDtos.AuthResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest r, jakarta.servlet.http.HttpServletRequest req) {
+        bots.check(r.website(), r.elapsedMs(), r.captchaToken(), req.getRemoteAddr());
         return respond(auth.register(r), HttpStatus.CREATED);
     }
 
