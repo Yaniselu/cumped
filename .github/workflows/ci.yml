@@ -176,3 +176,5 @@ jobs:
       - uses: gradle/actions/dependency-submission@v4
         with:
           build-root-directory: backend
+          # dacă „Dependency graph” e oprit în setările repository-ului, nu stricăm tot CI-ul
+          dependency-graph-continue-on-failure: true

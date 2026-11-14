@@ -9,6 +9,10 @@ updates:
     directory: /frontend
     schedule: { interval: weekly }
     open-pull-requests-limit: 10
+    ignore:
+      # TypeScript urmează versiunea suportată de Angular; o versiune majoră nouă vine odată cu Angular
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     groups:
       angular:
         patterns: ["@angular/*", "@angular-devkit/*"]
@@ -17,9 +21,17 @@ updates:
   - package-ecosystem: docker
     directory: /backend
     schedule: { interval: weekly }
+    ignore:
+      # rămânem pe Java LTS (21); trecem manual la următorul LTS
+      - dependency-name: eclipse-temurin
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /frontend
     schedule: { interval: weekly }
+    ignore:
+      # Node: doar versiuni LTS (cele pare); 25 nu e LTS
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
