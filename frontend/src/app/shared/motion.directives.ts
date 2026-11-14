@@ -1,4 +1,4 @@
-import { Directive, ElementRef, OnDestroy, OnInit, effect, inject, input } from '@angular/core';
+import { Directive, ElementRef, NgZone, OnDestroy, OnInit, effect, inject, input } from '@angular/core';
 import { I18n } from '../core/i18n.service';
 
 /** Numărătoare animată (prețuri, statistici). */
@@ -92,4 +92,71 @@ export class PointerParallaxDirective implements OnInit, OnDestroy {
   ngOnDestroy() { this.off.forEach((f) => f()); }
 }
 
-export const MOTION = [CountDirective, ScrollFxDirective, SplitTextDirective, PointerParallaxDirective];
+/**
+ * Bara de căutare „scrie singură” exemple din limba curentă (iPhone 15, Bicicletă de oraș…), ca să arate ce poți căuta.
+ * Pe <input> schimbă doar textul-indiciu și se oprește cât timp scrii; pe alt element îi scrie textul.
+ * Se oprește când nu e pe ecran sau tab-ul e ascuns; cu mișcare redusă / mod economic rămâne textul obișnuit.
+ */
+@Directive({ selector: '[cmpTyped]' })
+export class TypedDirective implements OnInit, OnDestroy {
+  private el = inject(ElementRef<HTMLElement>);
+  private i18n = inject(I18n);
+  private zone = inject(NgZone);
+  /** Textul obișnuit (tradus), afișat la început, la focus și ca rezervă. */
+  cmpTyped = input('');
+  private timer: any;
+  private visible = true;
+  private io?: IntersectionObserver;
+  private isInput = this.el.nativeElement instanceof HTMLInputElement;
+
+  constructor() {
+    effect(() => { const base = this.cmpTyped(); this.i18n.version(); this.write(base); this.restart(); });
+  }
+
+  ngOnInit() {
+    const host = this.el.nativeElement as HTMLElement;
+    this.zone.runOutsideAngular(() => {
+      this.io = new IntersectionObserver(([e]) => { this.visible = e.isIntersecting; if (this.visible) this.restart(); });
+      this.io.observe(host);
+      if (this.isInput) {
+        host.addEventListener('focus', () => { this.stop(); this.write(this.cmpTyped()); });
+        host.addEventListener('blur', () => this.restart());
+      }
+    });
+  }
+
+  ngOnDestroy() { this.stop(); this.io?.disconnect(); }
+
+  private quiet() {
+    return matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('lite');
+  }
+
+  private write(text: string) {
+    const host = this.el.nativeElement as HTMLElement;
+    if (this.isInput) (host as HTMLInputElement).placeholder = text; else host.textContent = text;
+  }
+
+  private stop() { clearTimeout(this.timer); this.timer = null; }
+
+  private restart() {
+    this.stop();
+    if (this.quiet()) return;
+    const examples = this.i18n.t('fx.examples').split('|').filter(Boolean);
+    if (!examples.length || this.i18n.t('fx.examples') === 'fx.examples') return;
+    let ex = Math.floor(Math.random() * examples.length), n = 0, dir = 1;
+    const step = () => {
+      const host = this.el.nativeElement as HTMLInputElement;
+      if (!this.visible || document.hidden || (this.isInput && (document.activeElement === host || host.value))) { this.timer = setTimeout(step, 900); return; }
+      const word = examples[ex];
+      n += dir;
+      this.write(this.i18n.t('fx.typed', { q: word.slice(0, n) }));
+      let wait = dir > 0 ? 55 + Math.random() * 50 : 28;
+      if (dir > 0 && n >= word.length) { dir = -1; wait = 1700; }
+      else if (dir < 0 && n <= 0) { dir = 1; ex = (ex + 1) % examples.length; wait = 380; }
+      this.timer = setTimeout(step, wait);
+    };
+    this.zone.runOutsideAngular(() => (this.timer = setTimeout(step, 2200)));
+  }
+}
+
+export const MOTION = [CountDirective, ScrollFxDirective, SplitTextDirective, PointerParallaxDirective, TypedDirective];

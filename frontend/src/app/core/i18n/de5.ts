@@ -30,5 +30,10 @@ export default {
     "promptYes": "Ja, aktivieren",
     "promptLater": "Später",
     "newMessageToast": "Neue Nachricht von {name}"
+  },
+  "fx": {
+    "seen": "Gelesen",
+    "typed": "Suche {q}",
+    "examples": "iPhone 15|Stadtrad|2-Zimmer-Wohnung|Winterjacke|PlayStation 5|Schlafsofa|MacBook Air|Nike Sneaker"
   }
 };

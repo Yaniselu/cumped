@@ -30,5 +30,10 @@ export default {
     "promptYes": "Oui, activer les alertes",
     "promptLater": "Plus tard",
     "newMessageToast": "Nouveau message de {name}"
+  },
+  "fx": {
+    "seen": "Lu",
+    "typed": "Rechercher {q}",
+    "examples": "iPhone 15|vélo de ville|appartement 2 pièces|veste d'hiver|PlayStation 5|canapé convertible|MacBook Air|baskets Nike"
   }
 };

@@ -1,7 +1,8 @@
+import { RefreshMarkComponent } from '../shared/refresh-mark.component';
 import { MOTION } from '../shared/motion.directives';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { IonContent, IonIcon, IonRefresher, IonRefresherContent, ViewWillEnter } from '@ionic/angular';
+import { IonContent, IonIcon, IonRefresher, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { I18n, TPipe } from '../core/i18n.service';
 import { offerEventShort, orderEventText, parseOfferEvent, parseOrderEvent } from '../core/offer-event';
@@ -12,10 +13,10 @@ import { SkeletonLinesComponent } from '../shared/skeleton.component';
 
 @Component({
   selector: 'page-chats',
-  imports: [MOTION, IonContent, IonIcon, IonRefresher, IonRefresherContent, RouterLink, TPipe, AvatarComponent, EmptyComponent, SkeletonLinesComponent],
+  imports: [RefreshMarkComponent, MOTION, IonContent, IonIcon, IonRefresher, RouterLink, TPipe, AvatarComponent, EmptyComponent, SkeletonLinesComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
-      <ion-refresher slot="fixed" (ionRefresh)="load($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
+      <ion-refresher slot="fixed" (ionRefresh)="load($event)"><cmp-refresh-mark /></ion-refresher>
       <div class="page narrow">
         <div class="topbar"><h1>{{ 'chat.title' | t }}</h1><a class="icon-btn" routerLink="/offers"><ion-icon name="pricetag-outline"></ion-icon></a></div>
         @if (loading()) { <cmp-skeleton-lines [count]="5" /> }
@@ -23,7 +24,7 @@ import { SkeletonLinesComponent } from '../shared/skeleton.component';
         @else {
           @for (c of items(); track c.id; let i = $index) {
             <a class="conv card press reveal" [style.--i]="i" [routerLink]="['/chat', c.id]">
-              <div class="thumb"><img [src]="api.url(c.listing.imageUrl)" alt="" />
+              <div class="thumb"><img [src]="api.url(c.listing.imageUrl)" alt="" loading="lazy" decoding="async" />
                 <span class="av"><cmp-avatar [name]="c.other.displayName" [hue]="c.other.avatarHue" [size]="28" [verified]="c.other.idVerified" /></span></div>
               <div class="mid">
                 <div class="row between"><strong>{{ c.other.displayName }}</strong><span class="faint small">{{ c.lastAt ? i18n.ago(c.lastAt) : '' }}</span></div>

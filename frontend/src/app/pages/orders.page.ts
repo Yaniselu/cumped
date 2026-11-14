@@ -1,8 +1,9 @@
+import { RefreshMarkComponent } from '../shared/refresh-mark.component';
 import { MOTION } from '../shared/motion.directives';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent, NavController, ViewWillEnter } from '@ionic/angular';
+import { IonContent, IonIcon, IonModal, IonRefresher, NavController, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { I18n, TPipe } from '../core/i18n.service';
 import { Order } from '../core/models';
@@ -20,11 +21,11 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
 /** Comenzile cu plată sigură: lista (cumpărături / vânzări) și pagina unei comenzi, cu pașii explicați simplu. */
 @Component({
   selector: 'page-orders',
-  imports: [MOTION, IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent, FormsModule, RouterLink, TPipe,
+  imports: [RefreshMarkComponent, MOTION, IonContent, IonIcon, IonModal, IonRefresher, FormsModule, RouterLink, TPipe,
     AvatarComponent, BackButtonComponent, EmptyComponent, HoldButtonComponent, SkeletonLinesComponent, EvidencePhotosComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
-      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
+      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><cmp-refresh-mark /></ion-refresher>
       <div class="page narrow">
         <div class="topbar"><cmp-back [fallback]="id() ? '/orders' : '/profile'" /><div class="title">{{ (id() ? 'orders.one' : 'orders.title') | t }}</div><div class="spacer"></div></div>
 
@@ -37,7 +38,7 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
           @else if (!visible().length) { <cmp-empty icon="bag-handle-outline" [title]="'orders.empty' | t" [sub]="'orders.emptySub' | t" /> }
           @for (o of visible(); track o.id) {
             <a class="row-o card" [routerLink]="['/orders', o.id]">
-              <img [src]="api.url(o.listing?.imageUrl)" alt="" />
+              <img [src]="api.url(o.listing?.imageUrl)" alt="" loading="lazy" decoding="async" />
               <div class="ri"><b>{{ o.listing?.title }}</b><span class="st" [attr.data-s]="o.status">{{ 'orders.status.' + o.status | t }}</span>
                 @if (needsMe(o)) { <span class="todo"><ion-icon name="alert-circle"></ion-icon>{{ 'orders.yourMove' | t }}</span> }</div>
               <b class="amt">{{ i18n.price(o.totalCents, o.currency) }}</b>
@@ -168,7 +169,7 @@ const DISPUTES = ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DAMAGED', 'COUNTERFEIT', 
 
           <section class="card pad">
             <a class="who" [routerLink]="['/listing', o.listing?.id]">
-              <img [src]="api.url(o.listing?.imageUrl)" alt="" /><div><b>{{ o.listing?.title }}</b><span class="faint small">{{ 'orders.code' | t }} {{ o.code }}</span></div></a>
+              <img [src]="api.url(o.listing?.imageUrl)" alt="" loading="lazy" decoding="async" /><div><b>{{ o.listing?.title }}</b><span class="faint small">{{ 'orders.code' | t }} {{ o.code }}</span></div></a>
             <div class="sum">
               <div class="r"><span>{{ 'buy.item' | t }}</span><b>{{ i18n.price(o.itemCents, o.currency) }}</b></div>
               @if (o.shippingCents) { <div class="r"><span>{{ 'buy.shipping' | t }}</span><b>{{ i18n.price(o.shippingCents, o.currency) }}</b></div> }

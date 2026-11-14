@@ -30,5 +30,10 @@ export default {
     "promptYes": "Evet, bildirimleri aç",
     "promptLater": "Daha sonra",
     "newMessageToast": "{name} kişisinden yeni mesaj"
+  },
+  "fx": {
+    "seen": "Okundu",
+    "typed": "Ara: {q}",
+    "examples": "iPhone 15|şehir bisikleti|2+1 daire|kışlık mont|PlayStation 5|çekyat|MacBook Air|Nike ayakkabı"
   }
 };

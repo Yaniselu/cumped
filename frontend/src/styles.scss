@@ -112,7 +112,16 @@ ion-content::part(background) {
     radial-gradient(30% 26% at 18% 72%, var(--aur-4), transparent 70%),
     var(--bg);
   background-size: 160% 160%, 160% 160%, 160% 160%, 160% 160%, 100% 100%;
-  animation: aurora 22s ease-in-out infinite alternate;
+  /* Aurora mișcă stratul întreg (transform, pe GPU), nu poziția gradientelor: fără redesenare la fiecare cadru. */
+  inset: -14%; will-change: transform;
+  z-index: -2; /* sub semnul de reîmprospătare (ion-refresher are z-index -1), deasupra căruia stă conținutul */
+  animation: auroraMove 22s ease-in-out infinite alternate;
+}
+@keyframes auroraMove {
+  0% { transform: translate3d(-5%, -4%, 0) scale(1); }
+  33% { transform: translate3d(4%, -1%, 0) scale(1.05); }
+  66% { transform: translate3d(-2%, 4%, 0) scale(1.03); }
+  100% { transform: translate3d(5%, 2%, 0) scale(1.07); }
 }
 h1, h2, h3, .display { font-family: var(--font-display); letter-spacing: -0.02em; margin: 0; }
 h1 { font-size: 34px; line-height: 1.05; font-weight: 700; }
@@ -298,7 +307,6 @@ ion-infinite-scroll-content { min-height: 60px; }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(var(--r0, 0deg)); } 50% { transform: translateY(-7px) rotate(calc(var(--r0, 0deg) + 1.5deg)); } }
 @keyframes spotlight { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: .9; transform: scale(1.08); } }
 @keyframes squish { 0% { transform: translateX(var(--bx)) scaleX(1); } 40% { transform: translateX(var(--bx)) scaleX(1.35) scaleY(.85); } 100% { transform: translateX(var(--bx)) scaleX(1); } }
-@keyframes splashOut { to { opacity: 0; transform: scale(1.08); filter: blur(12px); visibility: hidden; } }
 @keyframes orbit { from { transform: rotate(0deg) translateX(var(--orb)) rotate(0deg); } to { transform: rotate(360deg) translateX(var(--orb)) rotate(-360deg); } }
 @keyframes pulseSoft { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 @keyframes slideInR { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
@@ -330,6 +338,57 @@ ion-infinite-scroll-content { min-height: 60px; }
 /* inimioare și confetti */
 .fx-heart { position: fixed; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); animation: heartFly .9s cubic-bezier(.15,.8,.3,1) forwards; }
 .fx-confetti { position: fixed; top: -20px; z-index: 9999; pointer-events: none; border-radius: 3px; animation: confettiFall 2.6s cubic-bezier(.25,.6,.35,1) forwards; }
+
+/* ---------- Sigiliul Cumped: cumpărătorul și vânzătorul (cele două săgeți) se întâlnesc, apoi bifa ---------- */
+.fx-seal { position: fixed; z-index: 9998; left: 50%; top: 42%; transform: translate(-50%, -50%); pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(84vw, 340px); }
+.fx-seal-disc { position: relative; width: 132px; height: 132px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--card-fill); border: 1px solid var(--lg-border);
+  box-shadow: 0 30px 60px -24px rgba(40, 20, 120, .55), 0 0 0 10px color-mix(in oklab, var(--accent) 8%, transparent);
+  animation: sealPop .62s var(--spring) both; }
+.fx-seal svg { position: relative; z-index: 1; overflow: visible; }
+.fx-seal .a1, .fx-seal .a2 { transform-origin: 256px 256px; }
+.fx-seal .a1 { animation: sealA1 .9s cubic-bezier(.22, 1, .36, 1) both; }
+.fx-seal .a2 { animation: sealA2 .9s cubic-bezier(.22, 1, .36, 1) both; }
+.fx-seal .a2 path { stroke: var(--accent); } .fx-seal .a2 path:last-child { fill: var(--accent); }
+.fx-seal .ck { stroke: var(--text); stroke-dasharray: 160; stroke-dashoffset: 160; animation: bootDrawCk .42s .62s cubic-bezier(.22, 1, .36, 1) forwards; }
+.fx-seal-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: sealRing .9s .8s cubic-bezier(.2, .8, .2, 1) forwards; }
+.fx-seal-ring.r2 { border-color: var(--accent-2); animation-delay: .95s; }
+.fx-spark { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px; border-radius: 50%; background: var(--accent); opacity: 0;
+  animation: sealSpark .7s .82s cubic-bezier(.15, .8, .3, 1) forwards; }
+.fx-spark:nth-of-type(even) { background: var(--accent-2); width: 5px; height: 5px; margin: -2.5px; }
+.fx-spark:nth-of-type(1) { --a: 0deg; } .fx-spark:nth-of-type(2) { --a: 45deg; } .fx-spark:nth-of-type(3) { --a: 90deg; } .fx-spark:nth-of-type(4) { --a: 135deg; }
+.fx-spark:nth-of-type(5) { --a: 180deg; } .fx-spark:nth-of-type(6) { --a: 225deg; } .fx-spark:nth-of-type(7) { --a: 270deg; } .fx-spark:nth-of-type(8) { --a: 315deg; }
+.fx-seal-text { padding: 10px 18px; border-radius: 999px; background: var(--text); color: var(--surface); font-weight: 600; font-size: 15px; text-align: center;
+  line-height: 1.3; box-shadow: var(--shadow-pop); animation: fadeUp .5s .5s var(--spring) both; }
+.fx-seal.out { animation: sealOut .45s cubic-bezier(.6, 0, .4, 1) forwards; }
+.fx-seal.still * { animation-duration: 1ms !important; animation-delay: 0s !important; }
+@keyframes sealPop { from { transform: scale(.35); opacity: 0; } }
+@keyframes sealA1 { from { transform: rotate(-150deg) translate(-40px, -30px) scale(.7); opacity: 0; } }
+@keyframes sealA2 { from { transform: rotate(150deg) translate(40px, 30px) scale(.7); opacity: 0; } }
+@keyframes bootDrawCk { to { stroke-dashoffset: 0; } }
+@keyframes sealRing { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(1.9); opacity: 0; } }
+@keyframes sealSpark { 0% { transform: rotate(var(--a)) translateX(40px) scale(.4); opacity: 1; } 100% { transform: rotate(var(--a)) translateX(98px) scale(1); opacity: 0; } }
+@keyframes sealOut { to { opacity: 0; transform: translate(-50%, calc(-50% - 16px)) scale(.96); } }
+html.lite .fx-seal-ring, html.lite .fx-spark { display: none; }
+.fx-seal.inline { position: relative; left: auto; top: auto; transform: none; width: auto; z-index: 1; display: block; }
+
+/* ---------- Lumina pe sticlă urmărește cursorul (doar pe calculator, setată din Motion) ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .glass.lit::before, .icon-btn.lit::before {
+    background: radial-gradient(180px circle at var(--mx) var(--my), rgba(255, 255, 255, .75), transparent 62%),
+                radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.7), transparent 42%),
+                radial-gradient(80% 60% at 100% 100%, rgba(255, 255, 255, 0.25), transparent 50%);
+  }
+  .glass.lit::after {
+    background: radial-gradient(140px circle at var(--mx) var(--my), rgba(255, 255, 255, 1), transparent 70%),
+                linear-gradient(130deg, rgba(255,255,255,.95), rgba(255,255,255,0) 30%, rgba(255,255,255,0) 65%, rgba(180,160,255,.7));
+  }
+}
+
+/* ---------- Schimbarea temei: noua temă se deschide în cerc din butonul apăsat (View Transitions) ---------- */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { z-index: 2; }
 
 /* tranziția hero card → anunț */
 .fx-hero { position: fixed; z-index: 9000; pointer-events: none; transform-origin: 0 0; object-fit: contain; filter: drop-shadow(0 30px 40px rgba(20,20,50,.3)); }
@@ -380,7 +439,7 @@ ion-refresher-content { --color: var(--accent); }
    fără blur, fără refracție, fără animații decorative continue.
    ========================================================================== */
 html.lite {
-  ion-content::part(background) { animation: none; background-size: 100% 100%; }
+  ion-content::part(background) { animation: none; background-size: 100% 100%; inset: 0; will-change: auto; }
   .glass, .icon-btn, .badge.glass-b, ion-content.scrolled .topbar {
     backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: var(--glass-strong);
   }

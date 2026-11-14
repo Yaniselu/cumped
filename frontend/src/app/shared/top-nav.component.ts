@@ -1,5 +1,5 @@
+import { TypedDirective } from './motion.directives';
 import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { IonIcon } from '@ionic/angular';
 import { AuthService } from '../core/auth.service';
@@ -11,13 +11,13 @@ import { LogoComponent } from './logo.component';
 /** Meniul de sus pentru site (ecrane mari). */
 @Component({
   selector: 'cmp-top-nav',
-  imports: [RouterLink, RouterLinkActive, IonIcon, FormsModule, TPipe, LogoComponent, AvatarComponent],
+  imports: [TypedDirective, RouterLink, RouterLinkActive, IonIcon, TPipe, LogoComponent, AvatarComponent],
   template: `
     <header class="top glass">
       <a routerLink="/home" class="brand"><cmp-logo [size]="38" [wordmark]="true" /></a>
-      <form class="searchbar sb" (ngSubmit)="go()">
+      <form class="searchbar sb" role="search" (submit)="$event.preventDefault(); go()">
         <ion-icon name="search"></ion-icon>
-        <input [(ngModel)]="q" name="q" [placeholder]="'search.placeholder' | t" />
+        <input [value]="q" (input)="q = $any($event.target).value" name="q" type="search" enterkeyhint="search" [attr.aria-label]="'search.placeholder' | t" [placeholder]="'search.placeholder' | t" [cmpTyped]="'search.placeholder' | t" />
       </form>
       <nav class="links">
         <a routerLink="/favorites" routerLinkActive="on" class="icon-btn" [attr.aria-label]="'nav.favorites' | t"><ion-icon name="heart-outline"></ion-icon></a>

@@ -35,7 +35,7 @@ const CATEGORY_KEYS = ['PHONES', 'ELECTRONICS', 'COMPUTERS', 'VEHICLES', 'AUTO_P
           <div class="searchbar" [class.open]="comboOpen()">
             <ion-icon name="search" aria-hidden="true"></ion-icon>
             <!-- combobox ARIA 1.2: tastele ↑ ↓ aleg o sugestie, Enter caută, Esc închide -->
-            <input #box [(ngModel)]="q" (ngModelChange)="typed()" [placeholder]="'search.placeholder' | t" enterkeyhint="search" type="search"
+            <input #box [(ngModel)]="q" (ngModelChange)="typed()" [placeholder]="'search.placeholder' | t" [cmpTyped]="'search.placeholder' | t" enterkeyhint="search" type="search"
               role="combobox" aria-autocomplete="list" [attr.aria-expanded]="comboOpen()" aria-controls="search-listbox"
               [attr.aria-activedescendant]="active() >= 0 ? 'sopt-' + active() : null" [attr.aria-label]="'common.search' | t"
               autocomplete="off" autocapitalize="off" spellcheck="false"

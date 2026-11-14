@@ -30,5 +30,10 @@ export default {
     "promptYes": "Tak, włącz powiadomienia",
     "promptLater": "Później",
     "newMessageToast": "Nowa wiadomość od {name}"
+  },
+  "fx": {
+    "seen": "Przeczytane",
+    "typed": "Szukaj: {q}",
+    "examples": "iPhone 15|rower miejski|mieszkanie 2-pokojowe|kurtka zimowa|PlayStation 5|sofa rozkładana|MacBook Air|buty Nike"
   }
 };

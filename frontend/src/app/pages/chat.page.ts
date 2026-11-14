@@ -68,7 +68,7 @@ import { BackButtonComponent } from '../shared/back-button.component';
                 <span class="time fail" role="status"><ion-icon name="alert-circle"></ion-icon>{{ 'chat.failed' | t }} ·
                   <button class="retry" (click)="retry(m)">{{ 'chat.retry' | t }}</button></span>
               } @else if (m.pending) { <span class="time" role="status">{{ 'chat.sending' | t }}</span> }
-              @else { <span class="time tnum">{{ i18n.date(m.createdAt, { hour: '2-digit', minute: '2-digit' }) }}@if (m.mine && m.read) { · ✓✓ }</span> }
+              @else { <span class="time tnum">{{ i18n.date(m.createdAt, { hour: '2-digit', minute: '2-digit' }) }}@if (m.mine && m.read) { · <span class="seen" [attr.aria-label]="'fx.seen' | t">✓✓</span> }</span> }
             </div>
             }
           }
@@ -84,7 +84,7 @@ import { BackButtonComponent } from '../shared/back-button.component';
       } @else {
       <form class="composer glass" (ngSubmit)="send()">
         <textarea [(ngModel)]="text" name="text" rows="1" maxlength="2000" [placeholder]="'chat.placeholder' | t" (keydown.enter)="enter($event)" [attr.aria-label]="'chat.placeholder' | t"></textarea>
-        <button class="sendbtn" [disabled]="!text.trim()" [attr.aria-label]="'common.send' | t"><ion-icon name="send"></ion-icon></button>
+        <button class="sendbtn" [class.fly]="flying()" [disabled]="!text.trim()" [attr.aria-label]="'common.send' | t"><ion-icon name="send"></ion-icon></button>
       </form>
       }
     </ion-footer>
@@ -135,6 +135,13 @@ import { BackButtonComponent } from '../shared/back-button.component';
     .composer { display: flex; align-items: flex-end; gap: 8px; margin: 0 auto calc(env(safe-area-inset-bottom) + 12px); width: min(640px, calc(100% - 24px)); padding: 7px 7px 7px 18px; border-radius: 28px; }
     textarea { flex: 1; border: 0; outline: none; resize: none; background: transparent; font-family: inherit; font-size: 16px; color: var(--text); max-height: 120px; padding: 12px 0; }
     .sendbtn { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--btn-dark); color: var(--btn-dark-text); display: grid; place-items: center; cursor: pointer; transition: transform .3s var(--spring), opacity .2s; }
+    .sendbtn.fly ion-icon { animation: planeFly .55s cubic-bezier(.5, 0, .2, 1); }
+    @keyframes planeFly { 0% { transform: none; } 45% { transform: translate(26px, -26px) rotate(-18deg) scale(.6); opacity: 0; }
+      46% { transform: translate(-18px, 18px) scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
+    .msg.mine.fresh { animation: msgLaunch .5s var(--spring) both; transform-origin: 100% 100%; }
+    @keyframes msgLaunch { from { opacity: 0; transform: translate(14px, 36px) scale(.7); } to { opacity: 1; transform: none; } }
+    .seen { display: inline-block; color: var(--accent); font-weight: 700; animation: seenPop .5s var(--spring) both; }
+    @keyframes seenPop { from { transform: scale(.4); opacity: 0; } }
     .sendbtn:disabled { opacity: .35; } .sendbtn:active { transform: scale(.88) rotate(-12deg); } .sendbtn ion-icon { font-size: 19px; }
   `],
 })
@@ -196,6 +203,9 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
   }
 
   /** Actualizare optimistă: mesajul apare imediat; dacă serverul îl refuză, îl marcăm și poate fi retrimis. */
+  /** Avionul din buton „zboară” la trimitere. */
+  flying = signal(false);
+
   async send() {
     const body = this.text.trim();
     if (!body) return;
@@ -204,6 +214,8 @@ export class ChatPage implements ViewWillEnter, ViewDidLeave {
     this.text = '';
     this.blocked.set(false);
     this.messages.update((m) => [...m, tmp]);
+    this.flying.set(true);
+    setTimeout(() => this.flying.set(false), 560);
     this.ui.tap();
     setTimeout(() => this.content?.scrollToBottom(300), 30);
     await this.deliver(tmp);

@@ -1,0 +1,18 @@
+# Cumped — paginile publice pot fi indexate; contul, mesajele și comenzile nu.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /chats
+Disallow: /chat/
+Disallow: /offers
+Disallow: /orders
+Disallow: /settings
+Disallow: /profile
+Disallow: /my-listings
+Disallow: /stats
+Disallow: /verify
+Disallow: /notifications
+Disallow: /favorites
+Disallow: /support
+Disallow: /sell

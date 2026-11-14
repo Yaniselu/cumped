@@ -30,5 +30,10 @@ export default {
     "promptYes": "Igen, bekapcsolom",
     "promptLater": "Később",
     "newMessageToast": "Új üzenet tőle: {name}"
+  },
+  "fx": {
+    "seen": "Olvasva",
+    "typed": "Keresés: {q}",
+    "examples": "iPhone 15|városi bicikli|kétszobás lakás|téli kabát|PlayStation 5|kinyitható kanapé|MacBook Air|Nike cipő"
   }
 };

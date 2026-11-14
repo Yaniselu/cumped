@@ -24,12 +24,23 @@
     },
     {
       "src": "/((?:main|chunk|polyfills|styles)-[A-Za-z0-9_-]{8}\\.(?:js|css)|media/.+)",
-      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
+    {
+      "src": "/(assets/.+|icons/.+|favicon\\.svg|robots\\.txt)",
+      "headers": {
+        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800"
+      },
       "continue": true
     },
     {
       "src": "/(index\\.html|push-sw\\.js|manifest\\.webmanifest)?",
-      "headers": { "Cache-Control": "no-cache" },
+      "headers": {
+        "Cache-Control": "no-cache"
+      },
       "continue": true
     },
     {
@@ -39,13 +50,25 @@
         {
           "type": "request.headers",
           "op": "set",
-          "target": { "key": "x-cumped-proxy" },
+          "target": {
+            "key": "x-cumped-proxy"
+          },
           "args": "$PROXY_SECRET",
-          "env": ["PROXY_SECRET"]
+          "env": [
+            "PROXY_SECRET"
+          ]
         }
       ]
     },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html", "headers": { "Cache-Control": "no-cache" } }
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "headers": {
+        "Cache-Control": "no-cache"
+      }
+    }
   ]
 }

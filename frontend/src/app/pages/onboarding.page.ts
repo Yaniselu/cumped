@@ -14,7 +14,8 @@ import { LogoComponent } from '../shared/logo.component';
         <section class="hero" cmpParallax>
           <div class="mosaic" aria-hidden="true">
             @for (t of tiles; track t.src; let i = $index) {
-              <figure [class]="'tile t' + i"><img [src]="'assets/demo/photos/' + t.src + '.jpg'" alt="" decoding="async" /></figure>
+              <figure [class]="'tile t' + i"><img [src]="'assets/demo/photos/' + t.src + '-thumb.webp'" width="600" height="450" alt=""
+                [attr.fetchpriority]="i < 2 ? 'high' : null" [attr.decoding]="i < 2 ? 'sync' : 'async'" /></figure>
             }
           </div>
           <div class="veil"></div>

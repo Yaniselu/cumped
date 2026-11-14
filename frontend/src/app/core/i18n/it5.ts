@@ -30,5 +30,10 @@ export default {
     "promptYes": "Sì, attiva gli avvisi",
     "promptLater": "Più tardi",
     "newMessageToast": "Nuovo messaggio da {name}"
+  },
+  "fx": {
+    "seen": "Letto",
+    "typed": "Cerca {q}",
+    "examples": "iPhone 15|bici da città|bilocale|giacca invernale|PlayStation 5|divano letto|MacBook Air|sneakers Nike"
   }
 };

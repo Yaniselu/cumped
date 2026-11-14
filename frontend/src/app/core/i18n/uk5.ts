@@ -30,5 +30,10 @@ export default {
     "promptYes": "Так, увімкнути",
     "promptLater": "Пізніше",
     "newMessageToast": "Нове повідомлення від {name}"
+  },
+  "fx": {
+    "seen": "Прочитано",
+    "typed": "Шукати {q}",
+    "examples": "iPhone 15|міський велосипед|двокімнатна квартира|зимова куртка|PlayStation 5|розкладний диван|MacBook Air|кросівки Nike"
   }
 };

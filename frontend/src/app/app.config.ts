@@ -1,6 +1,7 @@
 import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { PreloadAllModules, provideRouter, withComponentInputBinding, withPreloading } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withPreloading } from '@angular/router';
+import { IdlePreload } from './core/idle-preload';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
 import { RouteReuseStrategy } from '@angular/router';
 import { routes } from './app.routes';
@@ -18,7 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular({ mode: 'ios', swipeBackEnabled: true, navAnimation: cumpedNavAnimation }),
-    provideRouter(routes, withComponentInputBinding(), withPreloading(PreloadAllModules)),
+    provideRouter(routes, withComponentInputBinding(), withPreloading(IdlePreload)),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideAppInitializer(() => {
       const theme = inject(Theme), i18n = inject(I18n), auth = inject(AuthService), motion = inject(Motion);

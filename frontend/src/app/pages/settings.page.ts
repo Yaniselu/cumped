@@ -65,7 +65,7 @@ import { PublicUser } from '../core/models';
 
         <h3 class="sh">{{ 'settings.theme' | t }}</h3>
         <div class="seg reveal">
-          @for (t of themes; track t.v) { <button [class.on]="theme.pref() === t.v" (click)="theme.set(t.v)"><ion-icon [name]="t.icon"></ion-icon>{{ 'settings.' + t.v | t }}</button> }
+          @for (t of themes; track t.v) { <button [class.on]="theme.pref() === t.v" (click)="theme.set(t.v, $event)"><ion-icon [name]="t.icon"></ion-icon>{{ 'settings.' + t.v | t }}</button> }
         </div>
 
         <h3 class="sh">{{ 'settings.textSize' | t }}</h3>

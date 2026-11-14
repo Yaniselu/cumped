@@ -12,6 +12,7 @@ import { CATEGORY_ICONS } from '../core/icons';
 import { CATEGORIES, CONDITIONS, COUNTRIES, CURRENCIES, PriceAnalysis } from '../core/models';
 import { Ui } from '../core/ui.service';
 import { Motion } from '../core/motion.service';
+import { SealComponent } from '../shared/seal.component';
 import { BackButtonComponent } from '../shared/back-button.component';
 import { FieldDef, FX_APPROX, PRICE_RANGE_EUR, fieldsFor, groupsFor, niceCeil } from '../core/listing-schema';
 import { PriceChip, PriceInputComponent } from '../shared/price-input.component';
@@ -21,7 +22,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
 
 @Component({
   selector: 'page-sell',
-  imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, FormsModule, RouterLink, TPipe, BackButtonComponent, PriceInputComponent],
+  imports: [SealComponent, MOTION, HoldButtonComponent, IonContent, IonIcon, FormsModule, RouterLink, TPipe, BackButtonComponent, PriceInputComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
@@ -42,8 +43,8 @@ interface Photo { id?: string; url: string; uploading: boolean; }
         } @else if (published()) {
           <div class="done reveal">
             <div class="confetti">@for (c of confetti; track $index) { <i [style.--x]="c.x" [style.--d]="c.d" [style.--c]="c.c" [style.--r]="c.r"></i> }</div>
-            <div class="check"><ion-icon name="checkmark"></ion-icon></div>
-            <h1 [cmpSplit]="'sell.published' | t" [delay]="350"></h1>
+            <cmp-seal />
+            <h1 [cmpSplit]="'sell.published' | t" [delay]="650"></h1>
             <p class="muted">{{ 'sell.publishedSub' | t }}</p>
             <button class="btn block" (click)="view()">{{ 'sell.viewListing' | t }}</button>
           </div>
@@ -324,8 +325,6 @@ interface Photo { id?: string; url: string; uploading: boolean; }
     .paywall { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 30px; }
     .pw-ic { width: 76px; height: 76px; border-radius: 26px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 34px; animation: floaty 4s ease-in-out infinite; }
     .done { position: relative; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 60px; }
-    .check { width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #7457ff, #5b3df5); color: #fff; font-size: 56px;
-      box-shadow: 0 24px 50px -16px rgba(91,61,245,.7); animation: pop .8s var(--spring) both; }
     .confetti { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
     .confetti i { position: absolute; top: 90px; left: 50%; width: 10px; height: 14px; border-radius: 3px; background: var(--c);
       animation: burst 1.6s var(--ease) forwards; animation-delay: calc(var(--d) * 1ms); opacity: 0; }
@@ -542,7 +541,7 @@ export class SellPage implements OnInit {
       const r = this.id() ? await this.api.updateListing(this.id()!, body) : await this.api.createListing(body);
       this.ui.tap();
       if (this.id()) { this.nav.navigateBack(['/listing', r.id]); }
-      else { this.published.set(r.id); this.motion.confetti(90); this.api.me().then((m) => this.auth.setUser(m)).catch(() => {}); }
+      else { this.published.set(r.id); this.motion.confetti(60); this.api.me().then((m) => this.auth.setUser(m)).catch(() => {}); }
     } catch (e) { this.error.set(this.ui.errorText(e)); }
     this.busy.set(false);
   }

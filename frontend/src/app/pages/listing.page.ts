@@ -295,7 +295,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
                 <label class="lbl">{{ 'offer.chooseListing' | t }}</label>
                 @if (!mine().length) { <p class="muted">{{ 'offer.noListings' | t }}</p> }
                 <div class="mine">@for (m of mine(); track m.id) {
-                  <button class="minec card" [class.sel]="swapId === m.id" (click)="swapId = m.id"><img [src]="api.url(m.imageUrl)" alt="" /><span>{{ m.title }}</span><strong>{{ i18n.price(m.priceCents, m.currency) }}</strong></button> }</div>
+                  <button class="minec card" [class.sel]="swapId === m.id" (click)="swapId = m.id"><img [src]="api.url(m.imageUrl)" alt="" loading="lazy" decoding="async" /><span>{{ m.title }}</span><strong>{{ i18n.price(m.priceCents, m.currency) }}</strong></button> }</div>
                 <div class="card pad"><label class="lbl">{{ 'offer.addMoney' | t }} ({{ 'common.optional' | t }})</label>
                   <cmp-price-input [(value)]="swapAdd" scale="linear" [min]="0" [max]="(d()?.priceCents ?? 0) / 100" [currency]="d()?.currency ?? 'RON'" [label]="'offer.addMoney' | t" /></div>
               }
@@ -334,7 +334,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
         <div class="vtop"><span>{{ vIndex() + 1 }} / {{ d()!.images.length }}</span>
           <button class="icon-btn" (click)="viewer.set(null)" [attr.aria-label]="'common.close' | t"><ion-icon name="close"></ion-icon></button></div>
         <div class="vtrack" #vtrack (scroll)="onViewerScroll($event)">
-          @for (img of d()!.images; track img.id) { <div class="vslide"><img [src]="api.url(img.url)" [alt]="d()!.title" /></div> }
+          @for (img of d()!.images; track img.id) { <div class="vslide"><img [src]="api.url(img.url)" [alt]="d()!.title" loading="lazy" decoding="async" /></div> }
         </div>
       </div>
     }

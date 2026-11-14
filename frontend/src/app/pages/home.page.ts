@@ -1,7 +1,8 @@
+import { RefreshMarkComponent } from '../shared/refresh-mark.component';
 import { MOTION } from '../shared/motion.directives';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { IonContent, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonRefresher, IonRefresherContent, ViewDidEnter } from '@ionic/angular';
+import { IonContent, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonRefresher, ViewDidEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { PushService } from '../core/push.service';
 import { AuthService } from '../core/auth.service';
@@ -16,11 +17,11 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
 
 @Component({
   selector: 'page-home',
-  imports: [MOTION, IonContent, IonIcon, IonRefresher, IonRefresherContent, IonInfiniteScroll, IonInfiniteScrollContent, RouterLink, TPipe,
+  imports: [RefreshMarkComponent, MOTION, IonContent, IonIcon, IonRefresher, IonInfiniteScroll, IonInfiniteScrollContent, RouterLink, TPipe,
     ListingCardComponent, SkeletonGridComponent, AvatarComponent, LogoComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
-      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
+      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><cmp-refresh-mark /></ion-refresher>
       <div class="page">
         <header class="hdr topbar app-only">
           <cmp-logo [size]="40" />
@@ -37,8 +38,8 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
 
         <section class="hero" cmpParallax>
           <h1 [cmpSplit]="'home.heroTitle' | t"></h1>
-          <a routerLink="/search" class="searchbar glass press sb-in">
-            <ion-icon name="search"></ion-icon><span class="ph">{{ 'home.searchPh' | t }}</span>
+          <a routerLink="/search" class="searchbar glass press sb-in" [attr.aria-label]="'home.searchPh' | t">
+            <ion-icon name="search"></ion-icon><span class="ph" aria-hidden="true" [cmpTyped]="'home.searchPh' | t"></span>
             <span class="icon-btn"><ion-icon name="options-outline"></ion-icon></span>
           </a>
         </section>
@@ -84,8 +85,8 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
         <a routerLink="/sell" class="sellcta press rv tilt"><span class="glare"></span><span class="orb o1"></span><span class="orb o2"></span>
           <div><h3>{{ 'home.sellTitle' | t }}</h3><p>{{ 'home.sellSub' | t }}</p></div>
           <span class="btn sm">{{ 'home.sellCta' | t }}</span>
-          <span class="ph1"><img src="assets/demo/photos/camera-1-thumb.jpg" alt="" /></span>
-          <span class="ph2"><img src="assets/demo/photos/watch-2-thumb.jpg" alt="" /></span>
+          <span class="ph1"><img src="assets/demo/photos/camera-1-thumb.webp" width="600" height="450" alt="" loading="lazy" decoding="async" /></span>
+          <span class="ph2"><img src="assets/demo/photos/watch-2-thumb.webp" width="600" height="450" alt="" loading="lazy" decoding="async" /></span>
         </a>
 
         <div class="section-head rv"><h2>{{ 'home.recent' | t }}</h2></div>
@@ -125,7 +126,9 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
     .dropic { color: var(--accent-2); vertical-align: -3px; }
     .sellcta { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 28px; padding: 22px; min-height: 150px;
       border-radius: var(--r-xl); overflow: hidden; color: #fff; background: linear-gradient(135deg, #5b3df5 0%, #8b6dff 55%, #ff7a6e 130%); box-shadow: 0 24px 50px -24px rgba(91,61,245,.7); }
-    .sellcta div { position: relative; z-index: 2; max-width: 60%; } .sellcta p { opacity: .85; font-size: 15px; margin-top: 6px; }
+    .sellcta div { position: relative; z-index: 2; max-width: 60%; }
+    /* pozele stau deasupra textului, nu peste el (textul alb nu se mai pierde pe fundalul alb al pozei) */
+    .sellcta { padding-top: 96px; } .sellcta div { max-width: none; flex: 1 1 200px; } .sellcta p { opacity: .85; font-size: 15px; margin-top: 6px; }
     .sellcta .btn { position: relative; z-index: 2; background: #fff; color: #111; }
     .ph1, .ph2 { position: absolute; border-radius: 16px; overflow: hidden; border: 3px solid rgba(255,255,255,.9); box-shadow: 0 18px 30px -12px rgba(20,10,60,.55); z-index: 1; }
     .ph1 { width: 118px; height: 96px; right: 18px; top: -10px; transform: rotate(8deg); }
@@ -133,8 +136,8 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
     .ph1 img, .ph2 img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .sellcta:hover .ph1 { transform: rotate(4deg) translateY(4px); } .sellcta:hover .ph2 { transform: rotate(-3deg) translateY(6px); }
     .ph1, .ph2 { transition: transform .6s var(--spring); }
-    @media (max-width: 380px) { .ph2 { display: none; } .sellcta div { max-width: 58%; } }
-    @container (max-width: 380px) { .ph2 { display: none; } .sellcta div { max-width: 58%; } }
+    @media (max-width: 380px) { .ph2 { display: none; } }
+    @container (max-width: 380px) { .ph2 { display: none; } }
     .orb { position: absolute; border-radius: 50%; filter: blur(22px); opacity: .7; animation: blob 9s ease-in-out infinite; }
     .o1 { width: 140px; height: 140px; background: #ffb4ab; right: 20%; bottom: -60px; } .o2 { width: 110px; height: 110px; background: #9f8bff; left: -30px; top: -30px; animation-delay: -4s; }
   `],

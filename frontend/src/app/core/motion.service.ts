@@ -1,4 +1,5 @@
 import { Injectable, NgZone, inject } from '@angular/core';
+import { Haptics, NotificationType } from '@capacitor/haptics';
 
 const RIPPLE_TARGETS = '.btn, .chip, .icon-btn, .cat, .press, .tab, .sell, .seg button, .opt, .menu a, .menu button, .note, .conv, .tk';
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -8,7 +9,9 @@ const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
  *  - undă (ripple) la apăsare pe butoane, carduri și chip-uri;
  *  - înclinare 3D cu reflexie de lumină pe elementele .tilt (doar pe dispozitive cu mouse);
  *  - apariție la scroll pentru elementele .rv (IntersectionObserver);
- *  - explozie de inimioare la adăugarea la favorite.
+ *  - explozie de inimioare la adăugarea la favorite;
+ *  - lumina de pe sticlă urmărește cursorul (pe calculator);
+ *  - „Sigiliul Cumped” la momentele importante (publicat, plătit, acceptat, verificat).
  */
 @Injectable({ providedIn: 'root' })
 export class Motion {
@@ -19,7 +22,7 @@ export class Motion {
     this.zone.runOutsideAngular(() => {
       document.addEventListener('pointerdown', (e) => this.ripple(e), { passive: true });
       if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-        document.addEventListener('pointermove', (e) => this.tilt(e), { passive: true });
+        document.addEventListener('pointermove', (e) => { this.tilt(e); this.sheen(e); }, { passive: true });
       }
       this.io = new IntersectionObserver((entries) => {
         for (const en of entries) {
@@ -71,6 +74,50 @@ export class Motion {
     el.style.setProperty('--ry', '0deg');
   }
 
+  /** Lumina de pe „Liquid Glass” urmărește cursorul: reflexia și marginea se aprind lângă mouse. */
+  private litEl: HTMLElement | null = null;
+  private sheenRaf = 0;
+  private sheenEv: PointerEvent | null = null;
+  private sheen(ev: PointerEvent) {
+    this.sheenEv = ev;
+    if (this.sheenRaf) return;
+    this.sheenRaf = requestAnimationFrame(() => {
+      this.sheenRaf = 0;
+      const e = this.sheenEv!;
+      const el = ((e.target as HTMLElement)?.closest?.('.glass, .icon-btn') as HTMLElement | null) ?? null;
+      if (this.litEl && this.litEl !== el) this.litEl.classList.remove('lit');
+      this.litEl = el;
+      if (!el || reduced() || document.documentElement.classList.contains('lite')) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      el.style.setProperty('--my', `${e.clientY - r.top}px`);
+      el.classList.add('lit');
+    });
+  }
+
+  /**
+   * Sigiliul Cumped: cele două săgeți din logo (cumpărătorul și vânzătorul) vin din părți opuse, se închid în cerc
+   * și se desenează bifa. Nu blochează ecranul; textul e anunțat și de cititoarele de ecran.
+   */
+  seal(text?: string) {
+    document.querySelectorAll('.fx-seal').forEach((n) => n.remove());
+    const el = document.createElement('div');
+    el.className = 'fx-seal' + (reduced() ? ' still' : '');
+    el.setAttribute('role', 'status');
+    el.innerHTML = SEAL;
+    if (text) {
+      const t = document.createElement('div');
+      t.className = 'fx-seal-text';
+      t.textContent = text;
+      el.appendChild(t);
+    }
+    document.body.appendChild(el);
+    Haptics.notification({ type: NotificationType.Success }).catch(() => {});
+    const stay = text && text.length > 24 ? 2300 : 1600;
+    setTimeout(() => el.classList.add('out'), stay);
+    setTimeout(() => el.remove(), stay + 500);
+  }
+
   /** Inimioare care zboară din buton. */
   burst(from: HTMLElement, color = '#FF5A4E') {
     if (reduced()) return;
@@ -101,6 +148,17 @@ export class Motion {
     }
   }
 }
+
+/** Semnul sigiliului (text fix, fără date de la utilizatori). */
+export const SEAL = `<div class="fx-seal-disc"><i class="fx-seal-ring"></i><i class="fx-seal-ring r2"></i>
+  <b class="fx-spark"></b><b class="fx-spark"></b><b class="fx-spark"></b><b class="fx-spark"></b><b class="fx-spark"></b><b class="fx-spark"></b><b class="fx-spark"></b><b class="fx-spark"></b>
+  <svg viewBox="0 0 512 512" width="88" height="88" aria-hidden="true">
+    <g class="a1"><path d="M136.07 251.81 A120 120 0 0 1 354.30 187.17" fill="none" stroke="#FF5A4E" stroke-width="44" stroke-linecap="round"/>
+      <path d="M391.98 160.78 L386.42 233.04 L316.62 213.56 Z" fill="#FF5A4E" stroke="#FF5A4E" stroke-width="10" stroke-linejoin="round"/></g>
+    <g class="a2"><path d="M375.93 260.19 A120 120 0 0 1 157.70 324.83" fill="none" stroke-width="44" stroke-linecap="round"/>
+      <path d="M120.02 351.22 L125.58 278.96 L195.38 298.44 Z" stroke-width="10" stroke-linejoin="round"/></g>
+    <polyline class="ck" points="208,258 242,292 306,224" fill="none" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg></div>`;
 
 export function isCutout(url: string | null | undefined): boolean {
   return !!url && url.endsWith('.svg');

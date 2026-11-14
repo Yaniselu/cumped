@@ -11,6 +11,14 @@ export function cumpedNavAnimation(_base: HTMLElement, opts: any): Animation {
   const entering = createAnimation().addElement(opts.enteringEl).beforeRemoveClass('ion-page-invisible');
   const leaving = createAnimation().addElement(opts.leavingEl);
 
+  // Mod economic / mișcare redusă: fără blur (scump pe telefoanele slabe), doar o alunecare scurtă.
+  const root = document.documentElement;
+  if (root.classList.contains('lite') || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    entering.fromTo('opacity', '0', '1').fromTo('transform', back ? 'translateY(0)' : 'translateY(14px)', 'translateY(0)');
+    leaving.fromTo('opacity', '1', '0');
+    return createAnimation().duration(Math.min(duration, 260)).easing(easing).addAnimation([entering, leaving]);
+  }
+
   if (!back) {
     entering
       .fromTo('transform', 'translateY(34px) scale(0.965)', 'translateY(0) scale(1)')

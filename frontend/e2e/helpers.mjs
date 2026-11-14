@@ -142,4 +142,6 @@ export async function applyInsets(page, d) {
 export async function apiLogin(ctx, user) {
   const r = await ctx.request.post(BASE + '/api/auth/login', { data: { email: user.email, password: PASSWORD }, headers: { 'Content-Type': 'application/json' } });
   if (r.status() !== 200) throw new Error('login ' + r.status() + ' ' + (await r.text()));
+  // semnul că pe acest dispozitiv există o sesiune (aplicația cere token nou doar atunci)
+  await ctx.addInitScript(() => localStorage.setItem('cmp_session', '1'));
 }

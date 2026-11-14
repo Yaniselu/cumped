@@ -4,6 +4,9 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Me } from './models';
 
+/** Doar un semn că există o sesiune (cookie-ul httpOnly nu poate fi citit din JavaScript). */
+const SESSION_HINT = 'cmp_session';
+
 interface AuthResponse { accessToken: string; expiresIn: number; user: Me; }
 
 /**
@@ -25,8 +28,12 @@ export class AuthService {
 
   accessToken() { return this.token; }
 
+  /**
+   * La pornire cerem o sesiune nouă doar dacă pe acest dispozitiv a existat una (semn fără secrete, în localStorage).
+   * Vizitatorii noi nu mai așteaptă serverul ca să vadă aplicația.
+   */
   async init() {
-    try { await this.refresh(); } finally { this.ready.set(true); }
+    try { if (localStorage.getItem(SESSION_HINT)) await this.refresh(); } finally { this.ready.set(true); }
   }
 
   async login(email: string, password: string) { this.apply(await this.post('/login', { email, password })); }
@@ -66,6 +73,7 @@ export class AuthService {
   private apply(r: AuthResponse) {
     this.token = r.accessToken;
     this.user.set(r.user);
+    localStorage.setItem(SESSION_HINT, '1');
     clearTimeout(this.refreshTimer);
     const ms = Math.max(30, r.expiresIn - 60) * 1000;
     this.refreshTimer = setTimeout(() => this.refresh(), ms);
@@ -74,6 +82,7 @@ export class AuthService {
   private clear() {
     this.token = null;
     this.user.set(null);
+    localStorage.removeItem(SESSION_HINT);
     clearTimeout(this.refreshTimer);
   }
 

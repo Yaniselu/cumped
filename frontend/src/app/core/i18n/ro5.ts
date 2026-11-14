@@ -30,5 +30,10 @@ export default {
     "promptYes": "Da, pornește alertele",
     "promptLater": "Mai târziu",
     "newMessageToast": "Mesaj nou de la {name}"
+  },
+  "fx": {
+    "seen": "Citit",
+    "typed": "Caută {q}",
+    "examples": "iPhone 15|bicicletă de oraș|apartament 2 camere|geacă de iarnă|PlayStation 5|canapea extensibilă|MacBook Air|adidași Nike"
   }
 };

@@ -166,8 +166,7 @@ export class CheckoutSheetComponent {
       const o = await this.api.createOrder(l.id, { delivery: this.delivery(), address: this.delivery() === 'COURIER' ? this.addr : undefined });
       if (this.delivery() === 'COURIER') localStorage.setItem(ADDR_KEY, JSON.stringify(this.addr));
       this.open.set(false);
-      this.motion.confetti(60);
-      this.ui.toast(this.i18n.t('buy.done'));
+      this.motion.seal(this.i18n.t('buy.done'));
       this.nav.navigateForward(['/orders', o.id]);
     } catch (e) { this.error.set(this.ui.errorText(e)); }
     this.busy.set(false);

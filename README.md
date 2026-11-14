@@ -29,6 +29,8 @@ Nume provizoriu: **Cumped**. Firma: Velosyntech.
 | Admin | Tichete, confirmarea sau anularea acțiunilor automate ale lui Velo, suspendări |
 | Limbi | Română, engleză, germană, franceză, spaniolă, italiană, maghiară, poloneză, ucraineană, turcă |
 | Design | Temă luminoasă (logo B1) și întunecată (logo B4), accent violet `#5B3DF5`, carduri cu efect de sticlă, skeleton loading, multe animații |
+| Motion Cumped | Animațiile pornesc din logo (cele două săgeți = cumpărătorul și vânzătorul, bifa = „fără frică”): ecranul de pornire, „trage pentru reîmprospătare”, **Sigiliul Cumped** la plată, ofertă acceptată și verificare, schimbarea temei în cerc, căutarea care scrie singură exemple, lumina pe sticlă care urmărește cursorul. Toate respectă „Reduce mișcarea” și modul economic |
+| Viteză | Ecranul de pornire apare instant (înainte de cod), vizitatorii noi nu mai așteaptă serverul, restul ecranelor se descarcă abia când telefonul e liber, engleza și celelalte limbi se încarcă doar la nevoie, poze WebP |
 
 ## Pornire locală (dezvoltare)
 

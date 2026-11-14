@@ -1,9 +1,10 @@
+import { RefreshMarkComponent } from '../shared/refresh-mark.component';
 import { MOTION } from '../shared/motion.directives';
 import { HoldButtonComponent } from '../shared/hold-button.component';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent, NavController, ViewWillEnter } from '@ionic/angular';
+import { IonContent, IonIcon, IonModal, IonRefresher, NavController, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
 import { Badges } from '../core/badges.service';
 import { I18n, TPipe } from '../core/i18n.service';
@@ -24,11 +25,11 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
  */
 @Component({
   selector: 'page-offers',
-  imports: [MOTION, HoldButtonComponent, IonContent, IonIcon, IonModal, IonRefresher, IonRefresherContent, RouterLink, FormsModule, TPipe,
+  imports: [RefreshMarkComponent, MOTION, HoldButtonComponent, IonContent, IonIcon, IonModal, IonRefresher, RouterLink, FormsModule, TPipe,
     AvatarComponent, BackButtonComponent, EmptyComponent, SkeletonLinesComponent, PriceInputComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
-      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><ion-refresher-content></ion-refresher-content></ion-refresher>
+      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)"><cmp-refresh-mark /></ion-refresher>
       <div class="page narrow">
         <div class="topbar"><cmp-back fallback="/profile" /><div class="title">{{ 'nav.offers' | t }}</div><div class="spacer"></div></div>
 
@@ -48,7 +49,7 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
             <article class="neg card reveal" [style.--i]="i" [class.turn]="n.myTurn" [class.hl]="n.threadId === thread()">
               <header class="nh">
                 @if (n.listing; as l) {
-                  <a class="thumb" [routerLink]="['/listing', l.id]"><img [src]="api.url(l.imageUrl)" [alt]="l.title" /></a>
+                  <a class="thumb" [routerLink]="['/listing', l.id]"><img [src]="api.url(l.imageUrl)" [alt]="l.title" loading="lazy" decoding="async" /></a>
                   <div class="ttl">
                     <a [routerLink]="['/listing', l.id]" class="lt">{{ l.title }}</a>
                     <span class="small muted">{{ 'neg.listPrice' | t }} {{ i18n.price(l.priceCents, cur) }}</span>
@@ -66,7 +67,7 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
                 @if (c.kind === 'SWAP') {
                   <div class="swap">
                     @if (c.swapListing; as s) {
-                      <a class="sw" [routerLink]="['/listing', s.id]"><img [src]="api.url(s.imageUrl)" alt="" /><span>{{ s.title }}</span></a>
+                      <a class="sw" [routerLink]="['/listing', s.id]"><img [src]="api.url(s.imageUrl)" alt="" loading="lazy" decoding="async" /><span>{{ s.title }}</span></a>
                     }
                     @if (c.amountCents) { <span class="plus">+ {{ i18n.price(c.amountCents, cur) }}</span> }
                   </div>
@@ -299,7 +300,7 @@ export class OffersPage implements ViewWillEnter {
     this.busy.set(true);
     try {
       await this.api.respondOffer(n.current.id, action);
-      if (action === 'accept') { this.motion.confetti(60); this.ui.toast(this.i18n.t('neg.accepted')); }
+      if (action === 'accept') { this.motion.seal(this.i18n.t('neg.accepted')); this.motion.confetti(40); }
       this.ui.tap();
       await this.load();
       this.badges.refresh();

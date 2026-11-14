@@ -53,10 +53,29 @@ export class Theme {
     if (on) document.documentElement.classList.remove('lg-refract');
   }
 
-  set(p: ThemePref) {
+  /**
+   * Schimbă tema. Dacă primește evenimentul apăsării, noua temă „se deschide” în cerc din punctul atins
+   * (View Transitions), în loc să se schimbe brusc. Fără suport, în modul economic sau cu mișcare redusă: schimbare directă.
+   */
+  set(p: ThemePref, ev?: { clientX: number; clientY: number }) {
     this.pref.set(p);
     localStorage.setItem('cmp_theme', p);
-    this.apply();
+    const willDark = p === 'dark' || (p === 'system' && this.media.matches);
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void> } };
+    if (willDark === this.dark() || !doc.startViewTransition || this.lite() || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.apply();
+      return;
+    }
+    const x = ev?.clientX || innerWidth / 2, y = ev?.clientY || innerHeight / 2;
+    const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    try {
+      doc.startViewTransition(() => this.apply()).ready.then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+          { duration: 720, easing: 'cubic-bezier(0.55, 0, 0.25, 1)', pseudoElement: '::view-transition-new(root)' },
+        );
+      }).catch(() => {});
+    } catch { this.apply(); }
   }
 
   private apply() {

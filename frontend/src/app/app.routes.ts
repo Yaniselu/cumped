@@ -24,7 +24,7 @@ export const routes: Routes = [
   { path: 'verify', canActivate: [authGuard], loadComponent: () => import('./pages/verify.page').then((m) => m.VerifyPage) },
   { path: 'plans', loadComponent: () => import('./pages/plans.page').then((m) => m.PlansPage) },
   { path: 'support', canActivate: [authGuard], loadComponent: () => import('./pages/velo.page').then((m) => m.VeloPage) },
-  { path: 'admin', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/admin.page').then((m) => m.AdminPage) },
+  { path: 'admin', canActivate: [authGuard, adminGuard], data: { preload: false }, loadComponent: () => import('./pages/admin.page').then((m) => m.AdminPage) },
   { path: 'orders', canActivate: [authGuard], loadComponent: () => import('./pages/orders.page').then((m) => m.OrdersPage) },
   { path: 'orders/:id', canActivate: [authGuard], loadComponent: () => import('./pages/orders.page').then((m) => m.OrdersPage) },
   { path: 'why', loadComponent: () => import('./pages/why.page').then((m) => m.WhyPage) },

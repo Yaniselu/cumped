@@ -1,4 +1,5 @@
 import { MOTION } from '../shared/motion.directives';
+import { Motion } from '../core/motion.service';
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, NavController } from '@ionic/angular';
@@ -62,6 +63,7 @@ export class VerifyPage implements OnInit {
   private api = inject(Api);
   private ui = inject(Ui);
   private i18n = inject(I18n);
+  private motion = inject(Motion);
   private nav = inject(NavController);
   phoneParam = input<string>(undefined, { alias: 'phone' });
   phoneMode = signal(false);
@@ -81,7 +83,7 @@ export class VerifyPage implements OnInit {
   validPhone() { return /^\+[1-9]\d{7,14}$/.test(this.phone.replace(/\s/g, '')); }
 
   async completeId() {
-    try { await this.api.devIdentity(this.first.trim(), this.last.trim()); this.auth.setUser(await this.api.me()); this.ui.toast(this.i18n.t('verify.idDone')); this.ui.tap(); }
+    try { await this.api.devIdentity(this.first.trim(), this.last.trim()); this.auth.setUser(await this.api.me()); this.motion.seal(this.i18n.t('verify.idDone')); }
     catch (e) { this.ui.error(e); }
   }
 
@@ -91,7 +93,7 @@ export class VerifyPage implements OnInit {
   }
 
   async confirmCode() {
-    try { await this.api.confirmPhone(this.code); this.auth.setUser(await this.api.me()); this.ui.toast(this.i18n.t('verify.phoneDone')); this.nav.navigateBack('/profile'); }
+    try { await this.api.confirmPhone(this.code); this.auth.setUser(await this.api.me()); this.motion.seal(this.i18n.t('verify.phoneDone')); this.nav.navigateBack('/profile'); }
     catch (e) { this.ui.error(e); }
   }
 }
