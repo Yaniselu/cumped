@@ -197,6 +197,7 @@ type Filter = 'all' | 'SELLER' | 'BUYER';
     .sheet-body { padding: 22px 18px calc(env(safe-area-inset-bottom) + 28px); display: flex; flex-direction: column; gap: 14px; max-width: 560px; margin: 0 auto; }
     .center { text-align: center; }
     @media (max-width: 360px) { .st { display: none; } .thumb { width: 52px; height: 52px; } .amt { font-size: 24px; } .acts .btn.sm { padding: 0 12px; } }
+    @container (max-width: 360px) { .st { display: none; } .thumb { width: 52px; height: 52px; } .amt { font-size: 24px; } .acts .btn.sm { padding: 0 12px; } }
   `],
 })
 export class OffersPage implements ViewWillEnter {

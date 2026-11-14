@@ -74,7 +74,7 @@ Teste în browser (Playwright), cu serverul și aplicația pornite (`ng serve`):
 cd frontend && npm run e2e
 ```
 
-Verifică: fără scroll orizontal la 320–1280 px, ținte de atingere de 44 px, etichete și `alt`, tipografie (cifre tabelare, titluri echilibrate), combobox-ul de căutare cu tastatura, chat-ul instant cu retrimitere, dovezile la expediere și reclamația cu poze și serie, recenzia „Cumpărare verificată”.
+Verifică fiecare ecran al aplicației pe 18 dispozitive reale, la mărimea întreagă a ecranului, cu notch / Dynamic Island și bara de gesturi emulate: iPhone SE (320 și 375 px), Android mic, Galaxy S8, iPhone 13 mini, iPhone 15, Pixel 8, iPhone 15 Pro Max, Galaxy Z Fold închis și deschis, iPhone în landscape, iPad mini, iPad Pro, laptop, desktop, plus text foarte mare și modul întunecat (`E2E_DEVICES="iPhone SE,Desktop"` rulează doar câteva). Caută: scroll orizontal, text sau iconițe tăiate, butoane suprapuse, butoane sub notch, sub bara de jos sau sub bara de gesturi, câmpuri care fac zoom pe iPhone, poze rupte, erori JavaScript; iar ferestrele de jos (ofertă, plată, filtre, reclamație) trebuie să aibă butonul final la îndemână. Mai verifică: ținte de atingere de 44 px, etichete și `alt`, tipografie (cifre tabelare, titluri echilibrate), combobox-ul de căutare cu tastatura, chat-ul instant cu retrimitere, dovezile la expediere și reclamația cu poze și serie, recenzia „Cumpărare verificată”.
 
 Toate rulează automat în GitHub Actions la fiecare push (plus gitleaks, CodeQL, `npm audit`, Dependabot).
 

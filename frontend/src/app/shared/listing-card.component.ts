@@ -90,6 +90,10 @@ import { Ui } from '../core/ui.service';
       .info { padding: 8px 9px 10px; } .t { font-size: 14px; } .biz { display: none; } .bl .badge:not(.sq) { display: none; }
       .compact { width: 148px; }
     }
+    @container (max-width: 340px) {
+      .info { padding: 8px 9px 10px; } .t { font-size: 14px; } .biz { display: none; } .bl .badge:not(.sq) { display: none; }
+      .compact { width: 148px; }
+    }
   `],
 })
 export class ListingCardComponent {

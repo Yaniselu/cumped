@@ -35,7 +35,7 @@ import { LogoComponent } from './logo.component';
     </header>
   `,
   styles: [`
-    .top { position: fixed; top: 14px; left: 14px; right: 14px; margin: 0 auto; max-width: 1200px; z-index: 60;
+    .top { position: fixed; top: calc(env(safe-area-inset-top) + 14px); left: max(14px, env(safe-area-inset-left) + 8px); right: max(14px, env(safe-area-inset-right) + 8px); margin: 0 auto; max-width: 1200px; z-index: 60;
       display: none; align-items: center; gap: 18px; padding: 10px 12px 10px 16px; border-radius: 999px; animation: fadeUp .7s var(--ease) both; }
     @media (min-width: 992px) { .top { display: flex; } }
     .brand { display: flex; color: inherit; }

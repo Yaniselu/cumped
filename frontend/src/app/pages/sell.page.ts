@@ -50,7 +50,8 @@ interface Photo { id?: string; url: string; uploading: boolean; }
         } @else {
           <div class="steps">
             @for (s of stepKeys; track s; let i = $index) {
-              <button class="st" [class.on]="step() === i" [class.past]="step() > i" (click)="i < step() && step.set(i)">
+              <button class="st" [class.on]="step() === i" [class.past]="step() > i" (click)="i < step() && step.set(i)"
+                [attr.aria-label]="(i + 1) + '. ' + ('sell.steps.' + s | t)" [attr.aria-current]="step() === i ? 'step' : null">
                 <span class="n">@if (step() > i) { <ion-icon name="checkmark"></ion-icon> } @else { {{ i + 1 }} }</span><span class="l">{{ 'sell.steps.' + s | t }}</span>
               </button>
             }
@@ -240,6 +241,10 @@ interface Photo { id?: string; url: string; uploading: boolean; }
     .n { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); transition: all .4s var(--spring); }
     .st.on { color: var(--text); } .st.on .n { background: var(--btn-dark); color: var(--btn-dark-text); transform: scale(1.12); }
     .st.past .n { background: var(--accent); color: #fff; border-color: transparent; }
+    .st { padding: 0; min-width: 44px; }
+    /* telefoane înguste: doar pasul curent își arată numele, ca etichetele să nu se înghesuie */
+    @media (max-width: 374px) { .st:not(.on) .l { visibility: hidden; } .st .l { white-space: nowrap; } .st.on .l { position: relative; } }
+    @container (max-width: 374px) { .st:not(.on) .l { visibility: hidden; } .st .l { white-space: nowrap; } .st.on .l { position: relative; } }
     .bar { position: absolute; top: 16px; left: 20px; right: 20px; height: 3px; background: var(--surface-3); border-radius: 9px; }
     .bar span { display: block; height: 100%; background: var(--accent); border-radius: 9px; transition: width .6s var(--ease); }
     .quota { text-align: center; margin: 4px 0 14px; }
@@ -275,6 +280,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
     .fgrid .wide { grid-column: 1 / -1; }
     .fgrid .input { height: 48px; font-size: 16px; padding: 0 14px; border-radius: 14px; }
     @media (max-width: 340px) { .fgrid { grid-template-columns: 1fr; } }
+    @container (max-width: 340px) { .fgrid { grid-template-columns: 1fr; } }
     .req { color: var(--accent-2); font-style: normal; margin-left: 2px; }
     .hint.bad { color: var(--accent-2); }
     .tri { padding: 4px 2px; } .tri > span { font-size: 15px; font-weight: 550; }

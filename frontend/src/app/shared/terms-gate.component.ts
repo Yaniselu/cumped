@@ -30,8 +30,8 @@ import { Ui } from '../core/ui.service';
     }
   `,
   styles: [`
-    .gate { position: fixed; inset: 0; z-index: 9800; display: grid; place-items: center; padding: 20px; background: rgba(8, 8, 14, .55); backdrop-filter: blur(6px); }
-    .box { width: min(440px, 100%); display: flex; flex-direction: column; gap: 12px; text-align: center; align-items: center; }
+    .gate { position: fixed; inset: 0; z-index: 9800; display: flex; overflow-y: auto; overscroll-behavior: contain; padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); background: rgba(8, 8, 14, .55); backdrop-filter: blur(6px); }
+    .box { margin: auto; width: min(440px, 100%); display: flex; flex-direction: column; gap: 12px; text-align: center; align-items: center; }
     .ic { width: 64px; height: 64px; border-radius: 22px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 30px; }
     .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-weight: 600; font-size: 15px; }
   `],

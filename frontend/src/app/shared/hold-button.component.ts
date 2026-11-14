@@ -40,7 +40,8 @@ import { Ui } from '../core/ui.service';
     .holding .fill { transform: scaleX(1); transition: transform var(--hold) linear; }
     .holding { transform: scale(.98); }
     .done .fill { transform: scaleX(1); transition: none; }
-    .lbl { position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lbl { position: relative; white-space: normal; text-align: center; line-height: 1.2; text-wrap: balance; overflow-wrap: anywhere; }
+    .hold:not(.sm) { height: auto; min-height: 56px; padding-block: 8px; } .hold.sm { height: auto; min-height: 42px; padding-block: 6px; }
     .cap { font-size: 13px; color: var(--text-3); text-align: center; }
     .hint { font-size: 13px; font-weight: 600; color: var(--text-2); text-align: center; animation: fadeIn .2s ease; }
     .spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; animation: spinSlow .7s linear infinite; }

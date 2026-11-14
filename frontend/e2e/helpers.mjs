@@ -87,3 +87,57 @@ export async function until(fn, ms = 4000) {
   while (Date.now() < end) { last = await fn(); if (last) return last; await new Promise((r) => setTimeout(r, 60)); }
   return last;
 }
+
+/**
+ * Ecrane reale, la mărimea întreagă (aplicația rulează pe tot ecranul, fără bara browserului),
+ * cu zonele sigure: notch / Dynamic Island sus, bara de gesturi jos, laturile în landscape.
+ */
+export const DEVICES = [
+  { name: 'iPhone SE (1)', w: 320, h: 568, dpr: 2 },
+  { name: 'Android mic', w: 360, h: 640, dpr: 2, inset: { top: 24 } },
+  { name: 'iPhone SE', w: 375, h: 667, dpr: 2, inset: { top: 20 } },
+  { name: 'Galaxy S8', w: 360, h: 740, dpr: 3, inset: { top: 24, bottom: 16 } },
+  { name: 'iPhone 13 mini', w: 375, h: 812, dpr: 3, inset: { top: 50, bottom: 34 } },
+  { name: 'iPhone 15', w: 393, h: 852, dpr: 3, inset: { top: 59, bottom: 34 } },
+  { name: 'Pixel 8', w: 412, h: 915, dpr: 2.6, inset: { top: 32, bottom: 24 } },
+  { name: 'iPhone 15 Pro Max', w: 430, h: 932, dpr: 3, inset: { top: 59, bottom: 34 } },
+  { name: 'Galaxy Z Fold închis', w: 344, h: 882, dpr: 3, inset: { top: 24, bottom: 16 } },
+  { name: 'Galaxy Z Fold deschis', w: 673, h: 841, dpr: 2.6, inset: { top: 24, bottom: 16 } },
+  { name: 'iPhone 15 landscape', w: 852, h: 393, dpr: 3, inset: { left: 59, right: 59, bottom: 21 } },
+  { name: 'iPhone SE landscape', w: 667, h: 375, dpr: 2 },
+  { name: 'iPad mini', w: 744, h: 1133, dpr: 2, inset: { top: 24, bottom: 20 }, tablet: true },
+  { name: 'iPad Pro 12.9', w: 1024, h: 1366, dpr: 2, inset: { top: 24, bottom: 20 }, tablet: true },
+  { name: 'Laptop', w: 1280, h: 720, dpr: 1, desktop: true },
+  { name: 'Desktop', w: 1440, h: 900, dpr: 1, desktop: true },
+  { name: 'iPhone SE text foarte mare', w: 375, h: 667, dpr: 2, inset: { top: 20 }, text: 'xl' },
+  { name: 'Galaxy S8 întunecat + text mare', w: 360, h: 740, dpr: 3, inset: { top: 24, bottom: 16 }, text: 'lg', dark: true },
+];
+
+/** Context pentru un dispozitiv: ecran complet, zone sigure emulate, IP propriu (limite separate). */
+export async function deviceContext(b, d, { shots = false } = {}) {
+  const mobile = !d.desktop;
+  const ip = `198.20.${Math.floor(Math.random() * 250)}.${1 + Math.floor(Math.random() * 250)}`;
+  const ctx = await b.newContext({
+    viewport: { width: d.w, height: d.h }, deviceScaleFactor: shots ? (d.tablet || d.desktop ? 1 : Math.min(d.dpr, 2)) : 1, isMobile: mobile && !d.tablet ? true : mobile,
+    hasTouch: mobile, locale: 'ro-RO', colorScheme: d.dark ? 'dark' : 'light', extraHTTPHeaders: { 'X-Forwarded-For': ip },
+  });
+  await ctx.addInitScript((d) => {
+    sessionStorage.setItem('cmp_splash', '1'); localStorage.setItem('cmp_onboarded', '1'); localStorage.setItem('cmp_lang', 'ro');
+    if (d.text) localStorage.setItem('cmp_text', d.text);
+    if (d.dark) localStorage.setItem('cmp_theme', 'dark');
+  }, d);
+  ctx.on('page', (p) => applyInsets(p, d));
+  return ctx;
+}
+
+export async function applyInsets(page, d) {
+  if (!d.inset) return;
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: { top: 0, bottom: 0, left: 0, right: 0, ...d.inset } }).catch(() => {});
+}
+
+/** Autentificare prin API în contextul browserului (cookie-ul de sesiune rămâne în context). */
+export async function apiLogin(ctx, user) {
+  const r = await ctx.request.post(BASE + '/api/auth/login', { data: { email: user.email, password: PASSWORD }, headers: { 'Content-Type': 'application/json' } });
+  if (r.status() !== 200) throw new Error('login ' + r.status() + ' ' + (await r.text()));
+}

@@ -126,7 +126,7 @@ button { font-family: inherit; }
 /* ---------- layout ---------- */
 .page { max-width: 1200px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 12px) 18px 130px; }
 .page.narrow { max-width: 640px; }
-@media (min-width: 992px) { .page { padding-top: 96px; padding-bottom: 60px; } }
+@media (min-width: 992px) { .page { padding-top: calc(env(safe-area-inset-top) + 96px); padding-bottom: calc(env(safe-area-inset-bottom) + 60px); } }
 
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; margin-bottom: 10px; }
 .topbar .title { font-family: var(--font-display); font-weight: 650; font-size: 18px; text-align: center; flex: 1; }
@@ -347,7 +347,7 @@ ion-infinite-scroll-content { min-height: 60px; }
 ion-content.scrolled .topbar { background: var(--lg-fill); border-color: var(--lg-border); box-shadow: var(--lg-edge), var(--lg-drop);
   backdrop-filter: var(--lg-blur); -webkit-backdrop-filter: var(--lg-blur); }
 ion-content.scrolled .topbar .title { animation: fadeIn .4s var(--ease); }
-@media (min-width: 992px) { .topbar { top: 92px; } }
+@media (min-width: 992px) { .topbar { top: calc(env(safe-area-inset-top) + 92px); } }
 
 /* produs decupat (SVG fără fundal) direct pe card */
 .cutout-img { object-fit: contain !important; background: transparent !important; filter: drop-shadow(0 18px 18px rgba(20, 20, 50, .16)); }
@@ -400,6 +400,13 @@ html.lite {
   .btn { height: 52px; padding: 0 18px; font-size: 16px; }
   .hscroll { padding-left: 12px; padding-right: 12px; margin: 0 -12px; }
 }
+    @container (max-width: 359px) {
+  .page { padding-left: 12px; padding-right: 12px; }
+  .grid { gap: 10px; }
+  h1 { font-size: 28px; }
+  .btn { height: 52px; padding: 0 18px; font-size: 16px; }
+  .hscroll { padding-left: 12px; padding-right: 12px; margin: 0 -12px; }
+}
 /* tablete și telefoane în landscape: conținutul nu se întinde exagerat */
 @media (min-width: 600px) and (max-width: 991px) { .page.narrow { max-width: 600px; } }
 @media (orientation: landscape) and (max-height: 500px) {
@@ -420,8 +427,13 @@ em, i:not([class]), .msg { font-style: normal !important; }
 .field label { font-size: 14px; color: var(--text); }
 .input { font-size: 17px; }
 /* doar paginile și ferestrele se măresc; bara de jos rămâne la mărimea ei ca să încapă pe orice telefon */
-html.ts-lg .ion-page { zoom: 1.12; }
-html.ts-xl .ion-page { zoom: 1.25; }
+/* ion-app are și el clasa .ion-page: mărim doar paginile (o singură dată), nu toată aplicația */
+html.ts-lg .ion-page:not(ion-app) { zoom: 1.12; }
+html.ts-xl .ion-page:not(ion-app) { zoom: 1.25; }
+html.ts-lg .ion-page:not(ion-app) .ion-page, html.ts-xl .ion-page:not(ion-app) .ion-page { zoom: 1; }
+/* Fiecare pagină e un „container”: regulile pentru ecrane înguste se aplică după lățimea reală a paginii,
+   deci și când textul e mărit (un telefon de 375 px cu text foarte mare se comportă ca unul de 300 px). */
+.ion-page:not(ion-app) { container-type: inline-size; }
 
 
 /* ==========================================================================
@@ -479,6 +491,15 @@ h1 { letter-spacing: -0.028em; } h2 { letter-spacing: -0.02em; } h3 { letter-spa
 .tnum, .price, .amt, .kpi strong, .time, time, [cmpCount], .r b, .sum b, .stars, input[type='number'], input[inputmode='numeric'] {
   font-variant-numeric: tabular-nums lining-nums;
 }
+
+/* Butoane: textul lung trece pe al doilea rând (butonul crește), nu e tăiat. */
+.btn { height: auto; min-height: 56px; padding-block: 8px; line-height: 1.2; text-align: center; }
+.btn.sm { height: auto; min-height: 42px; padding-block: 6px; }
+@media (max-width: 359px) { .btn { min-height: 52px; } }
+    @container (max-width: 359px) { .btn { min-height: 52px; } }
+
+/* Cuvinte foarte lungi (username-uri, coduri, emailuri): se rup pe rândul următor în loc să lățească pagina. */
+h1, h2, h3, p, li, .title, .muted, .faint, .small, .hint, .quote, .bubble, label { overflow-wrap: anywhere; }
 
 /* Văduve și orfani: titlurile se împart echilibrat, paragrafele nu lasă un cuvânt singur pe ultimul rând. */
 h1, h2, h3, .title, .hero h2 { text-wrap: balance; }
@@ -538,6 +559,9 @@ ion-alert .alert-wrapper { transform-origin: var(--cmp-origin, 50% 50%); }
   padding-right: max(18px, env(safe-area-inset-right) + 12px);
 }
 @media (max-width: 359px) {
+  .page { padding-left: max(12px, env(safe-area-inset-left) + 8px); padding-right: max(12px, env(safe-area-inset-right) + 8px); }
+}
+    @container (max-width: 359px) {
   .page { padding-left: max(12px, env(safe-area-inset-left) + 8px); padding-right: max(12px, env(safe-area-inset-right) + 8px); }
 }
 ion-toast { --start: env(safe-area-inset-left); --end: env(safe-area-inset-right); }

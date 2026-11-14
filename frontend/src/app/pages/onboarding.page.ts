@@ -89,6 +89,7 @@ import { LogoComponent } from '../shared/logo.component';
     .ck { animation: pop .7s var(--spring) both; animation-delay: inherit; }
     .logo-wrap { position: absolute; left: 20px; bottom: 18px; z-index: 3; }
     @media (max-width: 340px) { .float-card { max-width: 78%; padding: 7px 10px 7px 8px; } .c2 { display: none; } .slide h1 { font-size: 30px !important; } }
+    @container (max-width: 340px) { .float-card { max-width: 78%; padding: 7px 10px 7px 8px; } .c2 { display: none; } .slide h1 { font-size: 30px !important; } }
     .body { padding: 22px 22px 26px; display: flex; flex-direction: column; flex: 1; }
     .headline { position: relative; min-height: 132px; margin-top: 6px; }
     .slide { position: absolute; inset: 0; opacity: 0; transform: translateY(-18px); filter: blur(6px); transition: opacity .3s var(--ease), transform .4s var(--ease), filter .3s; pointer-events: none; }

@@ -52,7 +52,7 @@ const SOCIAL = `
   </div>`;
 
 const STYLES = `
-  .wrap { max-width: 460px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 12px) 22px 40px; }
+  .wrap { max-width: 460px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 12px) max(22px, env(safe-area-inset-right) + 12px) calc(env(safe-area-inset-bottom) + 40px) max(22px, env(safe-area-inset-left) + 12px); }
   .head { margin: 18px 0 26px; } .head h1 { margin-top: 22px; } .head p { margin-top: 8px; }
   form { display: flex; flex-direction: column; gap: 16px; }
   .or { display: flex; align-items: center; gap: 12px; color: var(--text-3); font-size: 14px; margin: 22px 0 14px; }

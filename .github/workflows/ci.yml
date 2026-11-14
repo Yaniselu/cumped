@@ -73,6 +73,7 @@ jobs:
   e2e:
     name: Teste în browser (Playwright)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: [backend, frontend]
     services:
       postgres:
@@ -121,9 +122,12 @@ jobs:
             sleep 2
           done
           echo "serverul sau aplicația nu au pornit"; tail -50 /tmp/backend.log; tail -50 /tmp/ng.log; exit 1
-      - name: Teste (design, accesibilitate, chat, dispute, recenzii)
+      - name: Teste (design, accesibilitate, ecrane reale, ferestre, chat, dispute, recenzii)
         working-directory: frontend
         run: npm run e2e
+        env:
+          # ecranele verificate în CI (local se pot rula toate 18: fără E2E_DEVICES)
+          E2E_DEVICES: "iPhone SE (1),Android mic,iPhone 15,Galaxy Z Fold închis,iPhone 15 landscape,iPad mini,Laptop,iPhone SE text foarte mare,Galaxy S8 întunecat + text mare"
       - name: Jurnale
         if: failure()
         run: tail -100 /tmp/backend.log; tail -50 /tmp/ng.log

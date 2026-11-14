@@ -13,13 +13,19 @@ export interface SearchQuery {
 }
 
 /** Toate apelurile către backend. Erorile vin mereu ca {error: "COD"}. */
+/** Iconiță „fără poză”, transparentă: se vede fundalul cardului, în modul luminos și în cel întunecat. */
+export const NO_IMAGE = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100"><g fill="none" stroke="#8e8e99" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">'
+  + '<rect x="42" y="32" width="36" height="30" rx="5"/><circle cx="52.5" cy="42" r="3.5"/><path d="M44 59l11-11 8 8 5-5 9 9"/></g></svg>');
+
 @Injectable({ providedIn: 'root' })
 export class Api {
   private http = inject(HttpClient);
   readonly base = environment.apiBase + '/api';
 
-  url(path: string | null | undefined): string | null {
-    if (!path) return null;
+  /** Adresa unei poze; fără poză întoarce o iconiță neutră (altfel browserul arată o „poză ruptă”). */
+  url(path: string | null | undefined): string {
+    if (!path) return NO_IMAGE;
     if (path.startsWith('/api/')) return environment.apiBase + path;
     return path;
   }

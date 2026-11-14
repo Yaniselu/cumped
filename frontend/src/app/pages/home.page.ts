@@ -120,6 +120,7 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
     .sellcta:hover .ph1 { transform: rotate(4deg) translateY(4px); } .sellcta:hover .ph2 { transform: rotate(-3deg) translateY(6px); }
     .ph1, .ph2 { transition: transform .6s var(--spring); }
     @media (max-width: 380px) { .ph2 { display: none; } .sellcta div { max-width: 58%; } }
+    @container (max-width: 380px) { .ph2 { display: none; } .sellcta div { max-width: 58%; } }
     .orb { position: absolute; border-radius: 50%; filter: blur(22px); opacity: .7; animation: blob 9s ease-in-out infinite; }
     .o1 { width: 140px; height: 140px; background: #ffb4ab; right: 20%; bottom: -60px; } .o2 { width: 110px; height: 110px; background: #9f8bff; left: -30px; top: -30px; animation-delay: -4s; }
   `],

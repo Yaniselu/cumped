@@ -27,7 +27,7 @@ import { NavController } from '@ionic/angular';
             <cmp-avatar [name]="u.displayName" [hue]="u.avatarHue" [size]="80" [verified]="u.idVerified" />
             <div class="info">
               <h2>{{ u.displayName }}</h2>
-              <span class="muted small">&#64;{{ u.username }} · {{ u.city }} · {{ 'listing.memberSince' | t: { date: i18n.date(u.memberSince) } }}</span>
+              <span class="muted small">&#64;{{ u.username }}@if (u.city) { · {{ u.city }} } · {{ 'listing.memberSince' | t: { date: i18n.date(u.memberSince) } }}</span>
               <div class="badges">
                 @if (u.idVerified) { <span class="badge ok"><ion-icon name="shield-checkmark"></ion-icon>{{ 'profile.verified' | t }}</span> } @else { <span class="badge warn">{{ 'profile.notVerified' | t }}</span> }
                 @if (u.accountType === 'BUSINESS') { <span class="badge accent"><ion-icon name="business"></ion-icon>{{ 'seller.business' | t }}</span> }
@@ -61,7 +61,7 @@ import { NavController } from '@ionic/angular';
   `,
   styles: [`
     .hero { display: flex; gap: 18px; padding: 20px; align-items: flex-start; }
-    .info { flex: 1; display: flex; flex-direction: column; gap: 6px; } .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+    .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; } .info h2, .info span { overflow-wrap: anywhere; } .badges { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
     .biz { margin-top: 6px; overflow-wrap: anywhere; }
     .bio { color: var(--text-2); font-size: 15.5px; line-height: 1.5; }
     .realname { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); font-weight: 650; }
