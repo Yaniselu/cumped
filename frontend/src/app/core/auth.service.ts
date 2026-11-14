@@ -51,7 +51,12 @@ export class AuthService {
     return this.refreshing;
   }
 
+  private beforeLogout: (() => Promise<void>)[] = [];
+  /** Ex. alertele push: dispozitivul nu mai primește alertele contului după ieșire. */
+  onBeforeLogout(fn: () => Promise<void>) { this.beforeLogout.push(fn); }
+
   async logout(everywhere = false) {
+    await Promise.all(this.beforeLogout.map((f) => f().catch(() => {})));
     try { await this.post(everywhere ? '/logout-all' : '/logout', {}); } catch { /* sesiunea poate fi deja expirată */ }
     this.clear();
   }

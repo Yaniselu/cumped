@@ -43,10 +43,12 @@ public class ChatService {
     private final ApplicationEventPublisher events;
     private final ContentPolicy policy;
     private final BlockService blocks;
+    private final com.velosyntech.cumped.notification.push.PushService push;
 
     public ChatService(JdbcClient jdbc, ListingRepository listings, UserRepository users, ScamDetector scam,
                        NotificationService notifications, AuditService audit, ApplicationEventPublisher events,
-                       ContentPolicy policy, BlockService blocks) {
+                       ContentPolicy policy, BlockService blocks, com.velosyntech.cumped.notification.push.PushService push) {
+        this.push = push;
         this.jdbc = jdbc;
         this.listings = listings;
         this.users = users;
@@ -136,6 +138,10 @@ public class ChatService {
                         check.flagged() ? check.reasons().get(0) : null, java.sql.Timestamp.from(now))
                 .update();
         jdbc.sql("UPDATE conversations SET last_message_at = ? WHERE id = ?").params(java.sql.Timestamp.from(now), conversationId).update();
+        // alertă pe telefon / în browser: cine a scris și despre ce anunț (fără textul mesajului, pentru confidențialitate)
+        String senderName = users.findById(me).map(com.velosyntech.cumped.user.UserDtos::displayName).orElse("");
+        String listingTitle = listings.findById(c.listingId()).map(com.velosyntech.cumped.listing.Listing::getTitle).orElse("");
+        push.send(other, "NEW_MESSAGE", java.util.Map.of("name", senderName, "title", listingTitle, "conversationId", conversationId), "/chat/" + conversationId);
         return new Sent(new Message(id, true, check.sanitized(), check.flagged(), check.flagged() ? check.reasons().get(0) : null, now, false),
                 check.reasons());
     }

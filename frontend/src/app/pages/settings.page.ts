@@ -4,6 +4,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, NavController, ViewWillEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
+import { NotificationPrefs, PushService } from '../core/push.service';
 import { AuthService } from '../core/auth.service';
 import { I18n, LANGUAGES, Lang, TPipe } from '../core/i18n.service';
 import { Theme, ThemePref } from '../core/theme.service';
@@ -78,6 +79,35 @@ import { PublicUser } from '../core/models';
             <button class="switch" role="switch" [attr.aria-checked]="theme.lite()" [class.on]="theme.lite()" (click)="theme.setLite(theme.lite() ? 'off' : 'on')"></button></div>
         </div>
 
+        <h3 class="sh" id="alerts">{{ 'push.title' | t }}</h3>
+        <div class="card pad stack reveal">
+          <p class="muted small">{{ 'push.sub' | t }}</p>
+          @switch (push.state()) {
+            @case ('on') {
+              <p class="okline"><ion-icon name="checkmark-circle"></ion-icon>{{ 'push.enabled' | t }}</p>
+              <div class="row wrap2">
+                <button class="btn light sm" [disabled]="testing()" (click)="testPush()"><ion-icon name="paper-plane-outline"></ion-icon>{{ 'push.test' | t }}</button>
+                @if (!push.native) { <button class="btn ghost sm" (click)="push.disable()">{{ 'push.disable' | t }}</button> }
+              </div>
+            }
+            @case ('off') { <button class="btn block" (click)="enablePush()"><ion-icon name="notifications-outline"></ion-icon>{{ 'push.enable' | t }}</button> }
+            @case ('denied') { <p class="warnline"><ion-icon name="alert-circle-outline"></ion-icon>{{ 'push.denied' | t }}</p> }
+            @case ('unavailable') { <p class="faint small">{{ 'push.notReady' | t }}</p> }
+            @case ('checking') { <div class="skeleton" style="height: 52px; border-radius: 999px"></div> }
+            @default { <p class="faint small">{{ 'push.unsupported' | t }}</p> }
+          }
+          @if (prefs(); as p) {
+            <b class="small cats">{{ 'push.categories' | t }}</b>
+            @for (c of categories; track c) {
+              <div class="toggle-row"><span>{{ 'push.' + c | t }}</span>
+                <button class="switch" role="switch" [attr.aria-checked]="p[c]" [attr.aria-label]="'push.' + c | t" [class.on]="p[c]" (click)="togglePref(c)"></button></div>
+            }
+            <div class="toggle-row"><span>{{ 'push.security' | t }}</span>
+              <button class="switch on" role="switch" aria-checked="true" aria-disabled="true" [attr.aria-label]="'push.security' | t" disabled></button></div>
+            <p class="faint small">{{ 'push.securityHint' | t }}</p>
+          }
+        </div>
+
         <h3 class="sh">{{ 'settings.security' | t }}</h3>
         <div class="card pad stack reveal">
           @if (auth.user()?.hasPassword) { <div class="field"><label>{{ 'settings.current' | t }}</label><input class="input" type="password" [(ngModel)]="current" autocomplete="current-password" /></div> }
@@ -133,12 +163,21 @@ import { PublicUser } from '../core/models';
     .toggles ion-icon { color: var(--accent); font-size: 20px; margin-top: 1px; }
     .buser { display: flex; align-items: center; gap: 10px; padding: 6px 0; } .buser span { flex: 1; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .menu { padding: 4px 0; } .menu a { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; color: var(--text); font-weight: 550; border-bottom: 1px solid var(--line); }
+    .okline, .warnline { display: flex; gap: 8px; align-items: flex-start; margin: 0; font-size: 15px; font-weight: 600; }
+    .okline ion-icon { color: var(--ok); font-size: 20px; flex: 0 0 auto; } .warnline ion-icon { color: var(--warn); font-size: 20px; flex: 0 0 auto; }
+    .warnline { font-weight: 500; }
+    .wrap2 { flex-wrap: wrap; gap: 8px; } .cats { margin-top: 6px; }
+    .switch:disabled { opacity: .6; cursor: not-allowed; }
     .menu a:last-child { border-bottom: 0; } .menu ion-icon { color: var(--text-3); }
   `],
 })
 export class SettingsPage implements ViewWillEnter {
   auth = inject(AuthService);
+  push = inject(PushService);
   i18n = inject(I18n);
+  categories: (keyof NotificationPrefs)[] = ['messages', 'offers', 'orders', 'alerts', 'account'];
+  prefs = signal<NotificationPrefs | null>(null);
+  testing = signal(false);
   theme = inject(Theme);
   private api = inject(Api);
   private ui = inject(Ui);
@@ -158,7 +197,27 @@ export class SettingsPage implements ViewWillEnter {
   textSizes: { v: 'normal' | 'lg' | 'xl'; px: number }[] = [{ v: 'normal', px: 15 }, { v: 'lg', px: 17 }, { v: 'xl', px: 19 }];
   legalDocs = ['terms', 'privacy', 'rules', 'dsa', 'cookies', 'about'];
 
-  ionViewWillEnter() { this.api.blocks().then((b) => this.blocked.set(b)).catch(() => {}); }
+  ionViewWillEnter() {
+    this.api.blocks().then((b) => this.blocked.set(b)).catch(() => {});
+    this.api.notificationPrefs().then((p) => this.prefs.set(p)).catch(() => {});
+  }
+
+  async enablePush() { if (await this.push.enable()) this.ui.toast(this.i18n.t('push.enabled')); }
+
+  async testPush() {
+    this.testing.set(true);
+    try { await this.push.test(); this.ui.toast(this.i18n.t('push.testSent')); } catch (e) { this.ui.error(e); }
+    finally { setTimeout(() => this.testing.set(false), 3000); }
+  }
+
+  /** Actualizare optimistă: comutatorul se mișcă imediat, revine dacă serverul refuză. */
+  async togglePref(c: keyof NotificationPrefs) {
+    const before = this.prefs();
+    if (!before) return;
+    const next = { ...before, [c]: !before[c] };
+    this.prefs.set(next);
+    try { this.prefs.set(await this.api.saveNotificationPrefs(next)); } catch (e) { this.prefs.set(before); this.ui.error(e); }
+  }
 
   async saveBusiness() {
     try {

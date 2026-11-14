@@ -9,8 +9,15 @@ import java.util.Map;
 @RestController
 public class ConfigController {
     private final AppProperties props;
+    private final com.velosyntech.cumped.notification.push.PushService push;
+    private final com.velosyntech.cumped.notification.push.FcmSender fcm;
 
-    public ConfigController(AppProperties props) { this.props = props; }
+    public ConfigController(AppProperties props, com.velosyntech.cumped.notification.push.PushService push,
+                            com.velosyntech.cumped.notification.push.FcmSender fcm) {
+        this.props = props;
+        this.push = push;
+        this.fcm = fcm;
+    }
 
     @GetMapping("/api/config")
     Map<String, Object> config() {
@@ -35,6 +42,9 @@ public class ConfigController {
         out.put("referralsNeeded", 10);
         // cheia PUBLICĂ Turnstile (cea secretă rămâne doar pe server)
         out.put("captchaSiteKey", props.captchaEnabled() ? props.turnstileSiteKey() : null);
+        // cheia PUBLICĂ pentru alertele din browser (Web Push) și dacă alertele pe telefon sunt active
+        out.put("vapidPublicKey", push.vapidPublicKey());
+        out.put("nativePush", fcm.enabled());
         return out;
     }
 }

@@ -18,16 +18,20 @@ public class NotificationService {
 
     private final JdbcClient jdbc;
     private final JsonMapper json;
+    private final com.velosyntech.cumped.notification.push.PushService push;
 
-    public NotificationService(JdbcClient jdbc, JsonMapper json) {
+    public NotificationService(JdbcClient jdbc, JsonMapper json, com.velosyntech.cumped.notification.push.PushService push) {
         this.jdbc = jdbc;
         this.json = json;
+        this.push = push;
     }
 
+    /** Salvează notificarea (lista din aplicație) și trimite alerta pe dispozitivele utilizatorului (push). */
     public void notify(UUID userId, String type, Map<String, ?> params, String link) {
         jdbc.sql("INSERT INTO notifications(id, user_id, type, params, link) VALUES (?, ?, ?, ?, ?)")
                 .params(UUID.randomUUID(), userId, type, json.writeValueAsString(params), link)
                 .update();
+        push.send(userId, type, params, link);
     }
 
     @SuppressWarnings("unchecked")

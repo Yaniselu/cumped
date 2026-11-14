@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import type { NotificationPrefs } from './push.service';
 import {
   AdminDispute, AdminTicket, AppNotification, Card, ConversationSummary, Detail, ListingDraft, Me, Negotiation, Order, OrderQuote, Page, SellerStats, ShipAddress, PriceAnalysis, PublicUser,
   Review, ServerConfig, ShippingEstimate, Stats, Thread, Ticket, VeloReply,
@@ -45,6 +46,13 @@ export class Api {
   private del<T>(path: string) { return firstValueFrom(this.http.delete<T>(this.base + path)); }
 
   config() { return this.get<ServerConfig>('/config'); }
+  pushSubscribe(body: { kind: 'WEB' | 'FCM'; endpoint?: string; keys?: { p256dh: string; auth: string }; token?: string; platform: string; device: string }) {
+    return this.post<{ ok: boolean; devices: number }>('/me/push/subscriptions', body);
+  }
+  pushUnsubscribe(endpoint: string) { return this.post('/me/push/unsubscribe', { endpoint }); }
+  pushTest() { return this.post<{ delivered: number }>('/me/push/test', {}); }
+  notificationPrefs() { return this.get<NotificationPrefs>('/me/notification-prefs'); }
+  saveNotificationPrefs(p: NotificationPrefs) { return this.put<NotificationPrefs>('/me/notification-prefs', p); }
   search(q: SearchQuery) { return this.get<Page<Card>>('/listings', q); }
   suggest(q: string) { return this.get<{ text: string; category: string | null; count: number }[]>('/listings/suggest', { q }); }
   listing(id: string) { return this.get<Detail>(`/listings/${id}`); }

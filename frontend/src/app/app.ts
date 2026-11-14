@@ -6,6 +6,7 @@ import { LogoComponent } from './shared/logo.component';
 import { TabBarComponent } from './shared/tab-bar.component';
 import { TopNavComponent } from './shared/top-nav.component';
 import { TermsGateComponent } from './shared/terms-gate.component';
+import { PushService } from './core/push.service';
 
 const NO_CHROME = ['/welcome', '/login', '/register', '/chat/', '/sell', '/support'];
 
@@ -42,6 +43,8 @@ const NO_CHROME = ['/welcome', '/login', '/register', '/chat/', '/sell', '/suppo
 })
 export class App {
   private router = inject(Router);
+  /** Pornește alertele (push) imediat ce utilizatorul e autentificat. */
+  private push = inject(PushService);
   url = signal('/');
   bare = signal(false);
   detail = signal(false);

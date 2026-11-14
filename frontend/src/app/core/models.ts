@@ -98,7 +98,7 @@ export interface Stats {
 
 export interface Company { name: string; address: string; regNo: string; vat: string; email: string; dpoEmail: string; }
 export interface ServerConfig { company: Company; termsVersion: string; inAppPurchases: boolean; googleLogin: boolean; appleLogin: boolean; veloAi: 'AI' | 'RULES'; devMode: boolean; freeActiveListings: number; referralBonusListings: number; referralsNeeded: number;
-  captchaSiteKey: string | null; }
+  captchaSiteKey: string | null; vapidPublicKey: string | null; nativePush: boolean; }
 
 export interface ShippingEstimate { available: boolean; zone: string | null; minCents: number; maxCents: number; currency: string; minDays: number; maxDays: number; }
 

@@ -95,4 +95,13 @@ cumped:
   data-encryption-key: ${DATA_ENCRYPTION_KEY:}
   turnstile-site-key: ${TURNSTILE_SITE_KEY:}
   turnstile-secret: ${TURNSTILE_SECRET:}
+  # Web Push (alerte pe site). Dacă lipsesc, serverul generează cheile o singură dată și le păstrează criptate în baza de date.
+  vapid-public-key: ${VAPID_PUBLIC_KEY:}
+  vapid-private-key: ${VAPID_PRIVATE_KEY:}
+  vapid-subject: ${VAPID_SUBJECT:mailto:contact@velosyntech.com}
+  # Alerte pe telefon (Firebase Cloud Messaging): conținutul fișierului de cont de serviciu, în base64.
+  fcm-service-account: ${FCM_SERVICE_ACCOUNT:}
+  push-allow-local: ${PUSH_ALLOW_LOCAL:false}
+  # Secret partajat cu proxy-ul site-ului (Vercel). Dacă e setat, API-ul răspunde doar cererilor venite prin proxy.
+  proxy-secret: ${PROXY_SECRET:}
   dpo-email: ${DPO_EMAIL:contact@velosyntech.com}

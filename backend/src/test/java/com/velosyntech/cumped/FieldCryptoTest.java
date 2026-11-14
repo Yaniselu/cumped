@@ -19,7 +19,7 @@ class FieldCryptoTest {
     static AppProperties props(boolean dev, boolean cookieSecure, String cors, String publicUrl, boolean demo, String encKey) {
         return new AppProperties("x".repeat(48), Duration.ofMinutes(15), Duration.ofDays(30), cors, cookieSecure, "build/u",
                 "s@x.ro", "n@x.ro", publicUrl, null, "m", null, null, null, null, dev, demo, false,
-                "Firma", "Adresa", "J1", "RO1", "c@x.ro", "d@x.ro", encKey, null, null);
+                "Firma", "Adresa", "J1", "RO1", "c@x.ro", "d@x.ro", encKey, null, null, null, null, "mailto:x@x.ro", null, false, null);
     }
 
     private static void init(AppProperties p) throws Exception {

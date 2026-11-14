@@ -34,13 +34,23 @@ public record AppProperties(
         String dpoEmail,
         String dataEncryptionKey,
         String turnstileSiteKey,
-        String turnstileSecret
+        String turnstileSecret,
+        String vapidPublicKey,
+        String vapidPrivateKey,
+        String vapidSubject,
+        String fcmServiceAccount,
+        Boolean pushAllowLocal,
+        String proxySecret
 ) {
     public boolean rateLimitEnabled() { return rateLimit == null || rateLimit; }
     public List<String> corsOriginList() { return split(corsOrigins); }
     public List<String> googleClientIdList() { return split(googleClientIds); }
     public List<String> appleClientIdList() { return split(appleClientIds); }
     public boolean captchaEnabled() { return turnstileSecret != null && !turnstileSecret.isBlank(); }
+    public boolean fcmEnabled() { return fcmServiceAccount != null && !fcmServiceAccount.isBlank(); }
+    /** Doar pentru teste: permite abonamente push către http://localhost. */
+    public boolean pushLocalAllowed() { return Boolean.TRUE.equals(pushAllowLocal) && devMode; }
+    public boolean proxyRequired() { return proxySecret != null && !proxySecret.isBlank(); }
     public boolean aiEnabled() { return anthropicApiKey != null && !anthropicApiKey.isBlank(); }
 
     private static List<String> split(String v) {

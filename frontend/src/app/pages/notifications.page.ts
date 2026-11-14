@@ -9,7 +9,7 @@ import { BackButtonComponent } from '../shared/back-button.component';
 import { EmptyComponent } from '../shared/empty.component';
 import { SkeletonLinesComponent } from '../shared/skeleton.component';
 
-const ICONS: Record<string, string> = {
+const ICONS: Record<string, string> = { SECURITY_NEW_LOGIN: 'lock-closed-outline', SECURITY_PASSWORD_CHANGED: 'key-outline',
   PRICE_DROP: 'trending-down', OFFER_RECEIVED: 'pricetag-outline', SWAP_RECEIVED: 'swap-horizontal', OFFER_ACCEPTED: 'checkmark-circle',
   OFFER_DECLINED: 'close-outline', NEW_CONVERSATION: 'chatbubble-outline', SAVED_SEARCH_MATCH: 'search', NEW_REVIEW: 'star',
   TICKET_OPENED: 'ticket-outline', LISTING_UNDER_REVIEW: 'shield-checkmark-outline', LISTING_RESTORED: 'checkmark-circle', PURCHASE_CONFIRMED: 'bag-check-outline',

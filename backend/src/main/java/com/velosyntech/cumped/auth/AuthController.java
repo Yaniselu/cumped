@@ -27,10 +27,15 @@ public class AuthController {
     private final QuotaService quota;
     private final AppProperties props;
     private final BotGuard bots;
+    private final LoginAlerts alerts;
+    private final com.velosyntech.cumped.notification.push.PushService push;
 
     public AuthController(AuthService auth, TokenService tokens, SocialTokenVerifier social, UserRepository users,
-                          QuotaService quota, AppProperties props, BotGuard bots) {
+                          QuotaService quota, AppProperties props, BotGuard bots, LoginAlerts alerts,
+                          com.velosyntech.cumped.notification.push.PushService push) {
         this.bots = bots;
+        this.alerts = alerts;
+        this.push = push;
         this.auth = auth;
         this.tokens = tokens;
         this.social = social;
@@ -42,22 +47,30 @@ public class AuthController {
     @PostMapping("/register")
     ResponseEntity<AuthDtos.AuthResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest r, jakarta.servlet.http.HttpServletRequest req) {
         bots.check(r.website(), r.elapsedMs(), r.captchaToken(), req.getRemoteAddr());
-        return respond(auth.register(r), HttpStatus.CREATED);
+        User u = auth.register(r);
+        alerts.onLogin(u, req.getHeader("User-Agent")); // primul dispozitiv: doar îl ținem minte
+        return respond(u, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
     ResponseEntity<AuthDtos.AuthResponse> login(@Valid @RequestBody AuthDtos.LoginRequest r, jakarta.servlet.http.HttpServletRequest req) {
-        return respond(auth.login(r, req.getRemoteAddr()), HttpStatus.OK);
+        User u = auth.login(r, req.getRemoteAddr());
+        alerts.onLogin(u, req.getHeader("User-Agent"));
+        return respond(u, HttpStatus.OK);
     }
 
     @PostMapping("/google")
-    ResponseEntity<AuthDtos.AuthResponse> google(@Valid @RequestBody AuthDtos.SocialRequest r) {
-        return respond(auth.social("google", social.verifyGoogle(r.idToken()), r), HttpStatus.OK);
+    ResponseEntity<AuthDtos.AuthResponse> google(@Valid @RequestBody AuthDtos.SocialRequest r, HttpServletRequest req) {
+        User u = auth.social("google", social.verifyGoogle(r.idToken()), r);
+        alerts.onLogin(u, req.getHeader("User-Agent"));
+        return respond(u, HttpStatus.OK);
     }
 
     @PostMapping("/apple")
-    ResponseEntity<AuthDtos.AuthResponse> apple(@Valid @RequestBody AuthDtos.SocialRequest r) {
-        return respond(auth.social("apple", social.verifyApple(r.idToken()), r), HttpStatus.OK);
+    ResponseEntity<AuthDtos.AuthResponse> apple(@Valid @RequestBody AuthDtos.SocialRequest r, HttpServletRequest req) {
+        User u = auth.social("apple", social.verifyApple(r.idToken()), r);
+        alerts.onLogin(u, req.getHeader("User-Agent"));
+        return respond(u, HttpStatus.OK);
     }
 
     @PostMapping("/refresh")
@@ -81,12 +94,14 @@ public class AuthController {
     ResponseEntity<Void> logoutAll(HttpServletRequest req) {
         requireCsrfHeader(req);
         auth.logoutEverywhere(CurrentUser.id());
+        push.unsubscribeAll(CurrentUser.id()); // nicio alertă pe dispozitivele din care ai ieșit
         return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, cookie("", Duration.ZERO).toString()).build();
     }
 
     @PostMapping("/change-password")
     ResponseEntity<Void> changePassword(@Valid @RequestBody AuthDtos.ChangePasswordRequest r) {
         auth.changePassword(CurrentUser.id(), r);
+        users.findById(CurrentUser.id()).ifPresent(alerts::onPasswordChanged);
         return ResponseEntity.noContent().build();
     }
 

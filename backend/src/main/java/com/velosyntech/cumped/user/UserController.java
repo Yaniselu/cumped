@@ -270,6 +270,9 @@ public class UserController {
         jdbc.sql("DELETE FROM saved_searches WHERE user_id = ?").param(me).update();
         jdbc.sql("DELETE FROM notifications WHERE user_id = ?").param(me).update();
         jdbc.sql("DELETE FROM velo_sessions WHERE user_id = ?").param(me).update();
+        jdbc.sql("DELETE FROM push_subscriptions WHERE user_id = ?").param(me).update();
+        jdbc.sql("DELETE FROM login_devices WHERE user_id = ?").param(me).update();
+        jdbc.sql("DELETE FROM notification_prefs WHERE user_id = ?").param(me).update();
         jdbc.sql("DELETE FROM user_blocks WHERE blocker_id = ? OR blocked_id = ?").params(me, me).update();
         String anon = "deleted_" + Texts.randomCode(8).toLowerCase(Locale.ROOT);
         u.setEmail(anon + "@deleted.invalid");

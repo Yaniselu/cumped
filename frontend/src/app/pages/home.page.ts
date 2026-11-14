@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonRefresher, IonRefresherContent, ViewDidEnter } from '@ionic/angular';
 import { Api } from '../core/api.service';
+import { PushService } from '../core/push.service';
 import { AuthService } from '../core/auth.service';
 import { Badges } from '../core/badges.service';
 import { I18n, TPipe } from '../core/i18n.service';
@@ -51,6 +52,15 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
           }
         </div>
 
+        @if (auth.loggedIn() && askPush()) {
+          <section class="pushask card pad rv" role="region" [attr.aria-label]="'push.promptTitle' | t">
+            <span class="bell" aria-hidden="true"><ion-icon name="notifications-outline"></ion-icon></span>
+            <div class="pt"><strong>{{ 'push.promptTitle' | t }}</strong><p class="muted small">{{ 'push.promptSub' | t }}</p>
+              <div class="pa"><button class="btn sm" (click)="pushYes()">{{ 'push.promptYes' | t }}</button>
+                <button class="btn sm ghost" (click)="pushLater()">{{ 'push.promptLater' | t }}</button></div></div>
+          </section>
+        }
+
         <a routerLink="/why" fragment="protection" class="safe card press rv">
           <span class="shield"><ion-icon name="shield-checkmark"></ion-icon></span>
           <div><strong>{{ 'home.protectTitle' | t }}</strong><p class="muted small">{{ 'home.protectSub' | t }}</p></div>
@@ -90,6 +100,10 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
     </ion-content>
   `,
   styles: [`
+    .pushask { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
+    .pushask .bell { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 22px; }
+    .pushask .pt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .pushask .pa { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .hdr { display: flex; align-items: center; gap: 12px; margin: 4px 0 18px; }
     .hello { flex: 1; display: flex; flex-direction: column; line-height: 1.2; } .hello strong { font-family: var(--font-display); font-size: 18px; }
     .hero { position: relative; }
@@ -128,6 +142,13 @@ import { SkeletonGridComponent } from '../shared/skeleton.component';
 export class HomePage implements ViewDidEnter {
   private api = inject(Api);
   auth = inject(AuthService);
+  private push = inject(PushService);
+  /** Invitația de a porni alertele (o dată la 14 zile, doar dacă se pot porni). */
+  askPush = computed(() => this.push.state() === 'off' && this.pushAskTick() >= 0 && this.push.shouldPrompt());
+  private pushAskTick = signal(0);
+
+  async pushYes() { await this.push.enable(); this.pushAskTick.update((n) => n + 1); }
+  pushLater() { this.push.postpone(); this.pushAskTick.update((n) => n + 1); }
   badges = inject(Badges);
   i18n = inject(I18n);
   categories = CATEGORIES;

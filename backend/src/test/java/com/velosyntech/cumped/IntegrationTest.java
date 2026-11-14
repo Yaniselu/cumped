@@ -20,5 +20,6 @@ import java.lang.annotation.Target;
         "cumped.cookie-secure=false",
         "cumped.jwt-secret=test-secret-test-secret-test-secret-123456",
         "cumped.uploads-dir=build/test-uploads",
+        "cumped.push-allow-local=true",
 })
 public @interface IntegrationTest {}

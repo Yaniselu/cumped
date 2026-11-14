@@ -48,6 +48,8 @@ export async function listing(user, title, priceCents, currency = 'RON') {
 export const ADDRESS = { name: 'Ana Pop', address: 'Str. Florilor 3', city: 'Iași', postcode: '700000', country: 'RO', phone: '+40 733 111 222' };
 
 export async function browser() { return chromium.launch(); }
+/** Chromium complet (nu varianta „headless shell”): necesar pentru permisiunea de notificări. */
+export async function browserFull() { return chromium.launch({ channel: 'chromium' }); }
 
 /** Context de telefon (iPhone 14), fără ecranul de pornire și fără onboarding. */
 export async function phone(b, opts = {}) {
