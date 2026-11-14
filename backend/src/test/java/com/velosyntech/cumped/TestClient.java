@@ -21,6 +21,8 @@ public class TestClient {
     private final HttpClient http;
     private final CookieManager cookies = new CookieManager();
     public String token;
+    /** Antetul pus de proxy-ul site-ului (Vercel) în producție. */
+    public String proxySecret;
     /** Browserul / aplicația cu care „intră” clientul de test (pentru alertele de dispozitiv nou). */
     public String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36";
     /** IP simulat (prin proxy-ul de încredere local): fiecare client de test are „IP-ul lui”, ca limitele să nu se amestece. */
@@ -57,6 +59,7 @@ public class TestClient {
             if (csrf) b.header("X-Requested-With", "cumped");
             if (ip != null) b.header("X-Forwarded-For", ip);
             if (userAgent != null) b.header("User-Agent", userAgent);
+            if (proxySecret != null) b.header("X-Cumped-Proxy", proxySecret);
             String payload = body == null ? "" : (body instanceof String s ? s : json.writeValueAsString(body));
             b.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(payload));
             HttpResponse<String> r = http.send(b.build(), HttpResponse.BodyHandlers.ofString());

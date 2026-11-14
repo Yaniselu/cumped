@@ -1,0 +1,62 @@
+# Infrastructura Cumped pe Render (Blueprint): serverul (Docker), baza de date PostgreSQL și discul pentru poze.
+# Secretele (JWT, cheia de criptare) sunt generate de Render; PROXY_SECRET se setează la fel ca pe Vercel.
+databases:
+  - name: cumped-db
+    plan: basic-256mb
+    region: frankfurt
+    postgresMajorVersion: "16"
+    databaseName: cumped
+    user: cumped
+    # baza de date nu primește conexiuni din internet, doar de la serverul Cumped (rețeaua privată Render)
+    ipAllowList: []
+
+services:
+  - type: web
+    name: cumped-api
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    branch: main
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
+    disk:
+      name: cumped-uploads
+      mountPath: /data/uploads
+      sizeGB: 1
+    envVars:
+      - key: DB_HOST
+        fromDatabase: { name: cumped-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: cumped-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: cumped-db, property: database }
+      - key: DB_USER
+        fromDatabase: { name: cumped-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: cumped-db, property: password }
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATA_ENCRYPTION_KEY
+        generateValue: true
+      - key: PROXY_SECRET
+        sync: false
+      - key: DEV_MODE
+        value: "false"
+      - key: DEMO_DATA
+        value: "false"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: PUBLIC_URL
+        value: https://cumped.vercel.app
+      - key: CORS_ORIGINS
+        value: https://cumped.vercel.app,https://localhost,capacitor://localhost
+      - key: UPLOADS_DIR
+        value: /data/uploads
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5

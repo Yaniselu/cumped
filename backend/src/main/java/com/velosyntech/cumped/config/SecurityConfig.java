@@ -77,6 +77,8 @@ public class SecurityConfig {
                 })
             )
             ;
+        // în spatele Vercel: doar cererile venite prin site, cu IP-ul real al clientului (adăugat primul: rulează înaintea limitării de cereri)
+        if (props.proxyRequired()) http.addFilterBefore(new ProxyGuardFilter(props.proxySecret()), UsernamePasswordAuthenticationFilter.class);
         if (props.rateLimitEnabled()) http.addFilterBefore(new RateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

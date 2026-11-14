@@ -7,12 +7,15 @@ RUN ./gradlew --no-daemon dependencies > /dev/null || true
 COPY src src
 RUN ./gradlew --no-daemon bootJar -x test
 
-# Run (utilizator fără drepturi de root)
+# Run: serverul rulează ca utilizator fără drepturi (cumped); containerul pornește ca root doar ca să
+# pregătească discul pentru poze (montat de platformă), apoi renunță la drepturi (setpriv).
 FROM eclipse-temurin:21-jre
-RUN useradd --system --uid 10001 cumped && mkdir -p /data/uploads && chown cumped /data/uploads
-USER cumped
+RUN groupadd --system --gid 10001 cumped && useradd --system --uid 10001 --gid cumped cumped \
+    && mkdir -p /data/uploads && chown cumped:cumped /data/uploads
 WORKDIR /app
 COPY --from=build /src/build/libs/*.jar app.jar
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod 755 /usr/local/bin/docker-entrypoint.sh
 ENV UPLOADS_DIR=/data/uploads
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

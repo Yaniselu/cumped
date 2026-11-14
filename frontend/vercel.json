@@ -1,0 +1,51 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "outputDirectory": "www",
+  "routes": [
+    {
+      "src": "/((?!api/).*)",
+      "headers": {
+        "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; worker-src 'self'; manifest-src 'self'; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(self), microphone=(), geolocation=(self), payment=(), usb=(), serial=(), bluetooth=(), browsing-topics=()",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Resource-Policy": "same-origin",
+        "Origin-Agent-Cluster": "?1",
+        "X-DNS-Prefetch-Control": "off",
+        "X-Permitted-Cross-Domain-Policies": "none"
+      },
+      "continue": true
+    },
+    {
+      "src": "/((?:main|chunk|polyfills|styles)-[A-Z0-9]{8}\\.(?:js|css)|media/.+)",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
+      "continue": true
+    },
+    {
+      "src": "/(index\\.html|push-sw\\.js|manifest\\.webmanifest)?",
+      "headers": { "Cache-Control": "no-cache" },
+      "continue": true
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "https://cumped-api.onrender.com/api/$1",
+      "transforms": [
+        {
+          "type": "request.headers",
+          "op": "set",
+          "target": { "key": "x-cumped-proxy" },
+          "args": "$PROXY_SECRET",
+          "env": ["PROXY_SECRET"]
+        }
+      ]
+    },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html", "headers": { "Cache-Control": "no-cache" } }
+  ]
+}

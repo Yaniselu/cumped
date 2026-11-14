@@ -2,7 +2,8 @@ spring:
   application:
     name: cumped
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/cumped}
+    # DB_URL complet sau, separat, DB_HOST / DB_PORT / DB_NAME (cum le dă Render)
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:cumped}}
     username: ${DB_USER:cumped}
     password: ${DB_PASSWORD:cumped}
   jpa:
@@ -59,6 +60,10 @@ management:
   endpoint:
     health:
       show-details: never
+  health:
+    # emailul (SMTP) nu decide dacă serverul e „sănătos”: fără el, aplicația merge, iar mesajele așteaptă în coadă
+    mail:
+      enabled: false
 
 logging:
   level:
