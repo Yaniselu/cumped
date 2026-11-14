@@ -96,6 +96,32 @@ DOMAIN=cumped.com docker compose --profile https up -d --build
 
 În producție setează obligatoriu `DATA_ENCRYPTION_KEY` (`openssl rand -base64 32`) și o parolă puternică pentru baza de date; altfel serverul refuză să pornească.
 
+## Publicare: site pe Vercel, server pe Render
+
+- **Site (Vercel)** – proiectul `cumped`, legat de GitHub, folderul `frontend`. Fiecare push pe `main` publică automat.
+  `frontend/vercel.json` pune antetele de securitate (CSP strict, HSTS, anti-iframe etc.) și trimite `/api/*` la server.
+  La fiecare cerere spre server, Vercel adaugă antetul secret `x-cumped-proxy` (din variabila `PROXY_SECRET`, doar în
+  producție) și IP-ul real al clientului. Vizitatorii nu pot pune ei antetul: Vercel îl suprascrie.
+- **Server + bază de date (Render)** – descrise în `render.yaml` (Blueprint): server Docker cu verificare de sănătate,
+  PostgreSQL accesibil doar din rețeaua privată, disc de 1 GB pentru poze. `JWT_SECRET` și `DATA_ENCRYPTION_KEY` sunt
+  generate de Render; `PROXY_SECRET` trebuie să fie identic cu cel de pe Vercel. Cu `PROXY_SECRET` setat, serverul
+  răspunde doar cererilor venite prin site.
+- **Cont de admin**: pe Render, în Environment, setează `ADMIN_EMAIL` și `ADMIN_PASSWORD` (minim 12 caractere), apoi redeploy.
+- **Opțional**: `ANTHROPIC_API_KEY` (Velo AI), `SMTP_*` (emailuri), `TURNSTILE_*` (anti-roboți), `FCM_SERVICE_ACCOUNT` (alerte pe telefon).
+
+## Alerte (notificări push)
+
+- **Pe site**: merg singure (Web Push). Cheile VAPID sunt generate de server la prima pornire și păstrate criptate.
+  Pe iPhone, alertele web merg după „Adaugă pe ecranul principal”.
+- **În aplicația iOS / Android** (Firebase Cloud Messaging):
+  1. Creează un proiect Firebase și adaugă aplicațiile Android și iOS cu ID-ul `com.velosyntech.cumped`.
+  2. Android: pune `google-services.json` în `frontend/android/app/`. iOS: pune `GoogleService-Info.plist` în
+     `frontend/ios/App/App/`, activează „Push Notifications” în Xcode și încarcă cheia APNs în Firebase.
+  3. În Firebase → Setări proiect → Conturi de serviciu → „Generează cheie privată”, apoi pe Render:
+     `FCM_SERVICE_ACCOUNT` = conținutul fișierului JSON în base64 (`base64 -w0 cont.json`).
+- Utilizatorul alege din Setări → Alerte ce primește (mesaje, oferte, comenzi, prețuri, anunțuri). Alertele de
+  securitate (intrare de pe un dispozitiv nou, parolă schimbată) sunt mereu pornite și vin și pe email.
+
 ## Aplicațiile de telefon
 
 ```bash

@@ -26,6 +26,20 @@ Testele rulează la fiecare push în GitHub Actions (`.github/workflows/ci.yml`)
 | 19 | Force HTTPS | Caddy cu certificat automat și redirecționare HTTP → HTTPS (`docker compose --profile https`), redirecționare și în nginx, HSTS. În producție aplicația refuză să pornească cu cookie nesecurizat, CORS `http://` sau `PUBLIC_URL` fără https. | `FieldCryptoTest.forceHttps_*` |
 | 20 | Scan dependencies | Dependabot (Gradle, npm, Docker, Actions), graful de dependențe Gradle trimis la GitHub, `npm audit` în CI, CodeQL săptămânal. | `.github/dependabot.yml`, `.github/workflows/` |
 
+## Site public (Vercel) și alerte
+
+- **Doar prin site**: serverul răspunde la `/api` doar cererilor care poartă antetul secret pus de Vercel (`PROXY_SECRET`);
+  cine găsește adresa serverului nu poate ocoli antetele și limitele site-ului. Testat în `ProxyGuardIT`.
+- **IP-ul real**: limitele de cereri folosesc IP-ul clientului pus de Vercel (nu IP-ul serverelor Vercel), deci un atacator
+  nu poate bloca toți utilizatorii și nici nu-și poate schimba IP-ul trimițând el antetul.
+- **Antete pe site**: CSP fără scripturi inline, HSTS cu preload, `X-Frame-Options: DENY`, `nosniff`, COOP/CORP,
+  `Permissions-Policy` restrictiv. Versiunile de previzualizare cer autentificare Vercel; secretul există doar în producție.
+- **Alerte push criptate cap-coadă** (RFC 8291, verificat pe exemplul oficial): serviciile Google/Mozilla/Apple transportă
+  alerta fără s-o poată citi. Alertele pentru mesaje nu conțin textul mesajului.
+- **Fără SSRF**: abonamentele push sunt acceptate doar către serviciile de push reale (lista fixă de domenii, doar https).
+- **Alerte de securitate**: intrare de pe un dispozitiv nou și schimbarea parolei (în aplicație, push și email);
+  „Ieși de pe toate dispozitivele” oprește și alertele pe acele dispozitive.
+
 ## Protecția vânzătorului și recenziile
 
 - Recenzii doar după o comandă finalizată, câte una de fiecare parte, în 30 de zile, marcate „Cumpărare verificată”.
