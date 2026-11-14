@@ -37,7 +37,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Teste (unitare + integrare + securitate + conformitate legală)
         run: ./gradlew test --no-daemon
         env:
@@ -91,7 +91,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Pornește serverul (mod dezvoltare, date demo)
         working-directory: backend
         run: |
@@ -173,7 +173,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/dependency-submission@v4
+      - uses: gradle/actions/dependency-submission@v6
         with:
           build-root-directory: backend
           # dacă „Dependency graph” e oprit în setările repository-ului, nu stricăm tot CI-ul
