@@ -6,7 +6,7 @@ export default {
     "teen": "16 veya 17",
     "intro": "16–17 yaşında hesabın bir ebeveynin veya vasinin onayıyla çalışır. Ona bir bağlantı göndeririz; onay verene kadar yalnızca göz atabilirsin.",
     "birthDate": "Doğum tarihi",
-    "birthHint": "Sadece ne zaman 18 olacağını bilmek için. Hiçbir yerde gösterilmez.",
+    "birthHint": "Yaşını bilmek için. Hiçbir yerde gösterilmez.",
     "tooYoung": "Hesap açmak için en az 16 yaşında olmalısın.",
     "isAdult": "Zaten 18 yaşındasın: “18 veya üstü”nü seç.",
     "parentEmail": "Ebeveynin veya vasinin e-postası",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Sadece kargo ile teslimat, yüz yüze buluşma yok",
     "limitCategories": "Araç, emlak, hizmet, iş ilanı ve hayvan yok",
     "limitMoney": "Satışlardan gelen para ebeveyne gider",
-    "created": "Hesap oluşturuldu! Ebeveynine e-posta gönderdik."
+    "created": "Hesap oluşturuldu! Ebeveynine e-posta gönderdik.",
+    "teenTitle": "{age} yaşındasın, bu yüzden bir yetişkinin yönettiği bir hesaba ihtiyacın var",
+    "adultOk": "Harika: {age} yaşındasın.",
+    "invalidDate": "Doğum tarihini kontrol et."
   },
   "guard": {
     "title": "Ebeveyn onayı",

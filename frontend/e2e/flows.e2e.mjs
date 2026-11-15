@@ -107,7 +107,7 @@ describe('fluxuri', () => {
     await bctx.close();
   });
 
-  it('16–17 ani: alegi vârsta, scrii emailul părintelui, contul așteaptă acordul (fără vânzare)', async () => {
+  it('data nașterii pentru toți: sub 16 roșu, 16–17 cont administrat de un adult (așteaptă acordul, fără vânzare)', async () => {
     const parentEmail = `parinte_${Date.now().toString(36)}@test.dev`;
     const ctx = await phone(b);
     const page = await ctx.newPage();
@@ -116,15 +116,20 @@ describe('fluxuri', () => {
     await active(page, '#r-email').fill(`teen_${sfx}@test.dev`);
     await active(page, '#r-user').fill(`teen_${sfx}`.slice(0, 20));
     await active(page, '#r-pass').fill('Munte-Soare-77!');
-    await active(page, '.ageseg button').nth(1).click();
-    // sub 16 ani: mesaj clar, butonul rămâne inactiv
+    // sub 16 ani: mesaj în roșu, butonul rămâne inactiv
     const d = (years, extraDays = 0) => { const x = new Date(); x.setFullYear(x.getFullYear() - years); x.setDate(x.getDate() - extraDays); return x.toISOString().slice(0, 10); };
     await active(page, '#r-birth').fill(d(15));
-    assert.match(await active(page, '#r-birth-hint').textContent(), /cel puțin 16/);
+    assert.match(await active(page, '#r-birth-hint .agewarn').textContent(), /cel puțin 16/);
+    assert.equal(await active(page, '#r-birth').getAttribute('aria-invalid'), 'true');
+    // 18+: cont obișnuit, fără câmpuri în plus
+    await active(page, '#r-birth').fill(d(25));
+    assert.equal(await active(page, '#r-parent').count(), 0);
+    // 16–17: apare explicația și emailul părintelui
     await active(page, '#r-birth').fill(d(16, 40));
+    assert.match(await active(page, '.teenbox .ttitle').textContent(), /administrat de un adult/);
     await active(page, '#r-parent').fill(parentEmail);
     await active(page, '.consent input[type=checkbox]').nth(0).check();
-    // la 16–17 ani nu apare bifa „am cel puțin 18 ani”
+    // nu mai există bifa separată „am cel puțin 18 ani”: vârsta vine din data nașterii
     assert.equal(await active(page, '.consent input[name=adult]').count(), 0);
     await page.waitForTimeout(1700); // un om nu completează formularul instant (protecția anti-roboți)
     await active(page, 'form button.submit').click();

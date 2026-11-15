@@ -6,7 +6,7 @@ export default {
     "teen": "16 oder 17",
     "intro": "Mit 16–17 funktioniert dein Konto mit der Zustimmung eines Elternteils oder Vormunds. Wir schicken ihnen einen Link; bis sie zustimmen, kannst du nur stöbern.",
     "birthDate": "Geburtsdatum",
-    "birthHint": "Nur damit wir wissen, wann du 18 wirst. Es wird nirgends angezeigt.",
+    "birthHint": "Damit wir dein Alter kennen. Es wird nie angezeigt.",
     "tooYoung": "Du musst mindestens 16 sein, um ein Konto zu erstellen.",
     "isAdult": "Du bist schon 18: wähle „18 oder älter“.",
     "parentEmail": "E-Mail eines Elternteils oder Vormunds",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Nur Versand per Kurier, keine Treffen",
     "limitCategories": "Keine Fahrzeuge, Immobilien, Dienstleistungen, Jobs oder Tiere",
     "limitMoney": "Geld aus Verkäufen geht an den Elternteil",
-    "created": "Konto erstellt! Wir haben deinem Elternteil geschrieben."
+    "created": "Konto erstellt! Wir haben deinem Elternteil geschrieben.",
+    "teenTitle": "Du bist {age}, deshalb brauchst du ein Konto, das ein Erwachsener verwaltet",
+    "adultOk": "Super: du bist {age}.",
+    "invalidDate": "Prüfe dein Geburtsdatum."
   },
   "guard": {
     "title": "Zustimmung der Eltern",

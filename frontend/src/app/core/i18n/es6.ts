@@ -6,7 +6,7 @@ export default {
     "teen": "16 o 17",
     "intro": "Con 16–17 años, tu cuenta funciona con el permiso de tu madre, padre o tutor. Le enviamos un enlace; hasta que acepte, solo puedes mirar.",
     "birthDate": "Fecha de nacimiento",
-    "birthHint": "Solo para saber cuándo cumples 18. No se muestra en ningún sitio.",
+    "birthHint": "Para saber tu edad. Nunca se muestra.",
     "tooYoung": "Necesitas tener al menos 16 años para crear una cuenta.",
     "isAdult": "Ya tienes 18: elige «18 o más».",
     "parentEmail": "Email de tu madre, padre o tutor",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Solo envío por mensajería, sin quedar en persona",
     "limitCategories": "Sin vehículos, inmuebles, servicios, empleo ni animales",
     "limitMoney": "El dinero de las ventas va a tu madre o padre",
-    "created": "¡Cuenta creada! Hemos escrito a tu madre o padre."
+    "created": "¡Cuenta creada! Hemos escrito a tu madre o padre.",
+    "teenTitle": "Tienes {age} años, así que necesitas una cuenta gestionada por un adulto",
+    "adultOk": "Perfecto: tienes {age} años.",
+    "invalidDate": "Revisa tu fecha de nacimiento."
   },
   "guard": {
     "title": "Permiso parental",

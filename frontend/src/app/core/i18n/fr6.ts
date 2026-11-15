@@ -6,7 +6,7 @@ export default {
     "teen": "16 ou 17 ans",
     "intro": "À 16–17 ans, ton compte fonctionne avec l'accord d'un parent ou tuteur. Nous lui envoyons un lien ; en attendant, tu peux seulement regarder.",
     "birthDate": "Date de naissance",
-    "birthHint": "Seulement pour savoir quand tu auras 18 ans. Elle n'est affichée nulle part.",
+    "birthHint": "Pour connaître ton âge. Elle n'est jamais affichée.",
     "tooYoung": "Il faut avoir au moins 16 ans pour créer un compte.",
     "isAdult": "Tu as déjà 18 ans : choisis « 18 ans ou plus ».",
     "parentEmail": "E-mail d'un parent ou tuteur",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Livraison par transporteur uniquement, pas de rendez-vous",
     "limitCategories": "Pas de véhicules, d'immobilier, de services, d'emplois ni d'animaux",
     "limitMoney": "L'argent des ventes va au parent",
-    "created": "Compte créé ! Nous avons écrit à ton parent."
+    "created": "Compte créé ! Nous avons écrit à ton parent.",
+    "teenTitle": "Tu as {age} ans : il te faut un compte géré par un adulte",
+    "adultOk": "Parfait : tu as {age} ans.",
+    "invalidDate": "Vérifie ta date de naissance."
   },
   "guard": {
     "title": "Accord parental",

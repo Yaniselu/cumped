@@ -6,7 +6,7 @@ export default {
     "teen": "16 or 17",
     "intro": "At 16–17, your account works with the consent of a parent or guardian. We email them a link; until they agree, you can only browse.",
     "birthDate": "Date of birth",
-    "birthHint": "Only so we know when you turn 18. It's never shown.",
+    "birthHint": "So we know your age. It's never shown.",
     "tooYoung": "You need to be at least 16 to create an account.",
     "isAdult": "You're already 18: choose “18 or older”.",
     "parentEmail": "Parent's or guardian's email",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Courier delivery only, no meet-ups",
     "limitCategories": "No vehicles, property, services, jobs or pets",
     "limitMoney": "Money from sales goes to the parent",
-    "created": "Account created! We emailed your parent."
+    "created": "Account created! We emailed your parent.",
+    "teenTitle": "You're {age}, so you need an account managed by an adult",
+    "adultOk": "Great: you're {age}.",
+    "invalidDate": "Check your date of birth."
   },
   "guard": {
     "title": "Parental consent",

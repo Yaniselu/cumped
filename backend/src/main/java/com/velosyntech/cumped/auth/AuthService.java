@@ -52,17 +52,21 @@ public class AuthService {
     @Transactional
     public User register(AuthDtos.RegisterRequest r) {
         if (!Boolean.TRUE.equals(r.acceptTerms())) throw ApiException.badRequest("TERMS_REQUIRED");
-        // Fără „am cel puțin 18 ani”: se poate doar cont de 16–17 ani, cu data nașterii și emailul părintelui.
+        // Vârsta vine din data nașterii (o cere formularul, pentru toată lumea): 18+ = cont obișnuit,
+        // 16–17 = cont administrat de un părinte (emailul lui e obligatoriu), sub 16 = refuz.
+        // Fără dată (clienți vechi / Google / Apple) e nevoie de confirmarea explicită „am cel puțin 18 ani”.
         boolean adult = Boolean.TRUE.equals(r.adultConfirmed());
         java.time.LocalDate adultAt = null;
-        if (!adult) {
-            if (r.birthDate() == null) throw ApiException.badRequest("TERMS_REQUIRED");
+        if (r.birthDate() != null) {
             int age = com.velosyntech.cumped.user.Guardianship.age(r.birthDate());
+            if (age > 120) throw ApiException.badRequest("VALIDATION");
             if (age < com.velosyntech.cumped.user.Guardianship.MIN_AGE) throw ApiException.badRequest("TOO_YOUNG");
-            if (age >= 18) throw ApiException.badRequest("TERMS_REQUIRED"); // adulții bifează „am cel puțin 18 ani”
-            if (r.parentEmail() == null || r.parentEmail().isBlank()) throw ApiException.badRequest("PARENT_EMAIL_REQUIRED");
-            adultAt = r.birthDate().plusYears(18);
-        }
+            adult = age >= 18;
+            if (!adult) {
+                if (r.parentEmail() == null || r.parentEmail().isBlank()) throw ApiException.badRequest("PARENT_EMAIL_REQUIRED");
+                adultAt = r.birthDate().plusYears(18);
+            }
+        } else if (!adult) throw ApiException.badRequest("TERMS_REQUIRED");
         String email = normalizeEmail(r.email());
         String username = normalizeUsername(r.username());
         PasswordPolicy.check(r.password(), email, username);

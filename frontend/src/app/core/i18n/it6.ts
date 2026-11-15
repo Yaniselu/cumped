@@ -6,7 +6,7 @@ export default {
     "teen": "16 o 17 anni",
     "intro": "A 16–17 anni l'account funziona con il consenso di un genitore o tutore. Gli inviamo un link; finché non acconsente, puoi solo guardare.",
     "birthDate": "Data di nascita",
-    "birthHint": "Solo per sapere quando diventi maggiorenne. Non viene mostrata da nessuna parte.",
+    "birthHint": "Per sapere la tua età. Non viene mai mostrata.",
     "tooYoung": "Devi avere almeno 16 anni per creare un account.",
     "isAdult": "Hai già 18 anni: scegli «18 anni o più».",
     "parentEmail": "Email di un genitore o tutore",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Solo spedizione con corriere, niente incontri",
     "limitCategories": "Niente veicoli, immobili, servizi, lavoro o animali",
     "limitMoney": "I soldi delle vendite vanno al genitore",
-    "created": "Account creato! Abbiamo scritto al tuo genitore."
+    "created": "Account creato! Abbiamo scritto al tuo genitore.",
+    "teenTitle": "Hai {age} anni, quindi ti serve un account gestito da un adulto",
+    "adultOk": "Perfetto: hai {age} anni.",
+    "invalidDate": "Controlla la data di nascita."
   },
   "guard": {
     "title": "Consenso del genitore",

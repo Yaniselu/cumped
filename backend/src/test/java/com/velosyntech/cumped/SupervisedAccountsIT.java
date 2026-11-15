@@ -111,6 +111,25 @@ class SupervisedAccountsIT {
     }
 
     @Test
+    void birthDateDecidesTheAccountTypeForEveryone() {
+        // 18+ cu data nașterii: cont obișnuit, fără bifă separată și fără părinte
+        String sfx = UUID.randomUUID().toString().substring(0, 8);
+        TestClient adult = new TestClient(port, json);
+        TestClient.Res r = adult.post("/api/auth/register", registration(sfx, LocalDate.now().minusYears(30), null, null));
+        assertThat(r.status()).as(r.raw().body()).isEqualTo(201);
+        assertThat(r.body().get("user").get("supervision").isNull()).isTrue();
+        // 17 ani, chiar dacă cineva trimite „adult: true”: data nașterii decide → cont supravegheat
+        String sfx2 = UUID.randomUUID().toString().substring(0, 8);
+        TestClient.Res t = new TestClient(port, json).post("/api/auth/register",
+                registration(sfx2, LocalDate.now().minusYears(17), "p" + sfx2 + "@test.dev", true));
+        assertThat(t.status()).as(t.raw().body()).isEqualTo(201);
+        assertThat(t.body().get("user").get("supervision").get("status").asText()).isEqualTo("PENDING");
+        // 15 ani: refuzat
+        assertThat(new TestClient(port, json).post("/api/auth/register", registration(UUID.randomUUID().toString().substring(0, 8),
+                LocalDate.now().minusYears(15), "x@test.dev", null)).error()).isEqualTo("TOO_YOUNG");
+    }
+
+    @Test
     void withoutParentalConsentTheAccountCanOnlyBrowse() {
         TestClient parent = adult(true);
         TestClient t = teen(parent.email);

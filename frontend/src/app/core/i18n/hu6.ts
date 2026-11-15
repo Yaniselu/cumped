@@ -6,7 +6,7 @@ export default {
     "teen": "16 vagy 17",
     "intro": "16–17 évesen a fiókod egy szülő vagy gyám hozzájárulásával működik. Küldünk neki egy linket; amíg nem járul hozzá, csak nézelődhetsz.",
     "birthDate": "Születési dátum",
-    "birthHint": "Csak hogy tudjuk, mikor leszel nagykorú. Sehol nem jelenik meg.",
+    "birthHint": "Hogy tudjuk a korodat. Sehol nem jelenik meg.",
     "tooYoung": "Legalább 16 évesnek kell lenned a regisztrációhoz.",
     "isAdult": "Már 18 éves vagy: válaszd a „18 vagy idősebb” lehetőséget.",
     "parentEmail": "Szülő vagy gyám e-mail címe",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Csak futárszolgálat, személyes átadás nélkül",
     "limitCategories": "Nincs jármű, ingatlan, szolgáltatás, állás vagy állat",
     "limitMoney": "Az eladásokból származó pénz a szülőhöz kerül",
-    "created": "A fiók elkészült! Írtunk a szülődnek."
+    "created": "A fiók elkészült! Írtunk a szülődnek.",
+    "teenTitle": "{age} éves vagy, ezért egy felnőtt által kezelt fiókra van szükséged",
+    "adultOk": "Rendben: {age} éves vagy.",
+    "invalidDate": "Ellenőrizd a születési dátumot."
   },
   "guard": {
     "title": "Szülői hozzájárulás",

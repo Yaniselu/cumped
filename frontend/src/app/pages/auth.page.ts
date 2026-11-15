@@ -436,27 +436,31 @@ export class LoginPage extends AuthBase implements OnDestroy {
           <!-- câmp-capcană pentru roboți: oamenii nu-l văd și nu-l completează -->
           <div class="hp" aria-hidden="true"><label for="r-web">Website</label><input id="r-web" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="website" /></div>
           @if (config()?.captchaSiteKey) { <div #captcha class="captcha"></div> }
-          <fieldset class="agebox">
-            <legend>{{ 'minor.ageQuestion' | t }}</legend>
-            <div class="ageseg" role="radiogroup" [attr.aria-label]="'minor.ageQuestion' | t">
-              <button type="button" role="radio" [attr.aria-checked]="ageGroup() === 'adult'" [class.on]="ageGroup() === 'adult'" (click)="ageGroup.set('adult')">
-                <ion-icon name="person-outline"></ion-icon>{{ 'minor.adult' | t }}</button>
-              <button type="button" role="radio" [attr.aria-checked]="ageGroup() === 'teen'" [class.on]="ageGroup() === 'teen'" (click)="ageGroup.set('teen')">
-                <ion-icon name="people-outline"></ion-icon>{{ 'minor.teen' | t }}</button>
-              <span class="apill" [class.r]="ageGroup() === 'teen'" aria-hidden="true"></span>
-            </div>
-          </fieldset>
-          @if (ageGroup() === 'teen') {
+          <!-- Data nașterii, pentru toată lumea: 18+ cont obișnuit, 16–17 cont administrat de un adult, sub 16 nu se poate. -->
+          <div class="ff date" [class.valid]="ageKind() === 'adult' || ageKind() === 'teen'" [class.bad]="ageKind() === 'young' || ageKind() === 'invalid'">
+            <ion-icon class="lead" name="calendar-outline" aria-hidden="true"></ion-icon>
+            <input id="r-birth" class="input" type="date" name="birthDate" min="1900-01-01" [max]="today" [ngModel]="birth()"
+              (ngModelChange)="birth.set($event); typed()" (focus)="focus('ref')" (blur)="blur('ref')" required aria-describedby="r-birth-hint"
+              [attr.aria-invalid]="ageKind() === 'young' || ageKind() === 'invalid'" />
+            <label for="r-birth">{{ 'minor.birthDate' | t }}</label>
+            <span class="ustate" aria-hidden="true">
+              @if (ageKind() === 'adult' || ageKind() === 'teen') { <span class="okmark">${CHECK}</span> }
+              @else if (ageKind() === 'young' || ageKind() === 'invalid') { <ion-icon class="x" name="close-circle"></ion-icon> }
+            </span>
+          </div>
+          <div id="r-birth-hint" aria-live="polite">
+            @switch (ageKind()) {
+              @case ('young') { <div class="agewarn" role="alert"><ion-icon name="close-circle"></ion-icon><span>{{ 'minor.tooYoung' | t }}</span></div> }
+              @case ('invalid') { <span class="hint badt">{{ 'minor.invalidDate' | t }}</span> }
+              @case ('adult') { <span class="hint good">{{ 'minor.adultOk' | t: { age: age() } }}</span> }
+              @case ('teen') { <span class="hint">{{ 'minor.birthHint' | t }}</span> }
+              @default { <span class="hint">{{ 'minor.birthHint' | t }}</span> }
+            }
+          </div>
+          @if (ageKind() === 'teen') {
             <div class="teenbox">
-              <p class="tintro"><ion-icon name="shield-checkmark"></ion-icon><span>{{ 'minor.intro' | t }}</span></p>
-              <div class="ff date" [class.valid]="birthOk()" [class.bad]="!!birthError()">
-                <ion-icon class="lead" name="calendar-outline" aria-hidden="true"></ion-icon>
-                <input id="r-birth" class="input" type="date" name="birthDate" [min]="minBirth" [max]="maxBirth" [ngModel]="birth()"
-                  (ngModelChange)="birth.set($event); typed()" (focus)="focus('ref')" (blur)="blur('ref')" required aria-describedby="r-birth-hint" />
-                <label for="r-birth">{{ 'minor.birthDate' | t }}</label>
-                <span class="okmark" aria-hidden="true">${CHECK}</span>
-              </div>
-              <span class="hint" [class.badt]="!!birthError()" id="r-birth-hint" aria-live="polite">{{ (birthError() || 'minor.birthHint') | t }}</span>
+              <p class="ttitle"><ion-icon name="people-outline"></ion-icon><span>{{ 'minor.teenTitle' | t: { age: age() } }}</span></p>
+              <p class="tintro">{{ 'minor.intro' | t }}</p>
               <div class="ff" [class.valid]="parentOk()">
                 <ion-icon class="lead" name="people-outline" aria-hidden="true"></ion-icon>
                 <input id="r-parent" class="input" type="email" name="parentEmail" placeholder=" " [ngModel]="parentEmail()"
@@ -478,10 +482,6 @@ export class LoginPage extends AuthBase implements OnDestroy {
             <label class="chk"><input type="checkbox" name="terms" [ngModel]="acceptTerms()" (ngModelChange)="acceptTerms.set($event)" />
               <span class="box">${CHECK}</span>
               <span>{{ 'auth.acceptPre' | t }} <a routerLink="/legal/terms">{{ 'legal.terms' | t }}</a>, <a routerLink="/legal/rules">{{ 'legal.rules' | t }}</a> {{ 'auth.acceptAnd' | t }} <a routerLink="/legal/privacy">{{ 'legal.privacy' | t }}</a>.</span></label>
-            @if (ageGroup() === 'adult') {
-              <label class="chk"><input type="checkbox" name="adult" [ngModel]="adult()" (ngModelChange)="adult.set($event)" />
-                <span class="box">${CHECK}</span><span>{{ 'auth.adult' | t }}</span></label>
-            }
           </div>
           @if (error()) { <div class="error-text" role="alert">{{ error() }}</div> }
           ${SUBMIT_REGISTER}
@@ -537,21 +537,20 @@ export class LoginPage extends AuthBase implements OnDestroy {
     .refl { animation: previewIn .4s var(--spring) both; } .refl .input { text-transform: uppercase; letter-spacing: .08em; }
     .invited { display: inline-flex; align-items: center; gap: 6px; margin-top: -6px; }
 
-    .agebox { border: 0; margin: 2px 0 0; padding: 0; min-width: 0; }
-    .agebox legend { font-size: 14px; font-weight: 650; color: var(--text-2); padding: 0 4px 8px; }
-    .ageseg { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--line); }
-    .ageseg button { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; padding: 6px 8px;
-      border: 0; background: none; border-radius: 14px; font: inherit; font-size: 14.5px; font-weight: 650; color: var(--text-2); cursor: pointer; transition: color .3s; line-height: 1.2; }
-    .ageseg button.on { color: var(--text); } .ageseg button.on ion-icon { color: var(--accent); } .ageseg ion-icon { font-size: 18px; flex: 0 0 auto; }
-    .apill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 14px; background: var(--card-fill);
-      box-shadow: 0 6px 14px -8px rgba(30, 20, 80, .35), inset 0 0 0 1px var(--line); transition: transform .45s var(--spring); }
-    .apill.r { transform: translateX(100%); }
+    .ff.date.bad .input, .ff.date.bad .input:focus { border-color: var(--accent-2); box-shadow: 0 0 0 4px var(--accent-2-soft); }
+    .ff.date.bad .lead, .ff.date.bad > label { color: var(--accent-2) !important; }
+    .ff.date .ustate { position: absolute; right: 44px; top: 31px; translate: 0 -50%; width: 26px; height: 26px; display: grid; place-items: center; pointer-events: none; }
+    .agewarn { display: flex; align-items: center; gap: 10px; margin-top: -4px; padding: 12px 14px; border-radius: 16px; background: var(--accent-2-soft);
+      color: var(--accent-2); font-weight: 650; font-size: 14.5px; line-height: 1.4; animation: popIn .35s var(--spring), shakeX .45s .1s; }
+    .agewarn ion-icon { flex: 0 0 auto; font-size: 22px; }
+    #r-birth-hint { margin-top: -6px; min-height: 20px; }
+    .ttitle { display: flex; gap: 10px; align-items: flex-start; margin: 0; font-weight: 700; font-size: 15.5px; line-height: 1.35; color: var(--text); }
+    .ttitle ion-icon { flex: 0 0 auto; font-size: 22px; color: var(--accent); margin-top: 1px; }
     .teenbox { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 22px; background: color-mix(in oklab, var(--accent) 7%, var(--surface));
       border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--line)); animation: previewIn .45s var(--spring) both; }
-    .tintro { display: flex; gap: 10px; align-items: flex-start; margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--text-2); }
-    .tintro ion-icon { flex: 0 0 auto; font-size: 22px; color: var(--accent); margin-top: 1px; }
+    .tintro { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--text-2); }
     .ff.date > label { top: 17px; font-size: 12.5px; font-weight: 650; color: var(--text-2); }
-    .ff.date .input { padding-right: 48px; }
+    .ff.date .input { padding-right: 76px; }
     .teenbox .hint { margin-top: -6px; }
     .limits { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 8px; }
     .limits li { display: flex; align-items: flex-start; gap: 9px; font-size: 13.5px; line-height: 1.4; color: var(--text-2); animation: popIn .4s var(--spring) both; }
@@ -587,20 +586,21 @@ export class RegisterPage extends AuthBase implements OnDestroy {
   userState = signal<'idle' | 'checking' | 'ok' | 'taken' | 'invalid'>('idle');
   suggestions = signal<string[]>([]);
   acceptTerms = signal(false);
-  adult = signal(false);
-  /** 18+ (cont obișnuit) sau 16–17 ani (cont gestionat de un părinte). */
-  ageGroup = signal<'adult' | 'teen'>('adult');
   birth = signal('');
   parentEmail = signal('');
   readonly capRon = 30000;
   readonly capEur = 6000;
-  readonly maxBirth = isoYearsAgo(16);
-  readonly minBirth = isoYearsAgo(18, 1);
-  private age = computed(() => yearsSince(this.birth()));
-  birthOk = computed(() => { const a = this.age(); return a !== null && a >= 16 && a < 18; });
-  birthError = computed(() => { const a = this.age(); return a === null ? '' : a < 16 ? 'minor.tooYoung' : a >= 18 ? 'minor.isAdult' : ''; });
+  readonly today = new Date().toISOString().slice(0, 10);
+  age = computed(() => yearsSince(this.birth()));
+  /** Ce fel de cont iese din data nașterii: 18+ obișnuit, 16–17 administrat de un adult, sub 16 nu se poate. */
+  ageKind = computed<'none' | 'invalid' | 'young' | 'teen' | 'adult'>(() => {
+    const a = this.age();
+    if (a === null) return 'none';
+    if (a < 0 || a > 120) return 'invalid';
+    return a < 16 ? 'young' : a < 18 ? 'teen' : 'adult';
+  });
   parentOk = computed(() => { const p = this.parentEmail().trim().toLowerCase(); return EMAIL_RE.test(p) && p !== this.email().trim().toLowerCase(); });
-  ageOk = computed(() => (this.ageGroup() === 'adult' ? this.adult() : this.birthOk() && this.parentOk()));
+  ageOk = computed(() => this.ageKind() === 'adult' || (this.ageKind() === 'teen' && this.parentOk()));
 
   rules = computed(() => {
     const p = this.password(), lower = p.toLowerCase();
@@ -629,7 +629,7 @@ export class RegisterPage extends AuthBase implements OnDestroy {
   hue = computed(() => { let h = 0; for (const c of this.username()) h = (h * 31 + c.charCodeAt(0)) % 360; return h; });
 
   /** Google / Apple doar pentru 18+ (contul de 16–17 ani are nevoie de emailul părintelui). */
-  protected override canSocial() { return this.ageGroup() === 'adult' && this.acceptTerms() && this.adult(); }
+  protected override canSocial() { return this.ageKind() === 'adult' && this.acceptTerms(); }
 
   override async ngOnInit() {
     await super.ngOnInit();
@@ -684,13 +684,13 @@ export class RegisterPage extends AuthBase implements OnDestroy {
         email: this.email().trim(), password: this.password(), username: this.username().trim(),
         referralCode: this.referral.trim().toUpperCase() || undefined, locale: this.i18n.lang(),
         country: (navigator.language.split('-')[1] || 'RO').toUpperCase().slice(0, 2),
-        acceptTerms: this.acceptTerms(), adultConfirmed: this.ageGroup() === 'adult' && this.adult(),
+        acceptTerms: this.acceptTerms(), adultConfirmed: this.ageKind() === 'adult', birthDate: this.birth(),
         website: this.website, elapsedMs: Math.round(performance.now() - this.openedAt), captchaToken: this.captchaToken || undefined,
-        ...(this.ageGroup() === 'teen' ? { birthDate: this.birth(), parentEmail: this.parentEmail().trim() } : {}),
+        ...(this.ageKind() === 'teen' ? { parentEmail: this.parentEmail().trim() } : {}),
       });
       this.busy.set(false);
       this.success.set(true);
-      this.motion.seal(this.i18n.t(this.ageGroup() === 'teen' ? 'minor.created' : 'authfx.created'));
+      this.motion.seal(this.i18n.t(this.ageKind() === 'teen' ? 'minor.created' : 'authfx.created'));
       await sleep(reduced() ? 0 : 700);
       this.done();
     } catch (e: any) {
@@ -698,14 +698,6 @@ export class RegisterPage extends AuthBase implements OnDestroy {
       if (errorCode(e) === 'USERNAME_TAKEN') { this.userState.set('taken'); this.suggestions.set(suggest(this.username())); }
     } finally { this.busy.set(false); }
   }
-}
-
-/** Data de acum N ani (aaaa-ll-zz), opțional plus câteva zile. */
-function isoYearsAgo(years: number, plusDays = 0): string {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() - years);
-  d.setDate(d.getDate() + plusDays);
-  return d.toISOString().slice(0, 10);
 }
 
 /** Vârsta împlinită pentru o dată aaaa-ll-zz (sau null). */

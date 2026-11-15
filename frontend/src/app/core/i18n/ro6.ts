@@ -6,7 +6,7 @@ export default {
     "teen": "16 sau 17 ani",
     "intro": "La 16–17 ani, contul funcționează cu acordul unui părinte sau tutore. Îi trimitem un email cu un link; până își dă acordul, poți doar să te uiți.",
     "birthDate": "Data nașterii",
-    "birthHint": "Doar ca să știm când devii major. Nu apare nicăieri.",
+    "birthHint": "Ca să știm vârsta ta. Nu apare nicăieri.",
     "tooYoung": "Trebuie să ai cel puțin 16 ani ca să-ți faci cont.",
     "isAdult": "Ai deja 18 ani: alege „18 ani sau mai mult”.",
     "parentEmail": "Emailul părintelui sau tutorelui",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Doar livrare prin curier, fără întâlniri",
     "limitCategories": "Fără auto, imobiliare, servicii, locuri de muncă sau animale",
     "limitMoney": "Banii din vânzări ajung la părinte",
-    "created": "Cont creat! Am trimis un email părintelui tău."
+    "created": "Cont creat! Am trimis un email părintelui tău.",
+    "teenTitle": "Ai {age} ani, așa că ai nevoie de un cont administrat de un adult",
+    "adultOk": "Perfect: ai {age} ani.",
+    "invalidDate": "Verifică data nașterii."
   },
   "guard": {
     "title": "Acordul părintelui",

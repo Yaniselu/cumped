@@ -6,7 +6,7 @@ export default {
     "teen": "16 lub 17 lat",
     "intro": "W wieku 16–17 lat konto działa za zgodą rodzica lub opiekuna. Wyślemy mu link; dopóki się nie zgodzi, możesz tylko przeglądać.",
     "birthDate": "Data urodzenia",
-    "birthHint": "Tylko po to, by wiedzieć, kiedy będziesz pełnoletni. Nigdzie się nie wyświetla.",
+    "birthHint": "Abyśmy znali twój wiek. Nigdzie się nie wyświetla.",
     "tooYoung": "Aby założyć konto, musisz mieć co najmniej 16 lat.",
     "isAdult": "Masz już 18 lat: wybierz „18 lat lub więcej”.",
     "parentEmail": "E-mail rodzica lub opiekuna",
@@ -15,7 +15,10 @@ export default {
     "limitCourier": "Tylko wysyłka kurierem, bez spotkań",
     "limitCategories": "Bez pojazdów, nieruchomości, usług, ofert pracy i zwierząt",
     "limitMoney": "Pieniądze ze sprzedaży trafiają do rodzica",
-    "created": "Konto utworzone! Napisaliśmy do twojego rodzica."
+    "created": "Konto utworzone! Napisaliśmy do twojego rodzica.",
+    "teenTitle": "Masz {age} lat, więc potrzebujesz konta zarządzanego przez dorosłego",
+    "adultOk": "Świetnie: masz {age} lat.",
+    "invalidDate": "Sprawdź datę urodzenia."
   },
   "guard": {
     "title": "Zgoda rodzica",
