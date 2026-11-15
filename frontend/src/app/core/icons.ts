@@ -21,6 +21,7 @@ import {
   shirtOutline, sparkles, sparklesOutline, speedometerOutline, star, starOutline, statsChartOutline, sunnyOutline,
   swapHorizontal, swapVertical, swapVerticalOutline, text, ticket, ticketOutline, time, timeOutline, trashOutline,
   trendingDown, tv, warning, shieldHalfOutline, warningOutline, checkmarkCircleOutline, chatboxEllipsesOutline,
+  mailOutline, atOutline, arrowUpOutline, personAddOutline, logInOutline, refreshOutline,
 } from 'ionicons/icons';
 
 export function registerIcons() {
@@ -45,6 +46,7 @@ export function registerIcons() {
     shirtOutline, sparkles, sparklesOutline, speedometerOutline, star, starOutline, statsChartOutline, sunnyOutline,
     swapHorizontal, swapVertical, swapVerticalOutline, text, ticket, ticketOutline, time, timeOutline, trashOutline,
     trendingDown, tv, warning, shieldHalfOutline, warningOutline, checkmarkCircleOutline, chatboxEllipsesOutline,
+    mailOutline, atOutline, arrowUpOutline, personAddOutline, logInOutline, refreshOutline,
   });
 }
 

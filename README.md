@@ -12,7 +12,7 @@ Nume provizoriu: **Cumped**. Firma: Velosyntech.
 | Zonă | Ce face |
 |---|---|
 | Get Started | Ecran animat la prima deschidere, alegerea limbii (pornește în limba telefonului) |
-| Conturi | Email + parolă, butoane Google / Apple (active după configurarea client ID-urilor) |
+| Conturi | Email + parolă, butoane Google / Apple (active după configurarea client ID-urilor). Intrarea și înregistrarea sunt interactive: logo-ul reacționează la formular (inel de progres, lacăt la parolă, bifă când e gata), comutator Intră / Cont nou, username verificat live cu sugestii și previzualizarea profilului, puterea parolei cu regulile serverului, avertisment Caps Lock |
 | Verificare | Identitate (nume de pe act, nu se mai poate schimba) și telefon; bifă de cont verificat |
 | Nume real | Public apare username-ul; numele de pe act îl văd doar utilizatorii logați și verificați, cu audit |
 | Anunțuri | Asistent de publicare în 4 pași, poze comprimate în telefon, specificații, livrare pe țări |

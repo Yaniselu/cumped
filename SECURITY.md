@@ -37,6 +37,7 @@ Testele rulează la fiecare push în GitHub Actions (`.github/workflows/ci.yml`)
 - **Alerte push criptate cap-coadă** (RFC 8291, verificat pe exemplul oficial): serviciile Google/Mozilla/Apple transportă
   alerta fără s-o poată citi. Alertele pentru mesaje nu conțin textul mesajului.
 - **Fără SSRF**: abonamentele push sunt acceptate doar către serviciile de push reale (lista fixă de domenii, doar https).
+- **„Username disponibil?”** (formularul de cont): aceleași reguli ca înregistrarea, răspunde doar despre username-uri (care sunt oricum publice), niciodată despre emailuri; limita pe IP se aplică. Testat în `AuthSecurityIT`.
 - **Alerte de securitate**: intrare de pe un dispozitiv nou și schimbarea parolei (în aplicație, push și email);
   „Ieși de pe toate dispozitivele” oprește și alertele pe acele dispozitive.
 

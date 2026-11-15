@@ -52,6 +52,24 @@ public class AuthController {
         return respond(u, HttpStatus.CREATED);
     }
 
+    /**
+     * „E liber username-ul?” — pentru formularul de cont, cu exact regulile de la înregistrare.
+     * Username-urile sunt publice (apar pe anunțuri și profiluri), deci răspunsul nu dezvăluie nimic nou;
+     * se aplică limita generală de cereri pe IP. Nu spune nimic despre emailuri.
+     */
+    @GetMapping("/username-available")
+    java.util.Map<String, Object> usernameAvailable(@RequestParam("u") String u) {
+        if (u == null || u.length() > 40) return java.util.Map.of("available", false, "reason", "INVALID_USERNAME");
+        try {
+            String n = AuthService.normalizeUsername(u);
+            return users.existsByUsernameIgnoreCase(n)
+                    ? java.util.Map.of("available", false, "reason", "USERNAME_TAKEN")
+                    : java.util.Map.of("available", true, "username", n);
+        } catch (ApiException e) {
+            return java.util.Map.of("available", false, "reason", e.code());
+        }
+    }
+
     @PostMapping("/login")
     ResponseEntity<AuthDtos.AuthResponse> login(@Valid @RequestBody AuthDtos.LoginRequest r, jakarta.servlet.http.HttpServletRequest req) {
         User u = auth.login(r, req.getRemoteAddr());

@@ -33,6 +33,27 @@ class AuthSecurityIT {
     }
 
     @Test
+    void usernameAvailabilityUsesRegistrationRulesAndRevealsNoEmails() {
+        JsonNode me = c.register();
+        String taken = me.get("username").asText();
+        TestClient anon = new TestClient(port, json);
+        TestClient.Res r = anon.get("/api/auth/username-available?u=" + taken.toUpperCase());
+        assertThat(r.status()).isEqualTo(200);
+        assertThat(r.body().get("available").asBoolean()).isFalse();
+        assertThat(r.body().get("reason").asText()).isEqualTo("USERNAME_TAKEN");
+        assertThat(r.raw().body()).doesNotContain("@");
+
+        TestClient.Res free = anon.get("/api/auth/username-available?u=Liber_" + System.nanoTime() % 1_000_000);
+        assertThat(free.body().get("available").asBoolean()).isTrue();
+        assertThat(free.body().get("username").asText()).startsWith("liber_");
+
+        assertThat(anon.get("/api/auth/username-available?u=admin").body().get("available").asBoolean()).isFalse();
+        assertThat(anon.get("/api/auth/username-available?u=ab").body().get("reason").asText()).isEqualTo("INVALID_USERNAME");
+        assertThat(anon.get("/api/auth/username-available?u=a..b").body().get("reason").asText()).isEqualTo("INVALID_USERNAME");
+        assertThat(anon.get("/api/auth/username-available?u=" + "x".repeat(60)).body().get("reason").asText()).isEqualTo("INVALID_USERNAME");
+    }
+
+    @Test
     void wrongPasswordIsGenericAndWeakPasswordIsRejected() {
         TestClient.Res r = c.post("/api/auth/login", Map.of("email", "nobody-" + System.nanoTime() + "@test.dev", "password", "whatever-123"));
         assertThat(r.status()).isEqualTo(401);

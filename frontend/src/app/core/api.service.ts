@@ -46,6 +46,7 @@ export class Api {
   private del<T>(path: string) { return firstValueFrom(this.http.delete<T>(this.base + path)); }
 
   config() { return this.get<ServerConfig>('/config'); }
+  usernameAvailable(u: string) { return this.get<{ available: boolean; username?: string; reason?: string }>('/auth/username-available', { u }); }
   pushSubscribe(body: { kind: 'WEB' | 'FCM'; endpoint?: string; keys?: { p256dh: string; auth: string }; token?: string; platform: string; device: string }) {
     return this.post<{ ok: boolean; devices: number }>('/me/push/subscriptions', body);
   }

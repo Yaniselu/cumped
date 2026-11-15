@@ -63,8 +63,8 @@ describe('alerte', () => {
     assert.equal(await orders.getAttribute('aria-checked'), 'true');
     await orders.click();
     assert.equal(await until(async () => (await orders.getAttribute('aria-checked')) === 'false'), true);
-    const prefs = await api('/api/me/notification-prefs', { token: me.token, ip: me.ip });
-    assert.equal(prefs.body.orders, false);
+    // salvarea pleacă imediat după comutare; așteptăm să ajungă pe server
+    assert.equal(await until(async () => (await api('/api/me/notification-prefs', { token: me.token, ip: me.ip })).body.orders === false, 5000), true);
     // securitatea nu se poate opri
     assert.equal(await active(page, '.toggle-row:has-text("Securitate") .switch').isDisabled(), true);
     await ctx.close();

@@ -592,8 +592,9 @@ p a, .hint a, .consent a, .legal-body a, .foot a, li a {
   text-decoration: underline; text-decoration-thickness: from-font; text-underline-offset: 0.18em; text-decoration-color: color-mix(in oklab, currentColor 45%, transparent);
 }
 p a:hover, .consent a:hover, .legal-body a:hover { text-decoration-color: currentColor; }
-:where(a, button, [role='button'], [role='option'], input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--focus); outline-offset: 3px; border-radius: inherit;
+/* :where(...) și pe :focus-visible → specificitate 0: conturul nu schimbă forma (colțurile) butoanelor și câmpurilor */
+:where(a, button, [role='button'], [role='option'], input, select, textarea, summary, [tabindex]):where(:focus-visible) {
+  outline: 3px solid var(--focus); outline-offset: 3px;
 }
 .input:focus-visible { outline: none; }
 button:not(:disabled), [role='button'], [role='option'], label.chk, summary, select { cursor: pointer; }
@@ -628,3 +629,6 @@ ion-toast { --start: env(safe-area-inset-left); --end: env(safe-area-inset-right
 /* Layout shift: bara de derulare nu mută conținutul pe desktop; imaginile din conținut au raport fix. */
 @media (min-width: 992px) { html { scrollbar-gutter: stable; } }
 img { max-width: 100%; }
+
+/* progresul formularului de cont (inelul din jurul logo-ului se umple lin) */
+@property --auth-p { syntax: '<number>'; inherits: true; initial-value: 0; }
