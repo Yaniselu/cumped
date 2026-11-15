@@ -24,9 +24,9 @@ describe('afișare pe toate ecranele', () => {
   });
   after(async () => { await b?.close(); });
 
-  const publicPages = () => ['/welcome', '/home', '/search', `/listing/${data.listing}`, `/user/${data.seller.id}`, '/login', '/register', '/why', '/plans', '/legal/terms'];
+  const publicPages = () => ['/welcome', '/home', '/search', `/listing/${data.listing}`, `/user/${data.seller.id}`, '/login', '/register', '/why', '/plans', '/legal/terms', '/guardian/link-expirat-de-test'];
   const privatePages = () => ['/profile', '/sell', '/chats', `/chat/${data.conv}`, '/offers', '/orders', `/orders/${data.order}`, '/favorites',
-    '/notifications', '/settings', '/stats', '/my-listings', '/verify', '/support', `/listing/${data.listing}`];
+    '/notifications', '/settings', '/stats', '/my-listings', '/verify', '/support', `/listing/${data.listing}`, '/invite'];
 
   for (const d of DEVICES) {
     if (ONLY && !ONLY.includes(d.name)) continue;

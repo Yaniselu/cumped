@@ -64,6 +64,7 @@ export class VerifyPage implements OnInit {
   private ui = inject(Ui);
   private i18n = inject(I18n);
   private motion = inject(Motion);
+  next = input<string>();
   private nav = inject(NavController);
   phoneParam = input<string>(undefined, { alias: 'phone' });
   phoneMode = signal(false);
@@ -83,7 +84,12 @@ export class VerifyPage implements OnInit {
   validPhone() { return /^\+[1-9]\d{7,14}$/.test(this.phone.replace(/\s/g, '')); }
 
   async completeId() {
-    try { await this.api.devIdentity(this.first.trim(), this.last.trim()); this.auth.setUser(await this.api.me()); this.motion.seal(this.i18n.t('verify.idDone')); }
+    try {
+      await this.api.devIdentity(this.first.trim(), this.last.trim()); this.auth.setUser(await this.api.me()); this.motion.seal(this.i18n.t('verify.idDone'));
+      // venit de pe o altă pagină (ex. acordul părintelui): ne întoarcem acolo
+      const next = this.next();
+      if (next && next.startsWith('/') && !next.startsWith('//')) setTimeout(() => this.nav.navigateForward(next), 1400);
+    }
     catch (e) { this.ui.error(e); }
   }
 

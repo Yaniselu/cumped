@@ -109,7 +109,6 @@ public class VerificationController {
         u.setPhoneLast2(p.last2());
         u.setPhoneVerified(true);
         users.save(u);
-        quota.markReferralQualified(me);
         audit.log(me, "PHONE_VERIFIED", null);
         return Map.of("verified", true);
     }

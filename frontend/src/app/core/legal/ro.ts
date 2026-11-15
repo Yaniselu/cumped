@@ -6,14 +6,19 @@ import { LegalDocs } from './types';
 
 const docs: LegalDocs = {
   terms: {
-    title: 'Termeni și condiții', updated: '2026-11-12',
+    title: 'Termeni și condiții', updated: '2026-11-15',
     sections: [
       { h: '1. Cine suntem', p: [
         'Cumped este o platformă online prin care persoane fizice și firme publică anunțuri, negociază și cumpără produse și servicii. Platforma este operată de {company}, cu sediul în {address}, înregistrată sub nr. {regNo}, CUI {vat}, email {email} („noi”).',
         'Cumped este un intermediar (serviciu de găzduire în sensul Regulamentului (UE) 2022/2065 privind serviciile digitale, „DSA”). Contractul de vânzare se încheie direct între cumpărător și vânzător; noi nu suntem parte la el, cu excepția serviciilor pe care le vindem noi (abonamente, promovări, plata sigură).',
       ] },
       { h: '2. Contul tău', p: [
-        'Trebuie să ai cel puțin 18 ani și să folosești date reale. Ai voie la un singur cont personal. Ești responsabil pentru păstrarea în siguranță a parolei și pentru ce se întâmplă în contul tău.',
+        'Trebuie să ai cel puțin 18 ani sau, între 16 și 18 ani, un cont supravegheat cu acordul unui părinte sau tutore (vezi secțiunea „Conturi pentru 16–17 ani”). Folosește date reale. Ai voie la un singur cont personal. Ești responsabil pentru păstrarea în siguranță a parolei și pentru ce se întâmplă în contul tău.',
+      ] },
+      { h: '2.1 Conturi pentru 16–17 ani', p: [
+        'Între 14 și 18 ani, actele juridice se încheie cu încuviințarea părinților sau a tutorelui (Codul civil, art. 41). De aceea, contul unei persoane de 16–17 ani funcționează doar după ce un părinte sau tutore, cu cont Cumped și identitatea verificată, își dă acordul prin linkul primit pe email. Acordul acoperă tranzacțiile din limitele de mai jos; păstrăm dovada lui (cine, când, ce versiune a declarației).',
+        'Limitele contului: cel mult 60 € (≈ 300 lei) pe produs sau tranzacție; fără vehicule, imobiliare, servicii, locuri de muncă sau animale; doar livrare prin curier, fără întâlniri pentru predare; banii din vânzări ajung la părinte; în conversații nu se pot trimite telefoane, emailuri sau linkuri; numele real și orașul nu apar public.',
+        'Părintele primește o notificare la fiecare comandă și poate pune contul pe pauză sau își poate retrage acordul oricând, din profilul lui; anunțurile active se opresc imediat. La împlinirea vârstei de 18 ani, limitele dispar, iar legătura cu părintele se încheie. Persoanele sub 16 ani nu își pot face cont.',
         'Numele public este username-ul ales de tine. Verificarea identității este opțională: dacă o faci, numele de pe act devine numele contului și poate fi văzut doar de utilizatorii autentificați și verificați. Imaginile actului sunt procesate de furnizorul de verificare și nu sunt păstrate de noi.',
       ] },
       { h: '3. Anunțurile', p: [
@@ -26,7 +31,7 @@ const docs: LegalDocs = {
         'Nu te angaja la plăți prin linkuri primite în chat, transferuri în avans către necunoscuți sau aplicații externe. Mesajele care cer astfel de plăți pot fi blocate automat.',
       ] },
       { h: '5. Prețuri, comisioane și plăți', p: [
-        'În primul an de la crearea contului, ai gratuit 2 anunțuri active în același timp. Peste această limită poți cumpăra: anunț suplimentar 1,99 € / 30 de zile; abonament Plus 4,99 € / lună (15 anunțuri active); Pro / Business 19,99 € / lună (100 de anunțuri active); promovare 2,99 € / 7 zile; ridicare în listă 0,99 €. Invitând 10 prieteni care își verifică contul primești până la 5 anunțuri gratuite.',
+        'În primul an de la crearea contului, ai gratuit 2 anunțuri active în același timp. Peste această limită poți cumpăra: anunț suplimentar 1,99 € / 30 de zile; abonament Plus 4,99 € / lună (15 anunțuri active); Pro / Business 19,99 € / lună (100 de anunțuri active); promovare 2,99 € / 7 zile; ridicare în listă 0,99 €. Programul de invitații: după primii 10 prieteni invitați care își verifică identitatea, poți avea 5 anunțuri gratuite în loc de 2; la fiecare 10 prieteni verificați primești, în plus, un anunț activ gratuit timp de 30 de zile și o promovare de 7 zile, iar fiecare prieten invitat primește o ridicare gratuită după verificare. Contează doar conturile cu identitatea verificată (sau conturile de 16–17 ani aprobate de un părinte verificat). Creditele gratuite expiră după 90 de zile. Ne rezervăm dreptul de a anula recompensele obținute prin conturi false sau înșelăciune.',
         'Plata sigură costă 2,5% din valoarea produsului (minimum 0,50 €, maximum 20 €) și este plătită de cumpărător. Prețurile includ TVA acolo unde se aplică. Abonamentele se reînnoiesc lunar și pot fi anulate oricând, cu efect la sfârșitul perioadei plătite.',
         'În aplicațiile pentru iOS și Android, serviciile digitale (abonamente, promovări) se cumpără prin sistemul de plată al Apple sau Google, conform regulilor acestora, inclusiv pentru rambursări.',
       ] },
@@ -72,7 +77,7 @@ const docs: LegalDocs = {
     ],
   },
   privacy: {
-    title: 'Politica de confidențialitate', updated: '2026-11-12',
+    title: 'Politica de confidențialitate', updated: '2026-11-15',
     sections: [
       { h: '1. Operatorul', p: [
         'Operatorul datelor tale este {company}, {address}, email {email}. Pentru orice întrebare despre datele personale ne poți scrie la {dpo}.',
@@ -102,7 +107,7 @@ const docs: LegalDocs = {
         'Folosim conexiuni criptate (HTTPS), parole stocate doar ca hash, sesiuni de scurtă durată cu reîmprospătare securizată, limitarea încercărilor de autentificare, verificarea automată a mesajelor pentru tentative de fraudă și acces restrâns la date în echipă. Numele de pe act, adresa și telefonul de livrare sunt criptate în baza de date (AES-256-GCM), iar pozele-dovadă din dispute sunt accesibile doar prin linkuri semnate, valabile 2 ore.',
       ] },
       { h: '9. Minori, urmărire și cookie-uri', p: [
-        'Serviciul este destinat persoanelor de cel puțin 18 ani. Nu urmărim utilizatorii în alte aplicații sau site-uri, nu folosim identificatorul de publicitate al dispozitivului și nu folosim cookie-uri de publicitate sau de analiză de la terți. Detalii în pagina Cookie-uri.',
+        'Serviciul este destinat persoanelor de cel puțin 18 ani și, cu acordul unui părinte sau tutore, celor de 16–17 ani. Pentru aceste conturi păstrăm data la care titularul împlinește 18 ani (nu o afișăm), emailul părintelui (criptat) și dovada acordului; nu le facem profiluri și nu le arătăm reclame personalizate. La 18 ani, legătura cu părintele se șterge, iar dovada acordului se păstrează cât e necesar pentru eventuale dispute. Nu urmărim utilizatorii în alte aplicații sau site-uri, nu folosim identificatorul de publicitate al dispozitivului și nu folosim cookie-uri de publicitate sau de analiză de la terți. Detalii în pagina Cookie-uri.',
       ] },
     ],
   },

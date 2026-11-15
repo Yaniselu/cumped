@@ -436,12 +436,52 @@ export class LoginPage extends AuthBase implements OnDestroy {
           <!-- câmp-capcană pentru roboți: oamenii nu-l văd și nu-l completează -->
           <div class="hp" aria-hidden="true"><label for="r-web">Website</label><input id="r-web" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="website" /></div>
           @if (config()?.captchaSiteKey) { <div #captcha class="captcha"></div> }
+          <fieldset class="agebox">
+            <legend>{{ 'minor.ageQuestion' | t }}</legend>
+            <div class="ageseg" role="radiogroup" [attr.aria-label]="'minor.ageQuestion' | t">
+              <button type="button" role="radio" [attr.aria-checked]="ageGroup() === 'adult'" [class.on]="ageGroup() === 'adult'" (click)="ageGroup.set('adult')">
+                <ion-icon name="person-outline"></ion-icon>{{ 'minor.adult' | t }}</button>
+              <button type="button" role="radio" [attr.aria-checked]="ageGroup() === 'teen'" [class.on]="ageGroup() === 'teen'" (click)="ageGroup.set('teen')">
+                <ion-icon name="people-outline"></ion-icon>{{ 'minor.teen' | t }}</button>
+              <span class="apill" [class.r]="ageGroup() === 'teen'" aria-hidden="true"></span>
+            </div>
+          </fieldset>
+          @if (ageGroup() === 'teen') {
+            <div class="teenbox">
+              <p class="tintro"><ion-icon name="shield-checkmark"></ion-icon><span>{{ 'minor.intro' | t }}</span></p>
+              <div class="ff date" [class.valid]="birthOk()" [class.bad]="!!birthError()">
+                <ion-icon class="lead" name="calendar-outline" aria-hidden="true"></ion-icon>
+                <input id="r-birth" class="input" type="date" name="birthDate" [min]="minBirth" [max]="maxBirth" [ngModel]="birth()"
+                  (ngModelChange)="birth.set($event); typed()" (focus)="focus('ref')" (blur)="blur('ref')" required aria-describedby="r-birth-hint" />
+                <label for="r-birth">{{ 'minor.birthDate' | t }}</label>
+                <span class="okmark" aria-hidden="true">${CHECK}</span>
+              </div>
+              <span class="hint" [class.badt]="!!birthError()" id="r-birth-hint" aria-live="polite">{{ (birthError() || 'minor.birthHint') | t }}</span>
+              <div class="ff" [class.valid]="parentOk()">
+                <ion-icon class="lead" name="people-outline" aria-hidden="true"></ion-icon>
+                <input id="r-parent" class="input" type="email" name="parentEmail" placeholder=" " [ngModel]="parentEmail()"
+                  (ngModelChange)="parentEmail.set($event); typed()" (focus)="focus('ref')" (blur)="blur('ref')" autocomplete="off" inputmode="email" required
+                  aria-describedby="r-parent-hint" />
+                <label for="r-parent">{{ 'minor.parentEmail' | t }}</label>
+                <span class="okmark" aria-hidden="true">${CHECK}</span>
+              </div>
+              <span class="hint" id="r-parent-hint">{{ 'minor.parentHint' | t }}</span>
+              <ul class="limits">
+                <li><ion-icon name="pricetag-outline"></ion-icon>{{ 'minor.limitPrice' | t: { max: i18n.price(capRon, 'RON'), eur: i18n.price(capEur, 'EUR') } }}</li>
+                <li><ion-icon name="cube-outline"></ion-icon>{{ 'minor.limitCourier' | t }}</li>
+                <li><ion-icon name="ban-outline"></ion-icon>{{ 'minor.limitCategories' | t }}</li>
+                <li><ion-icon name="cash-outline"></ion-icon>{{ 'minor.limitMoney' | t }}</li>
+              </ul>
+            </div>
+          }
           <div class="consent">
             <label class="chk"><input type="checkbox" name="terms" [ngModel]="acceptTerms()" (ngModelChange)="acceptTerms.set($event)" />
               <span class="box">${CHECK}</span>
               <span>{{ 'auth.acceptPre' | t }} <a routerLink="/legal/terms">{{ 'legal.terms' | t }}</a>, <a routerLink="/legal/rules">{{ 'legal.rules' | t }}</a> {{ 'auth.acceptAnd' | t }} <a routerLink="/legal/privacy">{{ 'legal.privacy' | t }}</a>.</span></label>
-            <label class="chk"><input type="checkbox" name="adult" [ngModel]="adult()" (ngModelChange)="adult.set($event)" />
-              <span class="box">${CHECK}</span><span>{{ 'auth.adult' | t }}</span></label>
+            @if (ageGroup() === 'adult') {
+              <label class="chk"><input type="checkbox" name="adult" [ngModel]="adult()" (ngModelChange)="adult.set($event)" />
+                <span class="box">${CHECK}</span><span>{{ 'auth.adult' | t }}</span></label>
+            }
           </div>
           @if (error()) { <div class="error-text" role="alert">{{ error() }}</div> }
           ${SUBMIT_REGISTER}
@@ -497,6 +537,26 @@ export class LoginPage extends AuthBase implements OnDestroy {
     .refl { animation: previewIn .4s var(--spring) both; } .refl .input { text-transform: uppercase; letter-spacing: .08em; }
     .invited { display: inline-flex; align-items: center; gap: 6px; margin-top: -6px; }
 
+    .agebox { border: 0; margin: 2px 0 0; padding: 0; min-width: 0; }
+    .agebox legend { font-size: 14px; font-weight: 650; color: var(--text-2); padding: 0 4px 8px; }
+    .ageseg { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--line); }
+    .ageseg button { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; padding: 6px 8px;
+      border: 0; background: none; border-radius: 14px; font: inherit; font-size: 14.5px; font-weight: 650; color: var(--text-2); cursor: pointer; transition: color .3s; line-height: 1.2; }
+    .ageseg button.on { color: var(--text); } .ageseg button.on ion-icon { color: var(--accent); } .ageseg ion-icon { font-size: 18px; flex: 0 0 auto; }
+    .apill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 14px; background: var(--card-fill);
+      box-shadow: 0 6px 14px -8px rgba(30, 20, 80, .35), inset 0 0 0 1px var(--line); transition: transform .45s var(--spring); }
+    .apill.r { transform: translateX(100%); }
+    .teenbox { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 22px; background: color-mix(in oklab, var(--accent) 7%, var(--surface));
+      border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--line)); animation: previewIn .45s var(--spring) both; }
+    .tintro { display: flex; gap: 10px; align-items: flex-start; margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--text-2); }
+    .tintro ion-icon { flex: 0 0 auto; font-size: 22px; color: var(--accent); margin-top: 1px; }
+    .ff.date > label { top: 17px; font-size: 12.5px; font-weight: 650; color: var(--text-2); }
+    .ff.date .input { padding-right: 48px; }
+    .teenbox .hint { margin-top: -6px; }
+    .limits { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 8px; }
+    .limits li { display: flex; align-items: flex-start; gap: 9px; font-size: 13.5px; line-height: 1.4; color: var(--text-2); animation: popIn .4s var(--spring) both; }
+    .limits li:nth-child(2) { animation-delay: .05s; } .limits li:nth-child(3) { animation-delay: .1s; } .limits li:nth-child(4) { animation-delay: .15s; }
+    .limits ion-icon { flex: 0 0 auto; font-size: 18px; color: var(--accent); margin-top: 1px; }
     .consent { display: flex; flex-direction: column; gap: 12px; padding: 4px 2px; }
     .chk { position: relative; display: flex; gap: 12px; align-items: flex-start; font-size: 14.5px; line-height: 1.45; color: var(--text-2); cursor: pointer; }
     .chk input { position: absolute; opacity: 0; width: 24px; height: 24px; margin: 0; }
@@ -528,6 +588,19 @@ export class RegisterPage extends AuthBase implements OnDestroy {
   suggestions = signal<string[]>([]);
   acceptTerms = signal(false);
   adult = signal(false);
+  /** 18+ (cont obișnuit) sau 16–17 ani (cont gestionat de un părinte). */
+  ageGroup = signal<'adult' | 'teen'>('adult');
+  birth = signal('');
+  parentEmail = signal('');
+  readonly capRon = 30000;
+  readonly capEur = 6000;
+  readonly maxBirth = isoYearsAgo(16);
+  readonly minBirth = isoYearsAgo(18, 1);
+  private age = computed(() => yearsSince(this.birth()));
+  birthOk = computed(() => { const a = this.age(); return a !== null && a >= 16 && a < 18; });
+  birthError = computed(() => { const a = this.age(); return a === null ? '' : a < 16 ? 'minor.tooYoung' : a >= 18 ? 'minor.isAdult' : ''; });
+  parentOk = computed(() => { const p = this.parentEmail().trim().toLowerCase(); return EMAIL_RE.test(p) && p !== this.email().trim().toLowerCase(); });
+  ageOk = computed(() => (this.ageGroup() === 'adult' ? this.adult() : this.birthOk() && this.parentOk()));
 
   rules = computed(() => {
     const p = this.password(), lower = p.toLowerCase();
@@ -551,11 +624,12 @@ export class RegisterPage extends AuthBase implements OnDestroy {
   });
   bars = computed(() => (this.password() ? Math.max(1, this.strength()) : 0));
   userLocalOk = computed(() => validUsername(this.username()));
-  progress = computed(() => [this.emailOk(), this.userState() === 'ok', this.pwOk(), this.acceptTerms(), this.adult()].filter(Boolean).length / 5);
-  canSubmit = computed(() => this.emailOk() && this.userLocalOk() && this.userState() !== 'taken' && this.pwOk() && this.acceptTerms() && this.adult());
+  progress = computed(() => [this.emailOk(), this.userState() === 'ok', this.pwOk(), this.acceptTerms(), this.ageOk()].filter(Boolean).length / 5);
+  canSubmit = computed(() => this.emailOk() && this.userLocalOk() && this.userState() !== 'taken' && this.pwOk() && this.acceptTerms() && this.ageOk());
   hue = computed(() => { let h = 0; for (const c of this.username()) h = (h * 31 + c.charCodeAt(0)) % 360; return h; });
 
-  protected override canSocial() { return this.acceptTerms() && this.adult(); }
+  /** Google / Apple doar pentru 18+ (contul de 16–17 ani are nevoie de emailul părintelui). */
+  protected override canSocial() { return this.ageGroup() === 'adult' && this.acceptTerms() && this.adult(); }
 
   override async ngOnInit() {
     await super.ngOnInit();
@@ -610,12 +684,13 @@ export class RegisterPage extends AuthBase implements OnDestroy {
         email: this.email().trim(), password: this.password(), username: this.username().trim(),
         referralCode: this.referral.trim().toUpperCase() || undefined, locale: this.i18n.lang(),
         country: (navigator.language.split('-')[1] || 'RO').toUpperCase().slice(0, 2),
-        acceptTerms: this.acceptTerms(), adultConfirmed: this.adult(),
+        acceptTerms: this.acceptTerms(), adultConfirmed: this.ageGroup() === 'adult' && this.adult(),
         website: this.website, elapsedMs: Math.round(performance.now() - this.openedAt), captchaToken: this.captchaToken || undefined,
+        ...(this.ageGroup() === 'teen' ? { birthDate: this.birth(), parentEmail: this.parentEmail().trim() } : {}),
       });
       this.busy.set(false);
       this.success.set(true);
-      this.motion.seal(this.i18n.t('authfx.created'));
+      this.motion.seal(this.i18n.t(this.ageGroup() === 'teen' ? 'minor.created' : 'authfx.created'));
       await sleep(reduced() ? 0 : 700);
       this.done();
     } catch (e: any) {
@@ -623,6 +698,24 @@ export class RegisterPage extends AuthBase implements OnDestroy {
       if (errorCode(e) === 'USERNAME_TAKEN') { this.userState.set('taken'); this.suggestions.set(suggest(this.username())); }
     } finally { this.busy.set(false); }
   }
+}
+
+/** Data de acum N ani (aaaa-ll-zz), opțional plus câteva zile. */
+function isoYearsAgo(years: number, plusDays = 0): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - years);
+  d.setDate(d.getDate() + plusDays);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Vârsta împlinită pentru o dată aaaa-ll-zz (sau null). */
+function yearsSince(iso: string): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!m) return null;
+  const now = new Date(), y = +m[1], mo = +m[2], d = +m[3];
+  let a = now.getFullYear() - y;
+  if (now.getMonth() + 1 < mo || (now.getMonth() + 1 === mo && now.getDate() < d)) a--;
+  return a;
 }
 
 function validUsername(u: string) {

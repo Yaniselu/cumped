@@ -23,7 +23,9 @@ Nume provizoriu: **Cumped**. Firma: Velosyntech.
 | Oferte | Ofertă de preț sau schimb cu unul dintre anunțurile tale (plus bani, opțional) |
 | Recenzii | Doar după o tranzacție confirmată (vândut către tine sau ofertă acceptată) |
 | Statistici | Vizualizări pe zile, favorite, conversații și oferte pe fiecare anunț |
-| Cote | 2 anunțuri active gratuite; 5 dacă inviți 10 prieteni care își verifică contul; Plus 15, Pro 100; anunț extra 1,99 € |
+| Cote | 2 anunțuri active gratuite; 5 după primii 10 prieteni invitați care își verifică identitatea; Plus 15, Pro 100; anunț extra 1,99 € |
+| Invită prieteni | Pagina `/invite`: cod + link, progres animat. La fiecare 10 prieteni cu identitatea verificată: +1 anunț gratuit 30 de zile și o promovare de 7 zile; prietenul primește o ridicare gratuită. Creditele se folosesc din pagina anunțului |
+| 16–17 ani | Cont supravegheat de un părinte/tutore (Cod civil art. 41): acord prin link pe email, dat de un adult cu identitatea verificată; limite pe server (60 €/tranzacție, fără auto/imobiliare/servicii/joburi/animale, doar curier, banii la părinte, fără date de contact în chat, nume și oraș ascunse); părintele vede activitatea, pune pauză sau retrage acordul; la 18 ani limitele dispar singure |
 | Promovare | 7 zile în top (2,99 €) și „ridicare” în listă (0,99 €) |
 | Velo AI | Răspunde la întrebări, strânge detaliile, deschide tichete trimise pe email la **contact@velosyntech.com** și, în cazurile clar suspecte, ascunde temporar anunțul sau suspendă contul până la verificarea umană |
 | Admin | Tichete, confirmarea sau anularea acțiunilor automate ale lui Velo, suspendări |

@@ -57,6 +57,11 @@ public class User {
     private String termsVersion;
     private Instant termsAcceptedAt;
     private boolean adultConfirmed;
+    /** Conturi 16–17 ani: ziua majoratului, părintele/tutorele și starea acordului lui (vezi Guardianship). */
+    private java.time.LocalDate adultAt;
+    private UUID guardianId;
+    private String guardianStatus;
+    private Instant guardianApprovedAt;
     private Instant createdAt = Instant.now();
 
     public UUID getId() { return id; }
@@ -137,7 +142,25 @@ public class User {
     public String getTermsVersion() { return termsVersion; }
     public Instant getTermsAcceptedAt() { return termsAcceptedAt; }
     public boolean isAdultConfirmed() { return adultConfirmed; }
-    public void acceptTerms(String version) { this.termsVersion = version; this.termsAcceptedAt = Instant.now(); this.adultConfirmed = true; }
+    /** Acceptarea termenilor; la un cont de minor (16–17 ani) „adult” rămâne fals până la majorat. */
+    public void acceptTerms(String version) { this.termsVersion = version; this.termsAcceptedAt = Instant.now(); this.adultConfirmed = !isMinorAccount(); }
+    /** Minor de 16–17 ani: acceptă termenii, dar contul funcționează doar cu acordul părintelui. */
+    public void acceptTermsAsMinor(String version, java.time.LocalDate adultAt) {
+        this.termsVersion = version; this.termsAcceptedAt = Instant.now(); this.adultConfirmed = false;
+        this.adultAt = adultAt; this.guardianStatus = "PENDING";
+    }
+    public java.time.LocalDate getAdultAt() { return adultAt; }
+    public void setAdultAt(java.time.LocalDate adultAt) { this.adultAt = adultAt; }
+    public UUID getGuardianId() { return guardianId; }
+    public void setGuardianId(UUID guardianId) { this.guardianId = guardianId; }
+    public String getGuardianStatus() { return guardianStatus; }
+    public void setGuardianStatus(String guardianStatus) { this.guardianStatus = guardianStatus; }
+    public Instant getGuardianApprovedAt() { return guardianApprovedAt; }
+    public void setGuardianApprovedAt(Instant guardianApprovedAt) { this.guardianApprovedAt = guardianApprovedAt; }
+    /** Cont de minor (16–17 ani) încă neajuns la majorat: se aplică limitele și supravegherea. */
+    public boolean isMinorAccount() {
+        return adultAt != null && java.time.LocalDate.now(java.time.ZoneOffset.UTC).isBefore(adultAt);
+    }
     public boolean isBusiness() { return accountType == AccountType.BUSINESS && businessName != null; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

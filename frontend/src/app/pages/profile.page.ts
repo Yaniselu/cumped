@@ -8,10 +8,11 @@ import { Badges } from '../core/badges.service';
 import { I18n, TPipe } from '../core/i18n.service';
 import { Ui } from '../core/ui.service';
 import { AvatarComponent } from '../shared/avatar.component';
+import { ChildrenComponent, SupervisionComponent } from '../shared/supervision.component';
 
 @Component({
   selector: 'page-profile',
-  imports: [MOTION, IonContent, IonIcon, RouterLink, TPipe, AvatarComponent],
+  imports: [MOTION, IonContent, IonIcon, RouterLink, TPipe, AvatarComponent, SupervisionComponent, ChildrenComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       @if (auth.user(); as u) {
@@ -36,10 +37,14 @@ import { AvatarComponent } from '../shared/avatar.component';
             </div>
           </div>
 
+          <cmp-supervision />
+          <cmp-children />
+
           <div class="invite card pad rv" style="--i:1">
-            <div class="row between"><div><h3><ion-icon name="gift-outline"></ion-icon> {{ 'profile.inviteTitle' | t }}</h3>
-              <p class="muted small">{{ 'profile.inviteSub' | t: { n: u.quota.qualifiedReferrals, need: u.quota.referralsNeeded } }}</p></div></div>
-            <div class="prog"><span [style.width.%]="(u.quota.qualifiedReferrals / u.quota.referralsNeeded) * 100"></span></div>
+            <a routerLink="/invite" class="row between invlink"><div><h3><ion-icon name="gift-outline"></ion-icon> {{ 'ref.title' | t }}</h3>
+              <p class="muted small">{{ 'ref.cardSub' | t: { n: u.quota.qualifiedReferrals % u.quota.referralsNeeded, per: u.quota.referralsNeeded } }}</p></div>
+              <ion-icon name="chevron-forward" class="chev"></ion-icon></a>
+            <div class="prog"><span [style.width.%]="((u.quota.qualifiedReferrals % u.quota.referralsNeeded) / u.quota.referralsNeeded) * 100"></span></div>
             <div class="code"><span>{{ u.referralCode }}</span><button class="btn sm" (click)="copy(u.referralCode)"><ion-icon name="copy-outline"></ion-icon>{{ 'profile.copyCode' | t }}</button></div>
           </div>
 
@@ -79,7 +84,7 @@ import { AvatarComponent } from '../shared/avatar.component';
     .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 16px; }
     .kpis div { background: var(--surface-2); border-radius: 18px; padding: 12px 6px; display: flex; flex-direction: column; }
     .kpis strong { font-family: var(--font-display); font-size: 19px; } .kpis span { font-size: 13px; color: var(--text-2); }
-    .invite { margin-top: 14px; } .invite h3 { display: flex; align-items: center; gap: 8px; } .invite h3 ion-icon { color: var(--accent-2); }
+    .invite { margin-top: 14px; } .invlink { color: inherit; text-decoration: none; align-items: center; } .invlink .chev { color: var(--text-3); flex: 0 0 auto; } .invite h3 { display: flex; align-items: center; gap: 8px; } .invite h3 ion-icon { color: var(--accent-2); }
     .prog { height: 8px; border-radius: 99px; background: var(--surface-3); margin: 12px 0; overflow: hidden; }
     .prog span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 1s var(--ease); }
     .code { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 18px; border-radius: 999px; background: var(--surface-2); }

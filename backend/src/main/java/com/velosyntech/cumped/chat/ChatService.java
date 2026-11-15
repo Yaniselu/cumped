@@ -44,10 +44,15 @@ public class ChatService {
     private final ContentPolicy policy;
     private final BlockService blocks;
     private final com.velosyntech.cumped.notification.push.PushService push;
+    private final com.velosyntech.cumped.user.Guardianship guardianship;
+    /** În conversațiile cu un cont supravegheat (16–17 ani) nu trec datele de contact și linkurile. */
+    private static final java.util.Set<String> CONTACT = java.util.Set.of("CONTACT_PHONE", "CONTACT_EMAIL", "OFF_PLATFORM_CHAT", "LINK");
 
     public ChatService(JdbcClient jdbc, ListingRepository listings, UserRepository users, ScamDetector scam,
                        NotificationService notifications, AuditService audit, ApplicationEventPublisher events,
-                       ContentPolicy policy, BlockService blocks, com.velosyntech.cumped.notification.push.PushService push) {
+                       ContentPolicy policy, BlockService blocks, com.velosyntech.cumped.notification.push.PushService push,
+                       com.velosyntech.cumped.user.Guardianship guardianship) {
+        this.guardianship = guardianship;
         this.push = push;
         this.jdbc = jdbc;
         this.listings = listings;
@@ -122,6 +127,10 @@ public class ChatService {
 
         ScamDetector.Result check = scam.analyze(body);
         UUID other = me.equals(c.buyerId()) ? c.sellerId() : c.buyerId();
+        if (check.reasons().stream().anyMatch(CONTACT::contains) && guardianship.involvesMinor(me, other)) {
+            audit.log(me, "MSG_BLOCKED", "CONTACT_MINOR");
+            throw new ApiException(HttpStatus.UNPROCESSABLE_CONTENT, "CONTACT_NOT_ALLOWED");
+        }
         if (check.blocked()) {
             audit.log(me, "MSG_BLOCKED", String.join(",", check.reasons()));
             int recent = jdbc.sql("SELECT count(*) FROM audit_log WHERE actor_id = ? AND action = 'MSG_BLOCKED' AND created_at > now() - interval '24 hours'")
@@ -174,5 +183,6 @@ public class ChatService {
     private void requireActive(UUID userId) {
         User u = users.findById(userId).orElseThrow(ApiException::notFound);
         if (u.isSuspended()) throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED");
+        guardianship.requireCanTransact(u);
     }
 }

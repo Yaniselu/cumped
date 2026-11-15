@@ -19,7 +19,7 @@ const pick = (d, prefix) => Object.fromEntries(Object.entries(d).filter(([k]) =>
 
 const result = {};
 for (const l of LANGS) {
-  const d = Object.assign({}, ...['', '2', '3', '4', '5'].map((n) => load(`${l}${n}.ts`)));
+  const d = Object.assign({}, ...['', '2', '3', '4', '5', '6'].map((n) => load(`${l}${n}.ts`)));
   result[l] = { notifications: pick(d, 'notifications.'), carriers: pick(d, 'orders.carriers.'), reasons: pick(d, 'report.reason.') };
   delete result[l].notifications.title; delete result[l].notifications.empty; delete result[l].notifications.markRead;
 }

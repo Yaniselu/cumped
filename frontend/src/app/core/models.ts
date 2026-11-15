@@ -7,6 +7,30 @@ export interface Me {
   country: string | null; city: string | null; locale: string; avatarHue: number; bio: string | null;
   createdAt: string; rating: number; ratingCount: number; quota: Quota; hasPassword: boolean;
   accountType: 'PRIVATE' | 'BUSINESS'; business: Business | null; termsVersion: string | null;
+  /** Doar la conturile 16–17 ani: acordul părintelui și limitele contului. */
+  supervision: Supervision | null;
+}
+
+export type GuardianStatus = 'PENDING' | 'APPROVED' | 'PAUSED' | 'REVOKED' | 'DECLINED';
+export interface Supervision {
+  status: GuardianStatus; maxEurCents: number; caps: Record<string, number>; blockedCategories: string[];
+  adultAt: string; courierOnly: boolean;
+}
+export interface GuardianInvite {
+  teenUsername: string; teenAge: number; avatarHue: number; maxEurCents: number; caps: Record<string, number>;
+  blockedCategories: string[]; expiresAt: string; declarationVersion: string;
+}
+export interface ChildOrder { id: string; code: string; title: string; totalCents: number; currency: string; status: string; role: 'BUYER' | 'SELLER'; createdAt: string; }
+export interface Child {
+  id: string; username: string; avatarHue: number; age: number; status: GuardianStatus; adultAt: string;
+  activeListings: number; openOrders: number; recentOrders: ChildOrder[];
+}
+export interface ReferralOverview {
+  code: string; link: string; registered: number; verified: number; perReward: number; toNext: number; nextMilestone: number;
+  permanentBonus: boolean; permanentLimit: number; rewardSlotDays: number; activeRewardSlots: number;
+  friends: { username: string; avatarHue: number; verified: boolean; joinedAt: string }[];
+  rewards: { milestone: number; at: string }[];
+  credits: Record<string, number>;
 }
 
 export interface Business { name: string; regNo: string; vat: string; address: string; email: string; phone: string | null; }
@@ -36,6 +60,8 @@ export interface Detail {
   ownerStats: { views: number; favorites: number; messages: number; offers: number; expiresAt: string } | null;
   favorites: number; views: number; negotiable: boolean; quantity: number; minPriceCents: number | null;
   moderationReason: string | null; blocked: boolean; priceAlertCents: number | null; sellerStats: SellerStats | null;
+  /** Vânzător cu cont supravegheat (16–17 ani): doar livrare prin curier. */
+  courierOnly: boolean;
 }
 
 export interface SellerStats { responseMinutes: number | null; responseRate: number | null; lastActive: 'TODAY' | 'WEEK' | 'MONTH' | 'OLDER'; completedSales: number; }

@@ -41,6 +41,17 @@ Testele rulează la fiecare push în GitHub Actions (`.github/workflows/ci.yml`)
 - **Alerte de securitate**: intrare de pe un dispozitiv nou și schimbarea parolei (în aplicație, push și email);
   „Ieși de pe toate dispozitivele” oprește și alertele pe acele dispozitive.
 
+## Conturi 16–17 ani și invitații
+
+- **Acordul părintelui** (Codul civil, art. 41): contul unui minor de 16–17 ani nu poate publica, oferta, cumpăra sau scrie
+  până când un adult cu identitatea verificată acceptă prin linkul secret primit pe email (token de 32 de octeți, păstrat doar ca hash,
+  valabil 14 zile, folosit o singură dată). Emailul părintelui e criptat (AES-256-GCM). Dovada acordului rămâne în `guardian_consents`.
+- **Limitele sunt impuse de server**, nu doar de aplicație: preț maxim, categorii interzise, doar curier, banii la părinte,
+  date de contact blocate în chat în ambele sensuri, nume real și oraș ascunse public. Sub 16 ani nu se poate crea cont.
+- **Invitații fără fraudă**: contează doar prietenii cu identitatea verificată (un act = o persoană); fiecare prag se recompensează
+  o singură dată (index unic), creditele se consumă atomic (`FOR UPDATE SKIP LOCKED`).
+- Testate în `SupervisedAccountsIT` și `ReferralProgramIT`.
+
 ## Protecția vânzătorului și recenziile
 
 - Recenzii doar după o comandă finalizată, câte una de fiecare parte, în 30 de zile, marcate „Cumpărare verificată”.

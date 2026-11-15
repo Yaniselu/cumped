@@ -56,9 +56,12 @@ public class OfferService {
     private final ScamDetector scam;
     private final ContentPolicy policy;
     private final BlockService blocks;
+    private final com.velosyntech.cumped.user.Guardianship guardianship;
 
     public OfferService(JdbcClient jdbc, ListingRepository listings, ListingQueries queries, UserRepository users,
-                        NotificationService notifications, ScamDetector scam, ContentPolicy policy, BlockService blocks) {
+                        NotificationService notifications, ScamDetector scam, ContentPolicy policy, BlockService blocks,
+                        com.velosyntech.cumped.user.Guardianship guardianship) {
+        this.guardianship = guardianship;
         this.jdbc = jdbc;
         this.listings = listings;
         this.queries = queries;
@@ -87,10 +90,12 @@ public class OfferService {
             case "PRICE" -> {
                 if (!l.isAcceptsOffers() || !l.isNegotiable()) throw ApiException.badRequest("OFFERS_DISABLED");
                 validatePrice(l, amountCents);
+                guardianship.checkPurchase(users.findById(buyerId).orElseThrow(ApiException::notFound), amountCents, l.getCurrency(), null);
                 swapListingId = null;
             }
             case "SWAP" -> {
                 if (!l.isAcceptsSwap()) throw ApiException.badRequest("SWAP_DISABLED");
+                guardianship.checkPurchase(users.findById(buyerId).orElseThrow(ApiException::notFound), l.getPriceCents(), l.getCurrency(), null);
                 Listing mine = listings.findById(swapListingId == null ? new UUID(0, 0) : swapListingId)
                         .orElseThrow(() -> ApiException.badRequest("INVALID_SWAP_LISTING"));
                 if (!mine.getSellerId().equals(buyerId) || mine.getStatus() != Listing.Status.ACTIVE)
@@ -124,6 +129,10 @@ public class OfferService {
         if (!iAmSeller && !iAmBuyer) throw ApiException.notFound();
         if (!"PENDING".equals(o.status())) throw ApiException.conflict("OFFER_NOT_PENDING");
         if (o.expiresAt().isBefore(Instant.now())) { setStatus(o.id(), "EXPIRED"); throw ApiException.conflict("OFFER_EXPIRED"); }
+        // Contul supravegheat răspunde la oferte doar cu acordul activ al părintelui; contraoferta lui intră în limită.
+        User meUser = users.findById(me).orElseThrow(ApiException::notFound);
+        if (!"WITHDRAW".equalsIgnoreCase(action) && !"DECLINE".equalsIgnoreCase(action)) guardianship.requireCanTransact(meUser);
+        if (iAmBuyer && counterAmount != null) guardianship.checkPurchase(meUser, counterAmount, l.getCurrency(), null);
         String myRole = iAmSeller ? "SELLER" : "BUYER";
         boolean iProposed = myRole.equals(o.proposer());
         UUID other = iAmSeller ? o.buyerId() : l.getSellerId();

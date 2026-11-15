@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -46,8 +47,11 @@ public class BillingController {
     private final ListingService listings;
     private final JdbcClient jdbc;
     private final AuditService audit;
+    private final com.velosyntech.cumped.user.QuotaService quota;
 
-    public BillingController(AppProperties props, UserRepository users, ListingService listings, JdbcClient jdbc, AuditService audit) {
+    public BillingController(AppProperties props, UserRepository users, ListingService listings, JdbcClient jdbc, AuditService audit,
+                             com.velosyntech.cumped.user.QuotaService quota) {
+        this.quota = quota;
         this.props = props;
         this.users = users;
         this.listings = listings;
@@ -75,20 +79,35 @@ public class BillingController {
             }
             case "EXTRA_LISTING" -> jdbc.sql("INSERT INTO purchased_slots(id, user_id, expires_at) VALUES (?, ?, ?)")
                     .params(UUID.randomUUID(), me, java.sql.Timestamp.from(now.plus(Duration.ofDays(30)))).update();
-            case "PROMOTE_7D" -> {
-                Listing l = ownedActive(me, r.listingId());
-                Instant from = l.isPromoted() ? l.getPromotedUntil() : now;
-                jdbc.sql("UPDATE listings SET promoted_until = ? WHERE id = ?")
-                        .params(java.sql.Timestamp.from(from.plus(Duration.ofDays(7))), l.getId()).update();
-            }
-            case "BUMP" -> {
-                Listing l = ownedActive(me, r.listingId());
-                jdbc.sql("UPDATE listings SET bumped_at = now() WHERE id = ?").param(l.getId()).update();
-            }
+            case "PROMOTE_7D", "BUMP" -> applyToListing(me, r.product(), r.listingId(), now);
             default -> throw ApiException.badRequest("UNKNOWN_PRODUCT");
         }
         audit.log(me, "PURCHASE_SIMULATED", r.product());
         return Map.of("ok", true, "simulated", true);
+    }
+
+    /** Folosește un credit gratuit câștigat din invitații (promovare 7 zile sau ridicare), fără plată. */
+    @PostMapping("/redeem")
+    @Transactional
+    Map<String, Object> redeem(@Valid @RequestBody Checkout r) {
+        if (!Set.of("PROMOTE_7D", "BUMP").contains(r.product())) throw ApiException.badRequest("UNKNOWN_PRODUCT");
+        UUID me = CurrentUser.id();
+        ownedActive(me, r.listingId());
+        if (!quota.useCredit(me, r.product(), r.listingId())) throw ApiException.conflict("NO_CREDIT");
+        applyToListing(me, r.product(), r.listingId(), Instant.now());
+        audit.log(me, "CREDIT_USED", r.product());
+        return Map.of("ok", true, "credits", quota.credits(me));
+    }
+
+    private void applyToListing(UUID me, String product, UUID listingId, Instant now) {
+        Listing l = ownedActive(me, listingId);
+        if ("PROMOTE_7D".equals(product)) {
+            Instant from = l.isPromoted() ? l.getPromotedUntil() : now;
+            jdbc.sql("UPDATE listings SET promoted_until = ? WHERE id = ?")
+                    .params(java.sql.Timestamp.from(from.plus(Duration.ofDays(7))), l.getId()).update();
+        } else {
+            jdbc.sql("UPDATE listings SET bumped_at = now() WHERE id = ?").param(l.getId()).update();
+        }
     }
 
     private Listing ownedActive(UUID me, UUID listingId) {

@@ -39,7 +39,7 @@ export class AuthService {
   async login(email: string, password: string) { this.apply(await this.post('/login', { email, password })); }
 
   async register(body: { email: string; password: string; username: string; referralCode?: string; country?: string; locale?: string; acceptTerms: boolean; adultConfirmed: boolean;
-    website: string; elapsedMs: number; captchaToken?: string }) {
+    website: string; elapsedMs: number; captchaToken?: string; birthDate?: string; parentEmail?: string }) {
     this.apply(await this.post('/register', body));
   }
 

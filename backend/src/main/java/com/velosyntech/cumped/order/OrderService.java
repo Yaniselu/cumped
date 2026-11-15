@@ -94,10 +94,12 @@ public class OrderService {
     private final AuditService audit;
     private final AppProperties props;
     private final com.velosyntech.cumped.media.MediaSigner signer;
+    private final com.velosyntech.cumped.user.Guardianship guardianship;
 
     public OrderService(JdbcClient jdbc, ListingRepository listings, ListingQueries queries, UserRepository users,
                         NotificationService notifications, BlockService blocks, VeloService velo, AuditService audit, AppProperties props,
-                        com.velosyntech.cumped.media.MediaSigner signer) {
+                        com.velosyntech.cumped.media.MediaSigner signer, com.velosyntech.cumped.user.Guardianship guardianship) {
+        this.guardianship = guardianship;
         this.signer = signer;
         this.jdbc = jdbc;
         this.listings = listings;
@@ -153,6 +155,10 @@ public class OrderService {
             if (!l.shipsTo(a.country())) throw ApiException.badRequest("NOT_SHIPPING_THERE");
         }
         Quote q = quote(buyerId, listingId, delivery, a == null ? null : a.country());
+        // Conturi 16–17 ani: în limită, doar prin curier; banii vânzătorului minor ajung la părinte.
+        User seller = users.findById(l.getSellerId()).orElseThrow(ApiException::notFound);
+        guardianship.checkPurchase(buyer, q.itemCents(), q.currency(), delivery);
+        guardianship.checkSale(seller, delivery);
         charge(buyerId, q.totalCents(), q.currency());
 
         UUID id = UUID.randomUUID();
@@ -165,9 +171,10 @@ public class OrderService {
                 .params(l.getId(), buyerId).query(UUID.class).optional().orElse(null);
         jdbc.sql("""
                 INSERT INTO orders(id, code, listing_id, buyer_id, seller_id, offer_id, item_cents, shipping_cents, fee_cents, total_cents, currency,
-                  delivery, ship_name, ship_address, ship_city, ship_postcode, ship_country, ship_phone, status, paid_at, ship_by)
+                  delivery, ship_name, ship_address, ship_city, ship_postcode, ship_country, ship_phone, status, paid_at, ship_by, payout_user_id)
                 VALUES (:id, :code, :listing, :buyer, :seller, :offer, :item, :ship, :fee, :total, :cur, :delivery,
-                  :n, :a, :c, :p, :co, :ph, 'PAID', :now, :shipBy)""")
+                  :n, :a, :c, :p, :co, :ph, 'PAID', :now, :shipBy, :payout)""")
+                .param("payout", guardianship.payoutFor(seller))
                 .param("id", id).param("code", code).param("listing", l.getId()).param("buyer", buyerId).param("seller", l.getSellerId())
                 .param("offer", offerId).param("item", q.itemCents()).param("ship", q.shippingCents()).param("fee", q.feeCents())
                 .param("total", q.totalCents()).param("cur", q.currency()).param("delivery", delivery)
@@ -185,6 +192,8 @@ public class OrderService {
         UUID conv = ensureConversation(l, buyerId);
         event(conv, buyerId, "PAID", q.itemCents(), q.currency());
         notifications.notify(l.getSellerId(), "ORDER_PAID", Map.of("title", l.getTitle(), "amount", q.itemCents(), "currency", q.currency(), "code", code), "/orders/" + id);
+        guardianship.notifyGuardianOfOrder(buyer, "BUYER", l.getTitle(), q.totalCents(), q.currency(), "/profile");
+        guardianship.notifyGuardianOfOrder(seller, "SELLER", l.getTitle(), q.itemCents(), q.currency(), "/profile");
         audit.log(buyerId, "ORDER_PAID", code);
         return view(buyerId, id);
     }

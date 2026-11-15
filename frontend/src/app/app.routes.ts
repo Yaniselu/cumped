@@ -27,6 +27,8 @@ export const routes: Routes = [
   { path: 'admin', canActivate: [authGuard, adminGuard], data: { preload: false }, loadComponent: () => import('./pages/admin.page').then((m) => m.AdminPage) },
   { path: 'orders', canActivate: [authGuard], loadComponent: () => import('./pages/orders.page').then((m) => m.OrdersPage) },
   { path: 'orders/:id', canActivate: [authGuard], loadComponent: () => import('./pages/orders.page').then((m) => m.OrdersPage) },
+  { path: 'guardian/:token', data: { preload: false }, loadComponent: () => import('./pages/guardian.page').then((m) => m.GuardianPage) },
+  { path: 'invite', canActivate: [authGuard], loadComponent: () => import('./pages/invite.page').then((m) => m.InvitePage) },
   { path: 'why', loadComponent: () => import('./pages/why.page').then((m) => m.WhyPage) },
   { path: 'legal/:doc', loadComponent: () => import('./pages/legal.page').then((m) => m.LegalPage) },
   { path: 'legal', redirectTo: 'legal/terms', pathMatch: 'full' },

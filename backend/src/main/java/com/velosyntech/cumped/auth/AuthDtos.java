@@ -24,7 +24,10 @@ public final class AuthDtos {
             /** Cât a durat completarea formularului (ms). Roboții completează instant. */
             Long elapsedMs,
             /** Token Cloudflare Turnstile, când protecția e activată. */
-            @Size(max = 4096) String captchaToken) {}
+            @Size(max = 4096) String captchaToken,
+            /** Doar pentru conturile 16–17 ani (fără „am cel puțin 18 ani”): data nașterii și emailul părintelui. */
+            @jakarta.validation.constraints.Past java.time.LocalDate birthDate,
+            @Email @Size(max = 254) String parentEmail) {}
 
     public record LoginRequest(@NotBlank @Size(max = 254) String email, @NotBlank @Size(max = 128) String password) {}
 

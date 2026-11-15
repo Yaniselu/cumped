@@ -30,7 +30,9 @@ public final class ListingDtos {
                          UUID conversationId, List<PricePoint> priceHistory, OwnerStats ownerStats,
                          int favorites, int views, boolean negotiable, int quantity, Long minPriceCents,
                          String moderationReason, boolean blocked, Long priceAlertCents,
-                         com.velosyntech.cumped.user.SellerStatsService.Stats sellerStats) {}
+                         com.velosyntech.cumped.user.SellerStatsService.Stats sellerStats,
+                         /** Vânzătorul are cont supravegheat (16–17 ani): doar livrare prin curier. */
+                         boolean courierOnly) {}
 
     public record Upsert(
             @NotBlank @Size(min = 5, max = 90) String title,

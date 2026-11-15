@@ -44,11 +44,14 @@ public class ListingService {
     private final com.velosyntech.cumped.user.SellerStatsService sellerStats;
     /** Deduplicare vizualizări: aceeași persoană nu crește contorul de mai multe ori pe oră. */
     private final Map<String, Long> recentViews = new ConcurrentHashMap<>();
+    private final com.velosyntech.cumped.user.Guardianship guardianship;
 
     public ListingService(ListingRepository listings, ListingImageRepository images, UserRepository users,
                           QuotaService quota, NotificationService notifications, ScamDetector scam,
                           JdbcClient jdbc, JsonMapper json, ContentPolicy policy, BlockService blocks,
-                          com.velosyntech.cumped.user.SellerStatsService sellerStats) {
+                          com.velosyntech.cumped.user.SellerStatsService sellerStats,
+                          com.velosyntech.cumped.user.Guardianship guardianship) {
+        this.guardianship = guardianship;
         this.sellerStats = sellerStats;
         this.listings = listings;
         this.images = images;
@@ -65,6 +68,7 @@ public class ListingService {
     @Transactional
     public Listing create(UUID sellerId, ListingDtos.Upsert r) {
         User seller = activeUser(sellerId);
+        guardianship.checkListing(seller, r.category(), r.priceCents(), r.currency(), shipsToText(r));
         if (!quota.canPublish(seller)) throw new ApiException(HttpStatus.PAYMENT_REQUIRED, "QUOTA_EXCEEDED");
         Listing l = new Listing();
         l.setSellerId(sellerId);
@@ -81,6 +85,7 @@ public class ListingService {
         Listing l = owned(userId, id);
         if (l.getStatus() == Listing.Status.HIDDEN_BY_AI || l.getStatus() == Listing.Status.REMOVED)
             throw ApiException.forbidden();
+        guardianship.checkListing(activeUser(userId), r.category(), r.priceCents(), r.currency(), shipsToText(r));
         long oldPrice = l.getPriceCents();
         apply(l, r);
         l.touch();
@@ -102,6 +107,7 @@ public class ListingService {
                 l.setStatus(Listing.Status.PAUSED);
             }
             case "activate" -> {
+                guardianship.requireCanTransact(activeUser(userId));
                 if (l.getStatus() == Listing.Status.PAUSED) {
                     l.setStatus(Listing.Status.ACTIVE);
                 } else if (l.getStatus() == Listing.Status.EXPIRED) {
@@ -169,7 +175,8 @@ public class ListingService {
                 l.getStatus().name(), l.isPromoted(), l.getCreatedAt(), UserDtos.toPublic(seller), fav, owner,
                 conversationId, history, stats, l.getFavCount(), l.getViewCount(), l.isNegotiable(), l.getQuantity(),
                 owner ? l.getMinPriceCents() : null, owner || admin ? l.getModerationReason() : null,
-                viewerId != null && !owner && blocks.eitherBlocked(viewerId, l.getSellerId()), alert, sellerStats.of(l.getSellerId()));
+                viewerId != null && !owner && blocks.eitherBlocked(viewerId, l.getSellerId()), alert, sellerStats.of(l.getSellerId()),
+                guardianship.courierOnly(seller));
     }
 
     /** Alertă la preț țintă: anunțul intră la favorite și primești notificare când prețul ajunge la (sau sub) țintă. */
@@ -326,6 +333,10 @@ public class ListingService {
     public Map<String, String> readAttributes(Listing l) {
         if (l.getAttributes() == null || l.getAttributes().isEmpty()) return Map.of();
         return json.readValue(l.getAttributes(), new TypeReference<LinkedHashMap<String, String>>() {});
+    }
+
+    private static String shipsToText(ListingDtos.Upsert r) {
+        return r.shipsTo() == null ? "" : String.join(",", r.shipsTo());
     }
 
     private static List<String> shipsToList(Listing l) {

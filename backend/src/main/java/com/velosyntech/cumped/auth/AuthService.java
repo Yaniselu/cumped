@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 public class AuthService {
     /** Versiunea curentă a Termenilor și a Politicii de confidențialitate (o schimbare cere re-acceptare). */
-    public static final String TERMS_VERSION = "2026-11-12";
+    public static final String TERMS_VERSION = "2026-11-15";
     private static final Set<String> RESERVED = Set.of("admin", "administrator", "root", "support", "suport", "velo",
             "veloai", "cumped", "moderator", "staff", "official", "oficial", "help", "ajutor", "system", "security");
     private static final Set<String> LOCALES = Set.of("ro", "en", "de", "fr", "es", "it", "hu", "pl", "uk", "tr",
@@ -31,11 +31,14 @@ public class AuthService {
     private final AuditService audit;
     private final UserStatusCache statusCache;
     private final LoginThrottle throttle;
+    private final com.velosyntech.cumped.user.Guardianship guardianship;
     /** Hash fals: login-ul durează la fel și când email-ul nu există (nu putem afla ce conturi există). */
     private final String dummyHash;
 
     public AuthService(UserRepository users, ReferralRepository referrals, PasswordEncoder encoder,
-                       TokenService tokens, AuditService audit, UserStatusCache statusCache, LoginThrottle throttle) {
+                       TokenService tokens, AuditService audit, UserStatusCache statusCache, LoginThrottle throttle,
+                       com.velosyntech.cumped.user.Guardianship guardianship) {
+        this.guardianship = guardianship;
         this.users = users;
         this.referrals = referrals;
         this.encoder = encoder;
@@ -48,7 +51,18 @@ public class AuthService {
 
     @Transactional
     public User register(AuthDtos.RegisterRequest r) {
-        if (!Boolean.TRUE.equals(r.acceptTerms()) || !Boolean.TRUE.equals(r.adultConfirmed())) throw ApiException.badRequest("TERMS_REQUIRED");
+        if (!Boolean.TRUE.equals(r.acceptTerms())) throw ApiException.badRequest("TERMS_REQUIRED");
+        // Fără „am cel puțin 18 ani”: se poate doar cont de 16–17 ani, cu data nașterii și emailul părintelui.
+        boolean adult = Boolean.TRUE.equals(r.adultConfirmed());
+        java.time.LocalDate adultAt = null;
+        if (!adult) {
+            if (r.birthDate() == null) throw ApiException.badRequest("TERMS_REQUIRED");
+            int age = com.velosyntech.cumped.user.Guardianship.age(r.birthDate());
+            if (age < com.velosyntech.cumped.user.Guardianship.MIN_AGE) throw ApiException.badRequest("TOO_YOUNG");
+            if (age >= 18) throw ApiException.badRequest("TERMS_REQUIRED"); // adulții bifează „am cel puțin 18 ani”
+            if (r.parentEmail() == null || r.parentEmail().isBlank()) throw ApiException.badRequest("PARENT_EMAIL_REQUIRED");
+            adultAt = r.birthDate().plusYears(18);
+        }
         String email = normalizeEmail(r.email());
         String username = normalizeUsername(r.username());
         PasswordPolicy.check(r.password(), email, username);
@@ -58,11 +72,12 @@ public class AuthService {
         u.setEmail(email);
         u.setUsername(username);
         u.setPasswordHash(encoder.encode(r.password()));
-        u.acceptTerms(TERMS_VERSION);
+        if (adult) u.acceptTerms(TERMS_VERSION); else u.acceptTermsAsMinor(TERMS_VERSION, adultAt);
         applyCommon(u, r.locale(), r.country(), r.city());
         users.save(u);
         attachReferral(u, r.referralCode());
-        audit.log(u.getId(), "REGISTER", null);
+        audit.log(u.getId(), adult ? "REGISTER" : "REGISTER_MINOR", null);
+        if (!adult) guardianship.invite(u, r.parentEmail());
         return u;
     }
 

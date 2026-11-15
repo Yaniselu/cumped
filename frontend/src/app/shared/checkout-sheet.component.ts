@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, model, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, IonModal, NavController } from '@ionic/angular';
 import { Api } from '../core/api.service';
@@ -34,8 +34,10 @@ const ADDR_KEY = 'cmp_ship_addr';
 
               <h3>{{ 'buy.delivery' | t }}</h3>
               <div class="opts">
+                @if (!courierOnly()) {
                 <button class="opt" [class.on]="delivery() === 'PICKUP'" (click)="setDelivery('PICKUP')">
                   <ion-icon name="people-outline"></ion-icon><div><b>{{ 'buy.pickup' | t }}</b><span>{{ 'buy.pickupSub' | t: { city: l.city } }}</span></div></button>
+                }
                 <button class="opt" [class.on]="delivery() === 'COURIER'" [disabled]="!l.shipsTo.length" (click)="setDelivery('COURIER')">
                   <ion-icon name="cube-outline"></ion-icon><div><b>{{ 'buy.courier' | t }}</b>
                     <span>{{ l.shipsTo.length ? ('buy.courierSub' | t) : ('listing.pickupOnly' | t) }}</span></div></button>
@@ -119,6 +121,8 @@ export class CheckoutSheetComponent {
   listing = input<Detail | null>(null);
 
   delivery = signal<'PICKUP' | 'COURIER'>('PICKUP');
+  /** Cont 16–17 ani (vânzătorul sau tu): doar livrare prin curier, fără întâlniri. */
+  courierOnly = computed(() => !!this.listing()?.courierOnly || !!this.auth.user()?.supervision);
   quote = signal<OrderQuote | null>(null);
   busy = signal(false);
   error = signal('');
@@ -130,7 +134,7 @@ export class CheckoutSheetComponent {
       const l = this.listing()!;
       this.error.set('');
       if (!this.addr.country) this.addr.country = this.auth.user()?.country || l.country;
-      this.delivery.set(l.shipsTo.length && l.city !== this.auth.user()?.city ? 'COURIER' : 'PICKUP');
+      this.delivery.set(this.courierOnly() || (l.shipsTo.length && l.city !== this.auth.user()?.city) ? 'COURIER' : 'PICKUP');
       queueMicrotask(() => this.requote());
     });
   }

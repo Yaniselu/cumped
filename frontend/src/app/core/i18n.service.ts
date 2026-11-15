@@ -4,6 +4,7 @@ import ro2 from './i18n/ro2';
 import ro3 from './i18n/ro3';
 import ro4 from './i18n/ro4';
 import ro5 from './i18n/ro5';
+import ro6 from './i18n/ro6';
 
 export type Lang = 'ro' | 'en' | 'de' | 'fr' | 'es' | 'it' | 'hu' | 'pl' | 'uk' | 'tr';
 
@@ -17,11 +18,11 @@ export const LANGUAGES: { code: Lang; name: string; flag: string }[] = [
 
 /** Fiecare limbă: dicționarul de bază + al doilea fișier (negociere, specificații, legal, raportare). */
 const LOADERS: Partial<Record<Lang, () => Promise<{ default: any }[]>>> = {
-  en: () => Promise.all([import('./i18n/en'), import('./i18n/en2'), import('./i18n/en3'), import('./i18n/en4'), import('./i18n/en5')]),
-  de: () => Promise.all([import('./i18n/de'), import('./i18n/de2'), import('./i18n/de3'), import('./i18n/de4'), import('./i18n/de5')]), fr: () => Promise.all([import('./i18n/fr'), import('./i18n/fr2'), import('./i18n/fr3'), import('./i18n/fr4'), import('./i18n/fr5')]),
-  es: () => Promise.all([import('./i18n/es'), import('./i18n/es2'), import('./i18n/es3'), import('./i18n/es4'), import('./i18n/es5')]), it: () => Promise.all([import('./i18n/it'), import('./i18n/it2'), import('./i18n/it3'), import('./i18n/it4'), import('./i18n/it5')]),
-  hu: () => Promise.all([import('./i18n/hu'), import('./i18n/hu2'), import('./i18n/hu3'), import('./i18n/hu4'), import('./i18n/hu5')]), pl: () => Promise.all([import('./i18n/pl'), import('./i18n/pl2'), import('./i18n/pl3'), import('./i18n/pl4'), import('./i18n/pl5')]),
-  uk: () => Promise.all([import('./i18n/uk'), import('./i18n/uk2'), import('./i18n/uk3'), import('./i18n/uk4'), import('./i18n/uk5')]), tr: () => Promise.all([import('./i18n/tr'), import('./i18n/tr2'), import('./i18n/tr3'), import('./i18n/tr4'), import('./i18n/tr5')]),
+  en: () => Promise.all([import('./i18n/en'), import('./i18n/en2'), import('./i18n/en3'), import('./i18n/en4'), import('./i18n/en5'), import('./i18n/en6')]),
+  de: () => Promise.all([import('./i18n/de'), import('./i18n/de2'), import('./i18n/de3'), import('./i18n/de4'), import('./i18n/de5'), import('./i18n/de6')]), fr: () => Promise.all([import('./i18n/fr'), import('./i18n/fr2'), import('./i18n/fr3'), import('./i18n/fr4'), import('./i18n/fr5'), import('./i18n/fr6')]),
+  es: () => Promise.all([import('./i18n/es'), import('./i18n/es2'), import('./i18n/es3'), import('./i18n/es4'), import('./i18n/es5'), import('./i18n/es6')]), it: () => Promise.all([import('./i18n/it'), import('./i18n/it2'), import('./i18n/it3'), import('./i18n/it4'), import('./i18n/it5'), import('./i18n/it6')]),
+  hu: () => Promise.all([import('./i18n/hu'), import('./i18n/hu2'), import('./i18n/hu3'), import('./i18n/hu4'), import('./i18n/hu5'), import('./i18n/hu6')]), pl: () => Promise.all([import('./i18n/pl'), import('./i18n/pl2'), import('./i18n/pl3'), import('./i18n/pl4'), import('./i18n/pl5'), import('./i18n/pl6')]),
+  uk: () => Promise.all([import('./i18n/uk'), import('./i18n/uk2'), import('./i18n/uk3'), import('./i18n/uk4'), import('./i18n/uk5'), import('./i18n/uk6')]), tr: () => Promise.all([import('./i18n/tr'), import('./i18n/tr2'), import('./i18n/tr3'), import('./i18n/tr4'), import('./i18n/tr5'), import('./i18n/tr6')]),
 };
 
 const STORAGE_KEY = 'cmp_lang';
@@ -41,7 +42,7 @@ function flatten(obj: any, prefix = '', out: Record<string, string> = {}) {
  */
 @Injectable({ providedIn: 'root' })
 export class I18n {
-  private dicts: Partial<Record<Lang, Record<string, string>>> = { ro: flatten(ro5, '', flatten(ro4, '', flatten(ro3, '', flatten(ro2, '', flatten(ro))))) };
+  private dicts: Partial<Record<Lang, Record<string, string>>> = { ro: flatten(ro6, '', flatten(ro5, '', flatten(ro4, '', flatten(ro3, '', flatten(ro2, '', flatten(ro)))))) };
   private fallback = this.dicts.ro!;
   readonly lang = signal<Lang>('en');
   readonly version = signal(0);

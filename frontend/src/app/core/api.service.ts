@@ -6,6 +6,7 @@ import type { NotificationPrefs } from './push.service';
 import {
   AdminDispute, AdminTicket, AppNotification, Card, ConversationSummary, Detail, ListingDraft, Me, Negotiation, Order, OrderQuote, Page, SellerStats, ShipAddress, PriceAnalysis, PublicUser,
   Review, ServerConfig, ShippingEstimate, Stats, Thread, Ticket, VeloReply,
+  Child, GuardianInvite, ReferralOverview,
 } from './models';
 
 export interface SearchQuery {
@@ -137,6 +138,14 @@ export class Api {
   myTickets() { return this.get<Ticket[]>('/velo/tickets'); }
 
   plans() { return this.get<any>('/billing/plans'); }
+  redeem(product: 'PROMOTE_7D' | 'BUMP', listingId: string) { return this.post<{ ok: boolean; credits: Record<string, number> }>('/billing/redeem', { product, listingId }); }
+  referrals() { return this.get<ReferralOverview>('/me/referrals'); }
+  guardianInvite(token: string) { return this.get<GuardianInvite>(`/guardian/invites/${encodeURIComponent(token)}`); }
+  guardianAccept(token: string) { return this.post<{ ok: boolean }>(`/guardian/invites/${encodeURIComponent(token)}/accept`, { declaration: true }); }
+  guardianDecline(token: string) { return this.post<{ ok: boolean }>(`/guardian/invites/${encodeURIComponent(token)}/decline`, {}); }
+  guardianResend(parentEmail?: string) { return this.post<{ ok: boolean }>('/guardian/resend', { parentEmail: parentEmail || null }); }
+  guardianChildren() { return this.get<Child[]>('/guardian/children'); }
+  guardianControl(id: string, action: 'pause' | 'resume' | 'revoke') { return this.post<{ ok: boolean }>(`/guardian/children/${id}/${action}`, {}); }
   checkout(product: string, listingId?: string) { return this.post<{ ok: boolean; simulated: boolean }>('/billing/checkout', { product, listingId }); }
 
   startIdentity() { return this.post<{ mode: string }>('/verification/identity/start'); }

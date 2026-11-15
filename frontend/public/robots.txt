@@ -16,3 +16,5 @@ Disallow: /notifications
 Disallow: /favorites
 Disallow: /support
 Disallow: /sell
+Disallow: /guardian/
+Disallow: /invite

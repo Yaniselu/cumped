@@ -17,18 +17,25 @@ import { BackButtonComponent } from '../shared/back-button.component';
 import { FieldDef, FX_APPROX, PRICE_RANGE_EUR, fieldsFor, groupsFor, niceCeil } from '../core/listing-schema';
 import { PriceChip, PriceInputComponent } from '../shared/price-input.component';
 import { Purchases } from '../core/purchases.service';
+import { SupervisionComponent } from '../shared/supervision.component';
 
 interface Photo { id?: string; url: string; uploading: boolean; }
 
 @Component({
   selector: 'page-sell',
-  imports: [SealComponent, MOTION, HoldButtonComponent, IonContent, IonIcon, FormsModule, RouterLink, TPipe, BackButtonComponent, PriceInputComponent],
+  imports: [SupervisionComponent, SealComponent, MOTION, HoldButtonComponent, IonContent, IonIcon, FormsModule, RouterLink, TPipe, BackButtonComponent, PriceInputComponent],
   template: `
     <ion-content cmpScrollFx [fullscreen]="true">
       <div class="page narrow">
         <div class="topbar"><cmp-back icon="close" /><div class="title">{{ (id() ? 'sell.editTitle' : 'sell.title') | t }}</div><div class="spacer"></div></div>
 
-        @if (blocked()) {
+        @if (supBlocked()) {
+          <div class="paywall card pad reveal">
+            <div class="pw-ic"><ion-icon name="people-outline"></ion-icon></div>
+            <h2>{{ 'kids.sellBlocked' | t }}</h2>
+            <cmp-supervision />
+          </div>
+        } @else if (blocked()) {
           <div class="paywall card pad reveal">
             <div class="pw-ic"><ion-icon name="rocket-outline"></ion-icon></div>
             <h2>{{ 'sell.quotaTitle' | t }}</h2>
@@ -103,7 +110,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
                 <div class="field"><label>{{ 'sell.titleLabel' | t }}</label><input class="input" [(ngModel)]="f.title" maxlength="90" [placeholder]="'sell.titlePh' | t" />
                   <span class="hint">{{ f.title.length }}/90 · {{ 'sell.titleHint' | t }}</span></div>
                 <div class="field"><label>{{ 'sell.category' | t }}</label>
-                  <div class="catgrid">@for (c of categories; track c) {
+                  <div class="catgrid">@for (c of allowedCategories(); track c) {
                     <button class="cat" [class.on]="f.category === c" (click)="setCategory(c)"><ion-icon [name]="icons[c]"></ion-icon><span>{{ 'categories.' + c | t }}</span></button> }</div></div>
                 <div class="field"><label>{{ 'sell.condition' | t }}</label>
                   <div class="conds">@for (c of conditions; track c) {
@@ -158,6 +165,9 @@ interface Photo { id?: string; url: string; uploading: boolean; }
                     <select class="cursel" [(ngModel)]="f.currency" (ngModelChange)="checkPrice()" [attr.aria-label]="'sell.currency' | t">@for (c of currencies; track c) { <option>{{ c }}</option> }</select></div>
                   <cmp-price-input [value]="f.price" (valueChange)="f.price = $event; checkPrice()" scale="log" [min]="0" [max]="priceMax()" [currency]="f.currency" [showCurrency]="false"
                     [median]="median()" [medianLabel]="'price.medianShort' | t" [chips]="priceChips()" [big]="true" [label]="'sell.price' | t" />
+                  @if (supCap(); as cap) {
+                    <p class="supnote" [class.over]="overCap()"><ion-icon name="shield-checkmark"></ion-icon>{{ 'kids.priceCap' | t: { max: i18n.price(cap, f.currency) } }}</p>
+                  }
                 </div>
                 <div class="aibox card pad" [attr.data-v]="analysis()?.verdict">
                   <div class="row"><span class="ai">AI</span><strong>{{ 'price.aiCheck' | t }}</strong>@if (checking()) { <span class="spin sm"></span> }</div>
@@ -197,6 +207,7 @@ interface Photo { id?: string; url: string; uploading: boolean; }
                   <div class="field"><label>{{ 'sell.country' | t }}</label><select class="input" [(ngModel)]="f.country">@for (c of countries; track c) { <option>{{ c }}</option> }</select></div>
                   <div class="field"><label>{{ 'sell.city' | t }}</label><input class="input" [(ngModel)]="f.city" maxlength="80" /></div>
                 </div>
+                @if (sup()) { <p class="supnote"><ion-icon name="cube-outline"></ion-icon>{{ 'minor.limitCourier' | t }}</p> }
                 <div class="field"><label>{{ 'sell.shipsTo' | t }}</label>
                   <div class="chips">
                     <button class="chip" [class.active]="f.worldwide" (click)="f.worldwide = !f.worldwide"><ion-icon name="globe-outline"></ion-icon>{{ 'sell.worldwide' | t }}</button>
@@ -323,6 +334,9 @@ interface Photo { id?: string; url: string; uploading: boolean; }
     .spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; animation: spinSlow .8s linear infinite; }
     .spin.sm { width: 16px; height: 16px; border-width: 2px; border-color: var(--surface-3); border-top-color: var(--accent); margin-left: auto; }
     .paywall { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 30px; }
+    .supnote { display: flex; align-items: center; gap: 8px; margin: 10px 2px 0; font-size: 13.5px; font-weight: 600; color: var(--accent); }
+    .supnote.over { color: var(--accent-2); animation: shakeX .4s; }
+    @keyframes shakeX { 25%, 75% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
     .pw-ic { width: 76px; height: 76px; border-radius: 26px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 34px; animation: floaty 4s ease-in-out infinite; }
     .done { position: relative; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 60px; }
     .confetti { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
@@ -351,6 +365,12 @@ export class SellPage implements OnInit {
   busy = signal(false);
   error = signal('');
   published = signal<string | null>(null);
+  /** Cont 16–17 ani: limitele vin de la server (aici doar le arătăm din timp). */
+  sup = computed(() => this.auth.user()?.supervision ?? null);
+  supBlocked = computed(() => { const s = this.sup(); return !!s && s.status !== 'APPROVED'; });
+  allowedCategories = computed(() => { const s = this.sup(); return s ? this.categories.filter((c) => !s.blockedCategories.includes(c)) : this.categories; });
+  supCap() { const s = this.sup(); return s ? (s.caps[this.f.currency] ?? null) : null; }
+  overCap() { const cap = this.supCap(); return cap !== null && this.f.price !== null && Math.round(this.f.price * 100) > cap; }
   blocked = computed(() => { const u = this.auth.user(); return !this.id() && !!u && u.quota.active >= u.quota.limit && !this.published(); });
   confetti = Array.from({ length: 36 }, (_, i) => ({ x: Math.round((Math.random() - 0.5) * 520), d: Math.round(Math.random() * 300), r: Math.round(Math.random() * 720) + 'deg',
     c: ['#5B3DF5', '#FF5A4E', '#14A46C', '#FFC93C', '#7B5CFF'][i % 5] }));
@@ -393,7 +413,8 @@ export class SellPage implements OnInit {
     if (s === 0) return this.photos().length > 0 && this.photos().every((p) => !p.uploading);
     if (s === 1) return this.f.title.trim().length >= 5 && !!this.f.category && this.f.description.trim().length >= 20;
     if (s === 2) return !this.missingRequired().length && !fieldsFor(this.f.category).some((fd) => this.badNumber(fd));
-    if (s === 3) return this.f.price !== null && this.f.price >= 0 && !(this.useMin && this.f.minPrice != null && this.f.minPrice > this.f.price);
+    if (s === 3) return this.f.price !== null && this.f.price >= 0 && !(this.useMin && this.f.minPrice != null && this.f.minPrice > this.f.price) && !this.overCap();
+    if (s === 4 && this.sup()) return this.f.worldwide || this.f.shipsTo.length > 0;
     return true;
   }
 

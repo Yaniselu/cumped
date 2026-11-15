@@ -12,7 +12,7 @@ public final class UserDtos {
                      String role, String plan, Instant planUntil, String referralCode, String country, String city,
                      String locale, int avatarHue, String bio, Instant createdAt, double rating, int ratingCount,
                      QuotaService.Quota quota, boolean hasPassword, String accountType, Business business,
-                     String termsVersion) {}
+                     String termsVersion, Guardianship.Supervision supervision) {}
 
     /** Datele firmei: obligatorii pentru vânzătorii profesioniști (DSA art. 30) și afișate cumpărătorilor. */
     public record Business(String name, String regNo, String vat, String address, String email, String phone) {}
@@ -33,7 +33,7 @@ public final class UserDtos {
 
     public static String displayName(User u) {
         if (u.isBusiness()) return u.getBusinessName();
-        if (u.getDisplayMode() == User.DisplayMode.REAL_NAME && u.isIdVerified() && u.getLegalFirstName() != null) {
+        if (u.getDisplayMode() == User.DisplayMode.REAL_NAME && u.isIdVerified() && u.getLegalFirstName() != null && !u.isMinorAccount()) {
             String last = u.getLegalLastName();
             return u.getLegalFirstName() + (last != null && !last.isEmpty() ? " " + last.charAt(0) + "." : "");
         }
@@ -53,16 +53,21 @@ public final class UserDtos {
     }
 
     public static PublicUser toPublic(User u) {
+        boolean minor = u.isMinorAccount(); // conturi 16–17 ani: fără oraș și fără nume real în public
         return new PublicUser(u.getId(), u.getUsername(), displayName(u), u.isIdVerified(), u.isPhoneVerified(),
-                u.getCountry(), u.getCity(), u.getAvatarHue(), u.getBio(), u.getCreatedAt(), u.ratingAverage(),
-                u.getRatingCount(), trustScore(u), u.isIdVerified(), u.getAccountType().name(), business(u));
+                u.getCountry(), minor ? null : u.getCity(), u.getAvatarHue(), u.getBio(), u.getCreatedAt(), u.ratingAverage(),
+                u.getRatingCount(), trustScore(u), u.isIdVerified() && !minor, u.getAccountType().name(), business(u));
     }
 
     public static Me toMe(User u, QuotaService.Quota quota) {
+        Guardianship.Supervision sup = u.isMinorAccount()
+                ? new Guardianship.Supervision(u.getGuardianStatus(), Guardianship.MAX_EUR_CENTS, Guardianship.capsMap(),
+                        Guardianship.BLOCKED.stream().map(Enum::name).toList(), u.getAdultAt(), true)
+                : null;
         return new Me(u.getId(), u.getEmail(), u.getUsername(), displayName(u), u.getDisplayMode(), u.legalFullName(),
                 u.isIdVerified(), u.isPhoneVerified(), u.getPhoneLast2(), u.getRole().name(), u.effectivePlan().name(),
                 u.getPlanUntil(), u.getReferralCode(), u.getCountry(), u.getCity(), u.getLocale(), u.getAvatarHue(),
                 u.getBio(), u.getCreatedAt(), u.ratingAverage(), u.getRatingCount(), quota, u.getPasswordHash() != null,
-                u.getAccountType().name(), business(u), u.getTermsVersion());
+                u.getAccountType().name(), business(u), u.getTermsVersion(), sup);
     }
 }

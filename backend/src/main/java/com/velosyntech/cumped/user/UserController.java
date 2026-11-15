@@ -184,7 +184,7 @@ public class UserController {
         User viewer = users.findById(me).orElseThrow(ApiException::notFound);
         if (!viewer.isIdVerified()) throw new ApiException(HttpStatus.FORBIDDEN, "VERIFICATION_REQUIRED");
         User target = users.findById(id).filter(x -> !x.isSuspended()).orElseThrow(ApiException::notFound);
-        if (!target.isIdVerified()) throw ApiException.notFound();
+        if (!target.isIdVerified() || target.isMinorAccount()) throw ApiException.notFound(); // numele minorilor nu se arată
         audit.log(me, "REAL_NAME_REVEAL", id.toString());
         return new UserDtos.RealName(target.legalFullName());
     }

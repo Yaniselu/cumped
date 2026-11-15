@@ -107,6 +107,34 @@ describe('fluxuri', () => {
     await bctx.close();
   });
 
+  it('16–17 ani: alegi vârsta, scrii emailul părintelui, contul așteaptă acordul (fără vânzare)', async () => {
+    const parentEmail = `parinte_${Date.now().toString(36)}@test.dev`;
+    const ctx = await phone(b);
+    const page = await ctx.newPage();
+    await page.goto(BASE + '/register');
+    const sfx = Date.now().toString(36);
+    await active(page, '#r-email').fill(`teen_${sfx}@test.dev`);
+    await active(page, '#r-user').fill(`teen_${sfx}`.slice(0, 20));
+    await active(page, '#r-pass').fill('Munte-Soare-77!');
+    await active(page, '.ageseg button').nth(1).click();
+    // sub 16 ani: mesaj clar, butonul rămâne inactiv
+    const d = (years, extraDays = 0) => { const x = new Date(); x.setFullYear(x.getFullYear() - years); x.setDate(x.getDate() - extraDays); return x.toISOString().slice(0, 10); };
+    await active(page, '#r-birth').fill(d(15));
+    assert.match(await active(page, '#r-birth-hint').textContent(), /cel puțin 16/);
+    await active(page, '#r-birth').fill(d(16, 40));
+    await active(page, '#r-parent').fill(parentEmail);
+    await active(page, '.consent input[type=checkbox]').nth(0).check();
+    // la 16–17 ani nu apare bifa „am cel puțin 18 ani”
+    assert.equal(await active(page, '.consent input[name=adult]').count(), 0);
+    await page.waitForTimeout(1700); // un om nu completează formularul instant (protecția anti-roboți)
+    await active(page, 'form button.submit').click();
+    await page.waitForURL((u) => !u.pathname.startsWith('/register'), { timeout: 10000 });
+    await page.goto(BASE + '/sell');
+    await active(page, 'cmp-supervision .sup[data-s="PENDING"]').waitFor({ timeout: 8000 });
+    assert.equal(await active(page, '.steps').count(), 0, 'fără acord nu poate începe un anunț');
+    await ctx.close();
+  });
+
   it('recenzie doar după comandă finalizată, afișată cu „Cumpărare verificată”', async () => {
     const seller = await register('rvs'), buyer = await register('rvb');
     const l = await listing(seller, 'Rucsac de munte 40L', 25000);

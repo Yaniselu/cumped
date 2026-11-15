@@ -32,7 +32,17 @@
    "NEW_MESSAGE": "{name} ți-a scris despre „{title}”.",
    "SECURITY_NEW_LOGIN": "S-a intrat în contul tău de pe {device}. Dacă nu ai fost tu, schimbă parola acum.",
    "SECURITY_PASSWORD_CHANGED": "Parola contului tău a fost schimbată. Dacă nu ai fost tu, scrie-ne imediat.",
-   "PUSH_TEST": "Merge! Așa vei afla când se întâmplă ceva în contul tău."
+   "PUSH_TEST": "Merge! Așa vei afla când se întâmplă ceva în contul tău.",
+   "GUARDIAN_APPROVED": "@{name} și-a dat acordul. Contul tău e activ!",
+   "GUARDIAN_DECLINED": "Părintele nu și-a dat acordul. Poți trimite cererea celuilalt părinte.",
+   "GUARDIAN_PAUSED": "Părintele a pus contul pe pauză.",
+   "GUARDIAN_RESUMED": "Părintele a repornit contul.",
+   "GUARDIAN_REVOKED": "Părintele și-a retras acordul.",
+   "CHILD_ORDER": "@{name} are o comandă nouă: „{title}”.",
+   "CHILD_ADULT": "@{name} a împlinit 18 ani: contul nu mai e supravegheat.",
+   "ACCOUNT_ADULT": "La mulți ani! Ai 18 ani, iar limitele contului au dispărut.",
+   "REFERRAL_REWARD": "Ai ajuns la {count} prieteni verificați: +1 anunț gratuit 30 de zile și o promovare de 7 zile!",
+   "REFERRAL_FRIEND_BONUS": "Bun venit! Ai primit o ridicare gratuită pentru un anunț."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -91,7 +101,17 @@
    "NEW_MESSAGE": "{name} wrote to you about “{title}”.",
    "SECURITY_NEW_LOGIN": "Your account was signed in to from {device}. If it wasn’t you, change your password now.",
    "SECURITY_PASSWORD_CHANGED": "Your account password was changed. If it wasn’t you, contact us right away.",
-   "PUSH_TEST": "It works! This is how you’ll know when something happens in your account."
+   "PUSH_TEST": "It works! This is how you’ll know when something happens in your account.",
+   "GUARDIAN_APPROVED": "@{name} gave consent. Your account is active!",
+   "GUARDIAN_DECLINED": "Your parent didn't give consent. You can ask your other parent.",
+   "GUARDIAN_PAUSED": "Your parent paused your account.",
+   "GUARDIAN_RESUMED": "Your parent resumed your account.",
+   "GUARDIAN_REVOKED": "Your parent withdrew consent.",
+   "CHILD_ORDER": "@{name} has a new order: “{title}”.",
+   "CHILD_ADULT": "@{name} turned 18: the account is no longer supervised.",
+   "ACCOUNT_ADULT": "Happy birthday! You're 18 and your account limits are gone.",
+   "REFERRAL_REWARD": "You've reached {count} verified friends: +1 free listing for 30 days and a 7-day promotion!",
+   "REFERRAL_FRIEND_BONUS": "Welcome! You got a free bump for a listing."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -150,7 +170,17 @@
    "NEW_MESSAGE": "{name} hat dir zu „{title}“ geschrieben.",
    "SECURITY_NEW_LOGIN": "Jemand hat sich von {device} in dein Konto angemeldet. Warst du es nicht, ändere sofort dein Passwort.",
    "SECURITY_PASSWORD_CHANGED": "Das Passwort deines Kontos wurde geändert. Warst du es nicht, kontaktiere uns sofort.",
-   "PUSH_TEST": "Es funktioniert! So erfährst du, wenn in deinem Konto etwas passiert."
+   "PUSH_TEST": "Es funktioniert! So erfährst du, wenn in deinem Konto etwas passiert.",
+   "GUARDIAN_APPROVED": "@{name} hat zugestimmt. Dein Konto ist aktiv!",
+   "GUARDIAN_DECLINED": "Deine Eltern haben nicht zugestimmt. Du kannst den anderen Elternteil fragen.",
+   "GUARDIAN_PAUSED": "Deine Eltern haben dein Konto pausiert.",
+   "GUARDIAN_RESUMED": "Deine Eltern haben dein Konto wieder aktiviert.",
+   "GUARDIAN_REVOKED": "Deine Eltern haben die Zustimmung widerrufen.",
+   "CHILD_ORDER": "@{name} hat eine neue Bestellung: „{title}“.",
+   "CHILD_ADULT": "@{name} ist 18 geworden: das Konto wird nicht mehr betreut.",
+   "ACCOUNT_ADULT": "Alles Gute! Du bist 18 und die Grenzen deines Kontos sind weg.",
+   "REFERRAL_REWARD": "Du hast {count} verifizierte Freunde: +1 kostenlose Anzeige für 30 Tage und 7 Tage Hervorhebung!",
+   "REFERRAL_FRIEND_BONUS": "Willkommen! Du hast ein kostenloses Hochschieben für eine Anzeige bekommen."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -209,7 +239,17 @@
    "NEW_MESSAGE": "{name} t’a écrit à propos de « {title} ».",
    "SECURITY_NEW_LOGIN": "Une connexion à ton compte a eu lieu depuis {device}. Si ce n’était pas toi, change ton mot de passe maintenant.",
    "SECURITY_PASSWORD_CHANGED": "Le mot de passe de ton compte a été modifié. Si ce n’était pas toi, contacte-nous immédiatement.",
-   "PUSH_TEST": "Ça marche ! C’est ainsi que tu sauras quand il se passe quelque chose sur ton compte."
+   "PUSH_TEST": "Ça marche ! C’est ainsi que tu sauras quand il se passe quelque chose sur ton compte.",
+   "GUARDIAN_APPROVED": "@{name} a donné son accord. Ton compte est actif !",
+   "GUARDIAN_DECLINED": "Ton parent n'a pas donné son accord. Tu peux demander à l'autre parent.",
+   "GUARDIAN_PAUSED": "Ton parent a mis ton compte en pause.",
+   "GUARDIAN_RESUMED": "Ton parent a réactivé ton compte.",
+   "GUARDIAN_REVOKED": "Ton parent a retiré son accord.",
+   "CHILD_ORDER": "@{name} a une nouvelle commande : « {title} ».",
+   "CHILD_ADULT": "@{name} a 18 ans : le compte n'est plus supervisé.",
+   "ACCOUNT_ADULT": "Joyeux anniversaire ! Tu as 18 ans et les limites de ton compte ont disparu.",
+   "REFERRAL_REWARD": "Tu as atteint {count} amis vérifiés : +1 annonce gratuite pendant 30 jours et une mise en avant de 7 jours !",
+   "REFERRAL_FRIEND_BONUS": "Bienvenue ! Tu as reçu une remontée gratuite pour une annonce."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -268,7 +308,17 @@
    "NEW_MESSAGE": "{name} te escribió sobre «{title}».",
    "SECURITY_NEW_LOGIN": "Se inició sesión en tu cuenta desde {device}. Si no fuiste tú, cambia la contraseña ahora.",
    "SECURITY_PASSWORD_CHANGED": "Se cambió la contraseña de tu cuenta. Si no fuiste tú, escríbenos de inmediato.",
-   "PUSH_TEST": "¡Funciona! Así sabrás cuándo pasa algo en tu cuenta."
+   "PUSH_TEST": "¡Funciona! Así sabrás cuándo pasa algo en tu cuenta.",
+   "GUARDIAN_APPROVED": "@{name} ha dado su permiso. ¡Tu cuenta está activa!",
+   "GUARDIAN_DECLINED": "Tu madre o padre no dio el permiso. Puedes pedírselo al otro progenitor.",
+   "GUARDIAN_PAUSED": "Tu madre o padre ha pausado tu cuenta.",
+   "GUARDIAN_RESUMED": "Tu madre o padre ha reactivado tu cuenta.",
+   "GUARDIAN_REVOKED": "Tu madre o padre ha retirado el permiso.",
+   "CHILD_ORDER": "@{name} tiene un pedido nuevo: «{title}».",
+   "CHILD_ADULT": "@{name} ha cumplido 18: la cuenta ya no está supervisada.",
+   "ACCOUNT_ADULT": "¡Feliz cumpleaños! Tienes 18 y los límites de tu cuenta han desaparecido.",
+   "REFERRAL_REWARD": "Has llegado a {count} amigos verificados: ¡+1 anuncio gratis 30 días y 7 días destacado!",
+   "REFERRAL_FRIEND_BONUS": "¡Bienvenido! Has recibido una subida gratis para un anuncio."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -327,7 +377,17 @@
    "NEW_MESSAGE": "{name} ti ha scritto riguardo a «{title}».",
    "SECURITY_NEW_LOGIN": "È stato effettuato l’accesso al tuo account da {device}. Se non sei stato tu, cambia subito la password.",
    "SECURITY_PASSWORD_CHANGED": "La password del tuo account è stata cambiata. Se non sei stato tu, scrivici subito.",
-   "PUSH_TEST": "Funziona! Così saprai quando succede qualcosa nel tuo account."
+   "PUSH_TEST": "Funziona! Così saprai quando succede qualcosa nel tuo account.",
+   "GUARDIAN_APPROVED": "@{name} ha dato il consenso. Il tuo account è attivo!",
+   "GUARDIAN_DECLINED": "Il tuo genitore non ha dato il consenso. Puoi chiedere all'altro genitore.",
+   "GUARDIAN_PAUSED": "Il tuo genitore ha messo in pausa il tuo account.",
+   "GUARDIAN_RESUMED": "Il tuo genitore ha riattivato il tuo account.",
+   "GUARDIAN_REVOKED": "Il tuo genitore ha revocato il consenso.",
+   "CHILD_ORDER": "@{name} ha un nuovo ordine: «{title}».",
+   "CHILD_ADULT": "@{name} ha compiuto 18 anni: l'account non è più supervisionato.",
+   "ACCOUNT_ADULT": "Buon compleanno! Hai 18 anni e i limiti del tuo account sono spariti.",
+   "REFERRAL_REWARD": "Hai raggiunto {count} amici verificati: +1 annuncio gratis per 30 giorni e 7 giorni in evidenza!",
+   "REFERRAL_FRIEND_BONUS": "Benvenuto! Hai ricevuto un rilancio gratuito per un annuncio."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -386,7 +446,17 @@
    "NEW_MESSAGE": "{name} írt neked ezzel kapcsolatban: „{title}”.",
    "SECURITY_NEW_LOGIN": "Bejelentkeztek a fiókodba erről: {device}. Ha nem te voltál, változtasd meg most a jelszavad.",
    "SECURITY_PASSWORD_CHANGED": "A fiókod jelszava megváltozott. Ha nem te voltál, azonnal írj nekünk.",
-   "PUSH_TEST": "Működik! Így fogod megtudni, ha történik valami a fiókodban."
+   "PUSH_TEST": "Működik! Így fogod megtudni, ha történik valami a fiókodban.",
+   "GUARDIAN_APPROVED": "@{name} hozzájárult. A fiókod aktív!",
+   "GUARDIAN_DECLINED": "A szülőd nem járult hozzá. Megkérheted a másik szülődet.",
+   "GUARDIAN_PAUSED": "A szülőd szüneteltette a fiókodat.",
+   "GUARDIAN_RESUMED": "A szülőd újraindította a fiókodat.",
+   "GUARDIAN_REVOKED": "A szülőd visszavonta a hozzájárulást.",
+   "CHILD_ORDER": "@{name} új rendelést kapott: „{title}”.",
+   "CHILD_ADULT": "@{name} betöltötte a 18-at: a fiók már nem felügyelt.",
+   "ACCOUNT_ADULT": "Boldog születésnapot! 18 éves lettél, a fiókod korlátai megszűntek.",
+   "REFERRAL_REWARD": "Elérted a(z) {count} ellenőrzött barátot: +1 ingyenes hirdetés 30 napra és 7 nap kiemelés!",
+   "REFERRAL_FRIEND_BONUS": "Üdv! Kaptál egy ingyenes előreugratást egy hirdetéshez."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -445,7 +515,17 @@
    "NEW_MESSAGE": "{name} napisał(a) do ciebie w sprawie „{title}”.",
    "SECURITY_NEW_LOGIN": "Ktoś zalogował się na twoje konto z: {device}. Jeśli to nie ty, zmień hasło teraz.",
    "SECURITY_PASSWORD_CHANGED": "Hasło do twojego konta zostało zmienione. Jeśli to nie ty, napisz do nas natychmiast.",
-   "PUSH_TEST": "Działa! Tak dowiesz się, gdy coś się wydarzy na twoim koncie."
+   "PUSH_TEST": "Działa! Tak dowiesz się, gdy coś się wydarzy na twoim koncie.",
+   "GUARDIAN_APPROVED": "@{name} wyraził(a) zgodę. Twoje konto jest aktywne!",
+   "GUARDIAN_DECLINED": "Rodzic nie wyraził zgody. Możesz poprosić drugiego rodzica.",
+   "GUARDIAN_PAUSED": "Rodzic wstrzymał twoje konto.",
+   "GUARDIAN_RESUMED": "Rodzic wznowił twoje konto.",
+   "GUARDIAN_REVOKED": "Rodzic wycofał zgodę.",
+   "CHILD_ORDER": "@{name} ma nowe zamówienie: „{title}”.",
+   "CHILD_ADULT": "@{name} skończył(a) 18 lat: konto nie jest już pod opieką.",
+   "ACCOUNT_ADULT": "Wszystkiego najlepszego! Masz 18 lat, a limity konta zniknęły.",
+   "REFERRAL_REWARD": "Masz już {count} zweryfikowanych znajomych: +1 darmowe ogłoszenie na 30 dni i 7 dni wyróżnienia!",
+   "REFERRAL_FRIEND_BONUS": "Witaj! Dostajesz darmowe podbicie jednego ogłoszenia."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -504,7 +584,17 @@
    "NEW_MESSAGE": "{name} написав(-ла) вам щодо «{title}».",
    "SECURITY_NEW_LOGIN": "У ваш акаунт увійшли з {device}. Якщо це були не ви, змініть пароль зараз.",
    "SECURITY_PASSWORD_CHANGED": "Пароль вашого акаунта змінено. Якщо це були не ви, негайно напишіть нам.",
-   "PUSH_TEST": "Працює! Так ви дізнаєтеся, коли у вашому акаунті щось відбувається."
+   "PUSH_TEST": "Працює! Так ви дізнаєтеся, коли у вашому акаунті щось відбувається.",
+   "GUARDIAN_APPROVED": "@{name} дав(ла) згоду. Твій акаунт активний!",
+   "GUARDIAN_DECLINED": "Батьки не дали згоди. Можна попросити іншого з батьків.",
+   "GUARDIAN_PAUSED": "Батьки призупинили твій акаунт.",
+   "GUARDIAN_RESUMED": "Батьки відновили твій акаунт.",
+   "GUARDIAN_REVOKED": "Батьки відкликали згоду.",
+   "CHILD_ORDER": "@{name} має нове замовлення: «{title}».",
+   "CHILD_ADULT": "@{name} виповнилося 18: акаунт більше не під наглядом.",
+   "ACCOUNT_ADULT": "З днем народження! Тобі 18, і обмеження акаунта зникли.",
+   "REFERRAL_REWARD": "У тебе {count} перевірених друзів: +1 безкоштовне оголошення на 30 днів і 7 днів просування!",
+   "REFERRAL_FRIEND_BONUS": "Вітаємо! Ти отримав(ла) безкоштовне підняття для оголошення."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",
@@ -563,7 +653,17 @@
    "NEW_MESSAGE": "{name}, “{title}” hakkında sana yazdı.",
    "SECURITY_NEW_LOGIN": "Hesabına {device} üzerinden giriş yapıldı. Sen değilsen şifreni hemen değiştir.",
    "SECURITY_PASSWORD_CHANGED": "Hesabının şifresi değiştirildi. Sen değilsen hemen bize yaz.",
-   "PUSH_TEST": "Çalışıyor! Hesabında bir şey olduğunda böyle haberdar olacaksın."
+   "PUSH_TEST": "Çalışıyor! Hesabında bir şey olduğunda böyle haberdar olacaksın.",
+   "GUARDIAN_APPROVED": "@{name} onay verdi. Hesabın etkin!",
+   "GUARDIAN_DECLINED": "Ebeveynin onay vermedi. Diğer ebeveyninden isteyebilirsin.",
+   "GUARDIAN_PAUSED": "Ebeveynin hesabını duraklattı.",
+   "GUARDIAN_RESUMED": "Ebeveynin hesabını yeniden açtı.",
+   "GUARDIAN_REVOKED": "Ebeveynin onayını geri çekti.",
+   "CHILD_ORDER": "@{name} yeni bir sipariş aldı: “{title}”.",
+   "CHILD_ADULT": "@{name} 18 yaşına girdi: hesap artık gözetimde değil.",
+   "ACCOUNT_ADULT": "Doğum günün kutlu olsun! 18 yaşındasın ve hesap sınırların kalktı.",
+   "REFERRAL_REWARD": "{count} doğrulanmış arkadaşa ulaştın: 30 gün +1 ücretsiz ilan ve 7 gün öne çıkarma!",
+   "REFERRAL_FRIEND_BONUS": "Hoş geldin! Bir ilan için ücretsiz yukarı taşıma kazandın."
   },
   "carriers": {
    "FAN_COURIER": "FAN Courier",

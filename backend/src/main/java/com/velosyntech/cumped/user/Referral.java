@@ -11,6 +11,8 @@ public class Referral {
     @Id private UUID inviteeId;
     private UUID inviterId;
     private boolean qualified;
+    /** Prietenul invitat și-a primit bonusul (o ridicare gratuită) — o singură dată. */
+    private boolean inviteeRewarded;
     private Instant createdAt = Instant.now();
 
     protected Referral() {}
@@ -20,4 +22,6 @@ public class Referral {
     public UUID getInviterId() { return inviterId; }
     public boolean isQualified() { return qualified; }
     public void setQualified(boolean qualified) { this.qualified = qualified; }
+    public boolean isInviteeRewarded() { return inviteeRewarded; }
+    public void setInviteeRewarded(boolean inviteeRewarded) { this.inviteeRewarded = inviteeRewarded; }
 }

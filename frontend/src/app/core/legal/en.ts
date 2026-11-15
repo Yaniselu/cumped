@@ -6,14 +6,19 @@ import { LegalDocs } from './types';
 
 const docs: LegalDocs = {
   terms: {
-    title: 'Terms & conditions', updated: '2026-11-12',
+    title: 'Terms & conditions', updated: '2026-11-15',
     sections: [
       { h: '1. Who we are', p: [
         'Cumped is an online platform where individuals and businesses publish listings, negotiate and buy goods and services. It is operated by {company}, registered office {address}, registration no. {regNo}, VAT {vat}, email {email} (“we”).',
         'Cumped is an intermediary (a hosting service under Regulation (EU) 2022/2065, the Digital Services Act, “DSA”). The sales contract is concluded directly between buyer and seller; we are not a party to it, except for the services we sell ourselves (plans, promotions, safe payment).',
       ] },
       { h: '2. Your account', p: [
-        'You must be at least 18 and use accurate details. One personal account per person. You are responsible for keeping your password safe and for activity in your account.',
+        'You must be at least 18 or, between 16 and 18, have a supervised account with the consent of a parent or guardian (see “Accounts for ages 16–17”). Use accurate details. One personal account per person. You are responsible for keeping your password safe and for activity in your account.',
+      ] },
+      { h: '2.1 Accounts for ages 16–17', p: [
+        'Between 14 and 18, legal acts are concluded with the approval of a parent or guardian (Romanian Civil Code, art. 41). A 16–17-year-old’s account therefore works only after a parent or guardian with a Cumped account and verified identity gives consent through the link we email them. The consent covers transactions within the limits below; we keep proof of it (who, when, which version of the declaration).',
+        'Account limits: at most €60 per item or transaction; no vehicles, property, services, jobs or pets; courier delivery only, no meet-ups; money from sales goes to the parent; phone numbers, emails and links cannot be sent in chats; the real name and city are never shown publicly.',
+        'The parent is notified of every order and can pause the account or withdraw consent at any time from their profile; active listings stop immediately. On turning 18 the limits disappear and the link to the parent ends. People under 16 cannot create an account.',
         'Your public name is the username you choose. Identity verification is optional: if you complete it, the name on your ID becomes your account name and is visible only to signed-in, verified users. ID images are processed by the verification provider and are not stored by us.',
       ] },
       { h: '3. Listings', p: [
@@ -26,7 +31,7 @@ const docs: LegalDocs = {
         'Never pay through links received in chat, advance transfers to strangers or external apps. Messages requesting such payments may be blocked automatically.',
       ] },
       { h: '5. Prices, fees and payments', p: [
-        'During the first year after sign-up you get 2 active listings at a time for free. Beyond that you can buy: extra listing €1.99 / 30 days; Plus plan €4.99 / month (15 active listings); Pro / Business €19.99 / month (100 active listings); promotion €2.99 / 7 days; bump €0.99. Inviting 10 friends who verify their account gives you up to 5 free listings.',
+        'During the first year after sign-up you get 2 active listings at a time for free. Beyond that you can buy: extra listing €1.99 / 30 days; Plus plan €4.99 / month (15 active listings); Pro / Business €19.99 / month (100 active listings); promotion €2.99 / 7 days; bump €0.99. Invite programme: after your first 10 invited friends verify their identity, you can have 5 free listings instead of 2; every 10 verified friends also earn you one extra free active listing for 30 days and a 7-day promotion, and each invited friend gets a free bump after verifying. Only accounts with a verified identity count (or 16–17 accounts approved by a verified parent). Free credits expire after 90 days. We may cancel rewards obtained through fake accounts or fraud.',
         'Safe payment costs 2.5% of the item value (minimum €0.50, maximum €20) and is paid by the buyer. Prices include VAT where applicable. Plans renew monthly and can be cancelled at any time, effective at the end of the paid period.',
         'In the iOS and Android apps, digital services (plans, promotions) are purchased through Apple’s or Google’s payment system under their rules, including refunds.',
       ] },
@@ -72,7 +77,7 @@ const docs: LegalDocs = {
     ],
   },
   privacy: {
-    title: 'Privacy policy', updated: '2026-11-12',
+    title: 'Privacy policy', updated: '2026-11-15',
     sections: [
       { h: '1. Controller', p: ['The controller of your data is {company}, {address}, email {email}. For any data protection question, write to {dpo}.'] },
       { h: '2. What we process', p: [
@@ -100,7 +105,7 @@ const docs: LegalDocs = {
         'Encrypted connections (HTTPS), passwords stored only as hashes, short-lived sessions with secure refresh, sign-in attempt limits, automatic scanning of messages for fraud attempts and restricted internal access to data. ID names, delivery addresses and phone numbers are encrypted in the database (AES-256-GCM), and dispute evidence photos are only reachable through signed links valid for 2 hours.',
       ] },
       { h: '9. Minors, tracking and cookies', p: [
-        'The service is intended for people aged 18 or older. We do not track you across other companies’ apps or websites, do not use the device advertising identifier and do not use third-party advertising or analytics cookies. See the Cookies page.',
+        'The service is intended for people aged 18 or older and, with a parent’s or guardian’s consent, for 16–17-year-olds. For these accounts we store the date the holder turns 18 (never shown), the parent’s email (encrypted) and proof of consent; we do not profile them or show them personalised ads. At 18 the link to the parent is deleted, while proof of consent is kept as long as needed for possible disputes. We do not track you across other companies’ apps or websites, do not use the device advertising identifier and do not use third-party advertising or analytics cookies. See the Cookies page.',
       ] },
     ],
   },

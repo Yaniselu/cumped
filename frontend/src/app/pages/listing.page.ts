@@ -136,9 +136,16 @@ import { ListingCardComponent } from '../shared/listing-card.component';
                   <div class="oacts">
                     <a class="chip" [routerLink]="['/sell', x.id]"><ion-icon name="create-outline"></ion-icon>{{ 'common.edit' | t }}</a>
                     @if (x.status === 'ACTIVE') {
-                      @if (purchases.allowed()) {
+                      <!-- credite gratuite din invitații: se folosesc fără plată -->
+                      @if ((credits()['PROMOTE_7D'] || 0) > 0) {
+                        <button class="chip free" [disabled]="!!buying()" (click)="redeem('PROMOTE_7D')"><ion-icon name="rocket-outline"></ion-icon>{{ 'credit.promote' | t: { n: credits()['PROMOTE_7D'] } }}</button>
+                      } @else if (purchases.allowed()) {
                         <cmp-hold-button tone="light" [small]="true" icon="rocket-outline" [busy]="buying() === 'PROMOTE_7D'" [label]="'listing.promote' | t"
                           [confirmText]="'hold.payConfirm' | t: { what: ('plans.PROMOTE_7D' | t), price: '2,99 €' }" (confirmed)="buy('PROMOTE_7D')" />
+                      }
+                      @if ((credits()['BUMP'] || 0) > 0) {
+                        <button class="chip free" [disabled]="!!buying()" (click)="redeem('BUMP')"><ion-icon name="arrow-up"></ion-icon>{{ 'credit.bump' | t: { n: credits()['BUMP'] } }}</button>
+                      } @else if (purchases.allowed()) {
                         <cmp-hold-button tone="light" [small]="true" icon="arrow-up" [busy]="buying() === 'BUMP'" [label]="'listing.bump' | t"
                           [confirmText]="'hold.payConfirm' | t: { what: ('plans.BUMP' | t), price: '0,99 €' }" (confirmed)="buy('BUMP')" />
                       }
@@ -430,6 +437,7 @@ import { ListingCardComponent } from '../shared/listing-card.component';
     .ostats div { background: var(--surface-2); border-radius: 16px; padding: 10px 4px; display: flex; flex-direction: column; }
     .ostats strong { font-family: var(--font-display); font-size: 20px; } .ostats span { font-size: 13px; color: var(--text-2); }
     .oacts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; } .chip.danger { color: var(--accent-2); }
+    .chip.free { background: linear-gradient(120deg, var(--accent-soft), color-mix(in oklab, var(--accent-2) 14%, var(--surface))); color: var(--accent); border-color: transparent; font-weight: 650; animation: pop .6s var(--spring) both; }
     .desc { white-space: pre-wrap; line-height: 1.6; font-size: 16px; }
     .chart svg { width: 100%; height: 110px; overflow: visible; }
     .draw { stroke-dasharray: 600; stroke-dashoffset: 600; animation: dash 1.4s .2s var(--ease) forwards; } @keyframes dash { to { stroke-dashoffset: 0; } }
@@ -584,6 +592,7 @@ export class ListingPage implements ViewWillEnter {
     try {
       const d = await this.api.listing(this.id());
       this.d.set(d);
+      if (d.owner) this.api.referrals().then((o) => this.credits.set(o.credits)).catch(() => {});
       this.shipTo = this.auth.user()?.country || 'RO';
       this.api.priceAnalysis(this.id()).then((a) => this.analysis.set(a)).catch(() => {});
       this.api.similar(this.id()).then((s) => this.similar.set(s)).catch(() => {});
@@ -771,6 +780,21 @@ export class ListingPage implements ViewWillEnter {
   async remove() {
     if (!(await this.ui.confirm(this.i18n.t('listing.removeConfirm'), this.i18n.t('common.delete')))) return;
     try { await this.api.listingStatus(this.id(), 'delete'); this.nav.navigateRoot('/my-listings'); } catch (e) { this.ui.error(e); }
+  }
+
+  /** Creditele gratuite (promovare / ridicare) câștigate din invitații. */
+  credits = signal<Record<string, number>>({});
+
+  async redeem(product: 'PROMOTE_7D' | 'BUMP') {
+    if (this.buying()) return;
+    this.buying.set(product);
+    try {
+      const r = await this.api.redeem(product, this.id());
+      this.credits.set(r.credits);
+      this.motion.seal(this.i18n.t('credit.used'));
+      await this.ionViewWillEnter();
+    } catch (e) { this.ui.error(e); }
+    this.buying.set(null);
   }
 
   async buy(product: string) {
